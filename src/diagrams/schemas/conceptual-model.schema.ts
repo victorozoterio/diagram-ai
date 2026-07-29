@@ -93,3 +93,4 @@ export type Relationship = z.infer<typeof RelationshipSchema>;
 export type Ambiguity = z.infer<typeof AmbiguitySchema>;
 export type ConceptualModelMetadata = z.infer<typeof ConceptualModelMetadataSchema>;
 export type ConceptualModel = z.infer<typeof ConceptualModelSchema>;
+export const ConceptualModelJsonSchema = z.toJSONSchema(ConceptualModelSchema);
