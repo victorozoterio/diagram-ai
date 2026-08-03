@@ -1,45 +1,81 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { z } from 'zod';
 
 import { AiService } from '../ai/ai.service';
-import { ENV, EnvironmentVariables } from '../config/environments';
 import { GenerateDiagramDto } from './dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from './schemas/conceptual-model.schema';
 
 @Injectable()
 export class DiagramsService {
-  private readonly model: string;
+  private readonly maxValidationAttempts = 3;
 
-  constructor(
-    private readonly aiService: AiService,
-    private readonly configService: ConfigService<EnvironmentVariables, true>,
-  ) {
-    this.model = this.configService.getOrThrow(ENV.HUGGING_FACE_MODEL);
-  }
+  constructor(private readonly aiService: AiService) {}
 
   async generate(dto: GenerateDiagramDto): Promise<ConceptualModel> {
-    const aiResponse = await this.aiService.generateConceptualModel(dto.description);
+    let conceptualModel = await this.aiService.generateConceptualModel(dto.description);
 
-    const conceptualModel = {
-      ...aiResponse,
-      metadata: {
-        ...aiResponse.metadata,
-        sourceText: dto.description,
-        generatedBy: this.model,
-        generatedAt: new Date().toISOString(),
-      },
-    };
+    for (let attempt = 1; attempt <= this.maxValidationAttempts; attempt++) {
+      conceptualModel = this.applyTrustedMetadata(conceptualModel, dto.description);
 
-    const parsed = ConceptualModelSchema.safeParse(conceptualModel);
+      const parsed = ConceptualModelSchema.safeParse(conceptualModel);
 
-    if (!parsed.success) {
-      throw new BadRequestException({
-        message: 'O modelo conceitual gerado é inválido.',
-        errors: z.treeifyError(parsed.error),
+      if (parsed.success) {
+        return parsed.data;
+      }
+
+      if (attempt === this.maxValidationAttempts) {
+        throw new BadRequestException({
+          message: 'O modelo conceitual gerado é inválido.',
+          attempts: attempt,
+          errors: z.treeifyError(parsed.error),
+        });
+      }
+
+      conceptualModel = await this.aiService.fixConceptualModel({
+        description: dto.description,
+        invalidModel: conceptualModel,
+        validationError: z.treeifyError(parsed.error),
       });
     }
 
-    return parsed.data;
+    throw new BadRequestException({
+      message: 'Não foi possível gerar um modelo conceitual válido.',
+    });
+  }
+
+  private applyTrustedMetadata(aiResponse: unknown, description: string): Record<string, unknown> {
+    if (!aiResponse || typeof aiResponse !== 'object') {
+      return {
+        metadata: {
+          sourceText: description,
+          generatedBy: process.env.HF_MODEL ?? 'Qwen/Qwen2.5-7B-Instruct',
+          generatedAt: new Date().toISOString(),
+        },
+        entities: [],
+        relationships: [],
+        ambiguities: [
+          {
+            id: 'resposta_invalida',
+            message: 'A IA não retornou um objeto JSON válido.',
+            field: 'root',
+            suggestions: ['Tente reescrever a descrição com mais detalhes.'],
+          },
+        ],
+      };
+    }
+
+    const response = aiResponse as Record<string, unknown>;
+    const metadata =
+      response.metadata && typeof response.metadata === 'object' ? (response.metadata as Record<string, unknown>) : {};
+
+    return {
+      ...response,
+      metadata: {
+        ...metadata,
+        sourceText: description,
+        generatedBy: process.env.HF_MODEL ?? 'Qwen/Qwen2.5-7B-Instruct',
+        generatedAt: new Date().toISOString(),
+      },
+    };
   }
 }
