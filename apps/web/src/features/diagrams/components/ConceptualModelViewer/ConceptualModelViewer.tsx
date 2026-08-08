@@ -3,9 +3,10 @@ import styles from './ConceptualModelViewer.module.css';
 
 type ConceptualModelViewerProps = {
   model: ConceptualModel;
+  onRemoveEntity?: (entityId: string) => void;
 };
 
-export function ConceptualModelViewer({ model }: ConceptualModelViewerProps) {
+export function ConceptualModelViewer({ model, onRemoveEntity }: ConceptualModelViewerProps) {
   return (
     <div className={styles.modelViewer}>
       <div>
@@ -15,6 +16,12 @@ export function ConceptualModelViewer({ model }: ConceptualModelViewerProps) {
           {model.entities.map((entity) => (
             <article key={entity.id} className={styles.modelCard}>
               <h4>{entity.name}</h4>
+
+              {onRemoveEntity && (
+                <button className={styles.removeButton} type='button' onClick={() => onRemoveEntity(entity.id)}>
+                  Remover
+                </button>
+              )}
 
               {entity.description && <p>{entity.description}</p>}
 

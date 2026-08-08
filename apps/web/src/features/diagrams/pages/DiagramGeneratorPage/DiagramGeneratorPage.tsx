@@ -14,6 +14,8 @@ export function DiagramGeneratorPage() {
     setDescription,
     generateConceptualDiagram,
     convertConceptualToLogicalDiagram,
+    addEntity,
+    removeEntity,
   } = useDiagramEditor();
 
   return (
@@ -62,9 +64,15 @@ export function DiagramGeneratorPage() {
 
       {conceptualModel && (
         <section className={styles.panel}>
-          <h2>Modelo conceitual</h2>
+          <div className={styles.sectionHeader}>
+            <h2>Modelo conceitual</h2>
 
-          <ConceptualDiagramFlow model={conceptualModel} />
+            <button className={styles.secondaryButton} type='button' onClick={addEntity}>
+              + Adicionar entidade
+            </button>
+          </div>
+
+          <ConceptualDiagramFlow model={conceptualModel} onRemoveEntity={removeEntity} />
 
           <ConceptualModelViewer model={conceptualModel} />
         </section>

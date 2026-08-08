@@ -16,11 +16,45 @@
   box-shadow: 0 16px 40px rgb(15 23 42 / 12%);
 }
 
+.entityNodeHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
 .entityNodeTitle {
   display: block;
-  margin-bottom: 6px;
   color: #111827;
   font-size: 16px;
+  line-height: 1.2;
+}
+
+.removeButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: #fee2e2;
+  color: #991b1b;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.removeButton:hover {
+  background: #fecaca;
+  color: #7f1d1d;
+  transform: translateY(-1px);
+}
+
+.removeButton:active {
+  transform: translateY(0);
 }
 
 .entityNodeDescription {

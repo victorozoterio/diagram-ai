@@ -4,20 +4,33 @@ import { Background, Controls, type Edge, Handle, type Node, Position, ReactFlow
 import type { ConceptualModel, Entity } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 
-type ConceptualDiagramFlowProps = {
-  model: ConceptualModel;
+type EntityNodeData = Entity & {
+  onRemoveEntity?: (entityId: string) => void;
 };
 
-function EntityNode({ data }: { data: Entity }) {
+type ConceptualDiagramFlowProps = {
+  model: ConceptualModel;
+  onRemoveEntity?: (entityId: string) => void;
+};
+
+function EntityNode({ data }: { data: EntityNodeData }) {
   return (
     <div className={styles.entityNode}>
-      <strong className={styles.entityNodeTitle}>{data.name}</strong>
+      <div className={styles.entityNodeHeader}>
+        <strong className={styles.entityNodeTitle}>{data.name}</strong>
+
+        {data.onRemoveEntity && (
+          <button className={styles.removeButton} type='button' onClick={() => data.onRemoveEntity?.(data.id)}>
+            Remover
+          </button>
+        )}
+      </div>
 
       {data.description && <p className={styles.entityNodeDescription}>{data.description}</p>}
 
       <ul className={styles.attributeList}>
         {data.attributes.map((attribute) => (
-          <li className={styles.attributeItem} key={attribute.id}>
+          <li key={attribute.id} className={styles.attributeItem}>
             {attribute.identifier && <span className={`${styles.attributeTag} ${styles.primaryTag}`}>PK</span>}
 
             <span>{attribute.name}</span>
@@ -25,13 +38,9 @@ function EntityNode({ data }: { data: Entity }) {
             <small className={styles.attributeType}>{attribute.type}</small>
 
             {attribute.required && <span className={styles.attributeTag}>obrigatório</span>}
-
             {attribute.unique && <span className={styles.attributeTag}>único</span>}
-
             {attribute.multivalued && <span className={styles.attributeTag}>multivalorado</span>}
-
             {attribute.composite && <span className={styles.attributeTag}>composto</span>}
-
             {attribute.derived && <span className={styles.attributeTag}>derivado</span>}
           </li>
         ))}
@@ -47,15 +56,18 @@ const nodeTypes = {
   entity: EntityNode,
 };
 
-export function ConceptualDiagramFlow({ model }: ConceptualDiagramFlowProps) {
-  const nodes: Node<Entity>[] = model.entities.map((entity, index) => ({
+export function ConceptualDiagramFlow({ model, onRemoveEntity }: ConceptualDiagramFlowProps) {
+  const nodes: Node<EntityNodeData>[] = model.entities.map((entity, index) => ({
     id: entity.id,
     type: 'entity',
     position: {
       x: 80 + (index % 3) * 360,
       y: 80 + Math.floor(index / 3) * 280,
     },
-    data: entity,
+    data: {
+      ...entity,
+      onRemoveEntity,
+    },
   }));
 
   const edges: Edge[] = model.relationships.flatMap((relationship) => {

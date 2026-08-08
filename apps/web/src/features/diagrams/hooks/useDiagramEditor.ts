@@ -59,6 +59,70 @@ export function useDiagramEditor() {
     setError(null);
   }
 
+  function createEntityId(name: string) {
+    return name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9\s]/g, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+  }
+
+  function addEntity() {
+    const entityNumber = (conceptualModel?.entities.length ?? 0) + 1;
+
+    const entityName = `Nova Entidade ${entityNumber}`;
+
+    const newEntity = {
+      id: createEntityId(entityName),
+      name: entityName,
+      description: 'Entidade adicionada manualmente pelo usuário.',
+      attributes: [],
+    };
+
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return {
+          metadata: {
+            title: 'Modelo conceitual',
+            description: 'Modelo criado manualmente pelo usuário.',
+            generatedBy: 'user',
+            generatedAt: new Date().toISOString(),
+          },
+          entities: [newEntity],
+          relationships: [],
+          ambiguities: [],
+        };
+      }
+
+      return {
+        ...currentModel,
+        entities: [...currentModel.entities, newEntity],
+      };
+    });
+
+    setLogicalModel(null);
+  }
+
+  function removeEntity(entityId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        entities: currentModel.entities.filter((entity) => entity.id !== entityId),
+        relationships: currentModel.relationships.filter((relationship) =>
+          relationship.participants.every((participant) => participant.entityId !== entityId),
+        ),
+      };
+    });
+
+    setLogicalModel(null);
+  }
+
   return {
     description,
     conceptualModel,
@@ -74,5 +138,7 @@ export function useDiagramEditor() {
     convertConceptualToLogicalDiagram,
     clearLogicalModel,
     clearDiagram,
+    addEntity,
+    removeEntity,
   };
 }
