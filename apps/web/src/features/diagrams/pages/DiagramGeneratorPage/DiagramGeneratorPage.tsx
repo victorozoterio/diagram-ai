@@ -1,56 +1,20 @@
-import { useState } from 'react';
-
-import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
-import { ConceptualDiagramFlow, ConceptualModelViewer, LogicalModelViewer } from '@/features/diagrams/components';
-import { LogicalModelFlow } from '@/features/diagrams/components/LogicalModelFlow';
-import type { ConceptualModel, LogicalModel } from '@/features/diagrams/types';
+import { ConceptualDiagramFlow, ConceptualModelViewer, LogicalModelFlow, LogicalModelViewer } from '../../components';
+import { useDiagramEditor } from '../../hooks';
 import styles from './DiagramGeneratorPage.module.css';
 
-const defaultDescription =
-  'Um cliente pode realizar vários pedidos. Cada pedido pertence a apenas um cliente. O cliente possui nome, email e telefone. O pedido possui data e valor total.';
-
 export function DiagramGeneratorPage() {
-  const [description, setDescription] = useState(defaultDescription);
-  const [conceptualModel, setConceptualModel] = useState<ConceptualModel | null>(null);
-  const [logicalModel, setLogicalModel] = useState<LogicalModel | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isConverting, setIsConverting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleGenerateConceptualModel() {
-    setError(null);
-    setLogicalModel(null);
-    setIsGenerating(true);
-
-    try {
-      const model = await generateConceptualModel(description);
-
-      setConceptualModel(model);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  async function handleConvertToLogicalModel() {
-    if (!conceptualModel) {
-      return;
-    }
-
-    setError(null);
-    setIsConverting(true);
-
-    try {
-      const model = await convertToLogicalModel(conceptualModel);
-
-      setLogicalModel(model);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Erro inesperado ao converter o modelo lógico.');
-    } finally {
-      setIsConverting(false);
-    }
-  }
+  const {
+    description,
+    conceptualModel,
+    logicalModel,
+    isGenerating,
+    isConverting,
+    error,
+    canConvertToLogical,
+    setDescription,
+    generateConceptualDiagram,
+    convertConceptualToLogicalDiagram,
+  } = useDiagramEditor();
 
   return (
     <main className={styles.app}>
@@ -77,7 +41,7 @@ export function DiagramGeneratorPage() {
           <button
             className={styles.actionButton}
             type='button'
-            onClick={handleGenerateConceptualModel}
+            onClick={generateConceptualDiagram}
             disabled={isGenerating}
           >
             {isGenerating ? 'Gerando...' : 'Gerar modelo conceitual'}
@@ -86,8 +50,8 @@ export function DiagramGeneratorPage() {
           <button
             className={styles.actionButton}
             type='button'
-            onClick={handleConvertToLogicalModel}
-            disabled={!conceptualModel || isConverting}
+            onClick={convertConceptualToLogicalDiagram}
+            disabled={!canConvertToLogical || isConverting}
           >
             {isConverting ? 'Convertendo...' : 'Converter para modelo lógico'}
           </button>
