@@ -14,7 +14,9 @@
     "dev:api": "pnpm --filter @diagram-ai/api start:dev",
     "build:api": "pnpm --filter @diagram-ai/api build",
     "start:api": "pnpm --filter @diagram-ai/api start",
-    "start:api:prod": "pnpm --filter @diagram-ai/api start:prod"
+    "start:api:prod": "pnpm --filter @diagram-ai/api start:prod",
+    "dev:web": "pnpm --filter @diagram-ai/web dev",
+    "build:web": "pnpm --filter @diagram-ai/web build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
