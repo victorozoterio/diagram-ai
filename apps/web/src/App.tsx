@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
 import { convertToLogicalModel, generateConceptualModel } from './api/diagrams.api';
-import type { ConceptualModel } from './features/diagrams/types/conceptual-model';
-import type { LogicalModel } from './features/diagrams/types/logical-model';
+import { ConceptualModelViewer, LogicalModelViewer } from './features/diagrams/components';
+import type { ConceptualModel, LogicalModel } from './features/diagrams/types';
 
 const defaultDescription =
   'Um cliente pode realizar vários pedidos. Cada pedido pertence a apenas um cliente. O cliente possui nome, email e telefone. O pedido possui data e valor total.';
@@ -84,14 +84,14 @@ export function App() {
       {conceptualModel && (
         <section className='panel'>
           <h2>Modelo conceitual</h2>
-          <pre>{JSON.stringify(conceptualModel, null, 2)}</pre>
+          <ConceptualModelViewer model={conceptualModel} />
         </section>
       )}
 
       {logicalModel && (
         <section className='panel'>
           <h2>Modelo lógico</h2>
-          <pre>{JSON.stringify(logicalModel, null, 2)}</pre>
+          <LogicalModelViewer model={logicalModel} />
         </section>
       )}
     </main>
