@@ -1,0 +1,76 @@
+.modelViewer {
+  display: grid;
+  gap: 24px;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.modelCard {
+  padding: 18px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+}
+
+.modelCard h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.modelCard p {
+  margin: 0 0 12px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.modelCard ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.modelCard li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.modelCard li:first-child {
+  border-top: 0;
+}
+
+.badge {
+  padding: 2px 8px;
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.primaryBadge {
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.ambiguities {
+  padding: 16px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+}

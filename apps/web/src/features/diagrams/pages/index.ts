@@ -1,0 +1,1 @@
+export { DiagramGeneratorPage } from './DiagramGeneratorPage';

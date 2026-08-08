@@ -1,4 +1,5 @@
-import type { ConceptualModel } from '../types/conceptual-model';
+import type { ConceptualModel } from '../../types';
+import styles from './ConceptualModelViewer.module.css';
 
 type ConceptualModelViewerProps = {
   model: ConceptualModel;
@@ -6,13 +7,13 @@ type ConceptualModelViewerProps = {
 
 export function ConceptualModelViewer({ model }: ConceptualModelViewerProps) {
   return (
-    <div className='model-viewer'>
+    <div className={styles.modelViewer}>
       <div>
         <h3>Entidades</h3>
 
-        <div className='cards-grid'>
+        <div className={styles.cardsGrid}>
           {model.entities.map((entity) => (
-            <article key={entity.id} className='model-card'>
+            <article key={entity.id} className={styles.modelCard}>
               <h4>{entity.name}</h4>
 
               {entity.description && <p>{entity.description}</p>}
@@ -20,15 +21,17 @@ export function ConceptualModelViewer({ model }: ConceptualModelViewerProps) {
               <ul>
                 {entity.attributes.map((attribute) => (
                   <li key={attribute.id}>
-                    {attribute.identifier && <strong>PK </strong>}
-                    <span>{attribute.name}</span>
-                    <small>{attribute.type}</small>
+                    {attribute.identifier && <strong className={styles.primaryBadge}>PK</strong>}
 
-                    {attribute.required && <em> obrigatório</em>}
-                    {attribute.unique && <em> único</em>}
-                    {attribute.multivalued && <em> multivalorado</em>}
-                    {attribute.composite && <em> composto</em>}
-                    {attribute.derived && <em> derivado</em>}
+                    <span>{attribute.name}</span>
+
+                    <small className={styles.badge}>{attribute.type}</small>
+
+                    {attribute.required && <em className={styles.muted}>obrigatório</em>}
+                    {attribute.unique && <em className={styles.muted}>único</em>}
+                    {attribute.multivalued && <em className={styles.muted}>multivalorado</em>}
+                    {attribute.composite && <em className={styles.muted}>composto</em>}
+                    {attribute.derived && <em className={styles.muted}>derivado</em>}
                   </li>
                 ))}
               </ul>
@@ -40,11 +43,11 @@ export function ConceptualModelViewer({ model }: ConceptualModelViewerProps) {
       <div>
         <h3>Relacionamentos</h3>
 
-        <div className='cards-grid'>
+        <div className={styles.cardsGrid}>
           {model.relationships.map((relationship) => (
-            <article key={relationship.id} className='model-card'>
+            <article key={relationship.id} className={styles.modelCard}>
               <h4>
-                {relationship.name} <small>{relationship.type}</small>
+                {relationship.name} <small className={styles.badge}>{relationship.type}</small>
               </h4>
 
               {relationship.description && <p>{relationship.description}</p>}
@@ -53,8 +56,8 @@ export function ConceptualModelViewer({ model }: ConceptualModelViewerProps) {
                 {relationship.participants.map((participant) => (
                   <li key={participant.entityId}>
                     <span>{participant.entityId}</span>
-                    <small>{participant.cardinality}</small>
-                    {participant.role && <em>{participant.role}</em>}
+                    <small className={styles.badge}>{participant.cardinality}</small>
+                    {participant.role && <em className={styles.muted}>{participant.role}</em>}
                   </li>
                 ))}
               </ul>
@@ -64,7 +67,7 @@ export function ConceptualModelViewer({ model }: ConceptualModelViewerProps) {
       </div>
 
       {model.ambiguities.length > 0 && (
-        <div className='ambiguities'>
+        <div className={styles.ambiguities}>
           <h3>Ambiguidades</h3>
 
           <ul>

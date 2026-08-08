@@ -1,7 +1,8 @@
-import { Background, Controls, type Edge, Handle, type Node, Position, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import type { ConceptualModel, Entity } from '../types';
+import { Background, Controls, type Edge, Handle, type Node, Position, ReactFlow } from '@xyflow/react';
+import type { ConceptualModel, Entity } from '../../types';
+import styles from './ConceptualDiagramFlow.module.css';
 
 type ConceptualDiagramFlowProps = {
   model: ConceptualModel;
@@ -9,25 +10,29 @@ type ConceptualDiagramFlowProps = {
 
 function EntityNode({ data }: { data: Entity }) {
   return (
-    <div className='entity-flow-node'>
-      <strong>{data.name}</strong>
+    <div className={styles.entityNode}>
+      <strong className={styles.entityNodeTitle}>{data.name}</strong>
 
-      {data.description && <p>{data.description}</p>}
+      {data.description && <p className={styles.entityNodeDescription}>{data.description}</p>}
 
-      <ul>
+      <ul className={styles.attributeList}>
         {data.attributes.map((attribute) => (
-          <li key={attribute.id}>
-            {attribute.identifier && <span className='attribute-tag primary'>PK</span>}
+          <li className={styles.attributeItem} key={attribute.id}>
+            {attribute.identifier && <span className={`${styles.attributeTag} ${styles.primaryTag}`}>PK</span>}
 
             <span>{attribute.name}</span>
 
-            <small>{attribute.type}</small>
+            <small className={styles.attributeType}>{attribute.type}</small>
 
-            {attribute.required && <span className='attribute-tag'>obrigatório</span>}
-            {attribute.unique && <span className='attribute-tag'>único</span>}
-            {attribute.multivalued && <span className='attribute-tag'>multivalorado</span>}
-            {attribute.composite && <span className='attribute-tag'>composto</span>}
-            {attribute.derived && <span className='attribute-tag'>derivado</span>}
+            {attribute.required && <span className={styles.attributeTag}>obrigatório</span>}
+
+            {attribute.unique && <span className={styles.attributeTag}>único</span>}
+
+            {attribute.multivalued && <span className={styles.attributeTag}>multivalorado</span>}
+
+            {attribute.composite && <span className={styles.attributeTag}>composto</span>}
+
+            {attribute.derived && <span className={styles.attributeTag}>derivado</span>}
           </li>
         ))}
       </ul>
@@ -72,7 +77,7 @@ export function ConceptualDiagramFlow({ model }: ConceptualDiagramFlowProps) {
   });
 
   return (
-    <div className='diagram-flow'>
+    <div className={styles.diagramFlow}>
       <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView>
         <Background />
         <Controls />

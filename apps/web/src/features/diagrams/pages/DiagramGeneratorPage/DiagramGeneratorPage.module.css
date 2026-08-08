@@ -1,0 +1,90 @@
+.app {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.hero {
+  margin-bottom: 24px;
+}
+
+.hero span {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 40px;
+  letter-spacing: -0.04em;
+}
+
+.hero p {
+  max-width: 720px;
+  margin: 12px 0 0;
+  color: #4b5563;
+}
+
+.panel {
+  padding: 24px;
+  margin-bottom: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+}
+
+.panel h2 {
+  margin: 0 0 24px;
+  color: #111827;
+  font-size: 26px;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.descriptionField {
+  width: 100%;
+  resize: vertical;
+  padding: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  outline: none;
+}
+
+.descriptionField:focus {
+  border-color: #4f46e5;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.actionButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  background: #111827;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.actionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.error {
+  margin-top: 16px;
+  color: #b91c1c;
+  font-weight: 700;
+}

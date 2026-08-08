@@ -1,0 +1,1 @@
+export { LogicalModelViewer } from './LogicalModelViewer';
