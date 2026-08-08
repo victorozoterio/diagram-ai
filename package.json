@@ -2,47 +2,25 @@
   "name": "diagram-ai",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Victor Ozoterio",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "prepare": "husky",
     "format": "biome format --write .",
-    "build": "nest build",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main"
-  },
-  "dependencies": {
-    "@huggingface/inference": "^4.13.23",
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^4.0.4",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/mapped-types": "*",
-    "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/swagger": "^11.4.4",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.15.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "zod": "^4.4.3"
+    "lint": "biome check .",
+    "check": "biome check .",
+    "check:write": "biome check --write .",
+    "dev:api": "pnpm --filter @diagram-ai/api start:dev",
+    "build:api": "pnpm --filter @diagram-ai/api build",
+    "start:api": "pnpm --filter @diagram-ai/api start",
+    "start:api:prod": "pnpm --filter @diagram-ai/api start:prod"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
     "@commitlint/cli": "^21.1.0",
     "@commitlint/config-conventional": "^21.1.0",
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
-    "@types/express": "^5.0.0",
-    "@types/node": "^24.0.0",
-    "globals": "^17.0.0",
-    "husky": "^9.1.7",
-    "source-map-support": "^0.5.21",
-    "ts-loader": "^9.5.2",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3"
+    "husky": "^9.1.7"
   },
   "commitlint": {
     "extends": [

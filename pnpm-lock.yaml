@@ -7,6 +7,21 @@ settings:
 importers:
 
   .:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^2.5.1
+        version: 2.5.1
+      '@commitlint/cli':
+        specifier: ^21.1.0
+        version: 21.1.0(@types/node@24.13.2)(conventional-commits-parser@6.4.0)(typescript@5.9.3)
+      '@commitlint/config-conventional':
+        specifier: ^21.1.0
+        version: 21.1.0
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
+
+  apps/api:
     dependencies:
       '@huggingface/inference':
         specifier: ^4.13.23
@@ -45,15 +60,6 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
-      '@biomejs/biome':
-        specifier: ^2.5.1
-        version: 2.5.1
-      '@commitlint/cli':
-        specifier: ^21.1.0
-        version: 21.1.0(@types/node@24.13.2)(conventional-commits-parser@6.4.0)(typescript@5.9.3)
-      '@commitlint/config-conventional':
-        specifier: ^21.1.0
-        version: 21.1.0
       '@nestjs/cli':
         specifier: ^11.0.0
         version: 11.0.23(@types/node@24.13.2)(prettier@3.9.3)
@@ -69,9 +75,6 @@ importers:
       globals:
         specifier: ^17.0.0
         version: 17.7.0
-      husky:
-        specifier: ^9.1.7
-        version: 9.1.7
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
