@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { convertToLogicalModel, generateConceptualModel } from './api/diagrams.api';
-import { ConceptualModelViewer, LogicalModelViewer } from './features/diagrams/components';
+import { ConceptualDiagramFlow, ConceptualModelViewer, LogicalModelViewer } from './features/diagrams/components';
 import type { ConceptualModel, LogicalModel } from './features/diagrams/types';
 
 const defaultDescription =
@@ -84,6 +84,9 @@ export function App() {
       {conceptualModel && (
         <section className='panel'>
           <h2>Modelo conceitual</h2>
+
+          <ConceptualDiagramFlow model={conceptualModel} />
+
           <ConceptualModelViewer model={conceptualModel} />
         </section>
       )}

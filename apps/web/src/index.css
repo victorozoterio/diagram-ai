@@ -177,3 +177,73 @@ pre {
   border: 1px solid #fed7aa;
   border-radius: 16px;
 }
+
+.diagram-flow {
+  height: 560px;
+  margin-bottom: 32px;
+  overflow: hidden;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+}
+
+.entity-flow-node {
+  width: 280px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #c7d2fe;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 12%);
+}
+
+.entity-flow-node strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #111827;
+  font-size: 16px;
+}
+
+.entity-flow-node p {
+  margin: 0 0 12px;
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.entity-flow-node ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.entity-flow-node li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.entity-flow-node li:first-child {
+  border-top: 0;
+}
+
+.entity-flow-node small {
+  padding: 2px 8px;
+  color: #4338ca;
+  font-size: 11px;
+  font-weight: 700;
+  background: #eef2ff;
+  border-radius: 999px;
+}
+
+.attribute-tag {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.attribute-tag.primary {
+  color: #b45309;
+  font-weight: 700;
+}
