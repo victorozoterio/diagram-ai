@@ -8,6 +8,10 @@ export class LogicalModelConverterService {
   convert(conceptualModel: ConceptualModel): LogicalModel {
     const tables = conceptualModel.entities.map((entity) => this.entityToTable(entity));
 
+    for (const table of tables) {
+      this.ensurePrimaryKey(table);
+    }
+
     this.applyOneToOneRelationships(tables, conceptualModel.relationships);
 
     this.applyOneToManyRelationships(tables, conceptualModel.relationships);
@@ -77,11 +81,7 @@ export class LogicalModelConverterService {
         continue;
       }
 
-      const firstPrimaryKey = this.findPrimaryKey(firstTable);
-
-      if (!firstPrimaryKey) {
-        continue;
-      }
+      const firstPrimaryKey = this.ensurePrimaryKey(firstTable);
 
       this.addOrPromoteForeignKey({
         targetTable: secondTable,
@@ -112,11 +112,7 @@ export class LogicalModelConverterService {
         continue;
       }
 
-      const onePrimaryKey = this.findPrimaryKey(oneTable);
-
-      if (!onePrimaryKey) {
-        continue;
-      }
+      const onePrimaryKey = this.ensurePrimaryKey(oneTable);
 
       this.addOrPromoteForeignKey({
         targetTable: manyTable,
@@ -145,12 +141,8 @@ export class LogicalModelConverterService {
         continue;
       }
 
-      const firstPrimaryKey = this.findPrimaryKey(firstTable);
-      const secondPrimaryKey = this.findPrimaryKey(secondTable);
-
-      if (!firstPrimaryKey || !secondPrimaryKey) {
-        continue;
-      }
+      const firstPrimaryKey = this.ensurePrimaryKey(firstTable);
+      const secondPrimaryKey = this.ensurePrimaryKey(secondTable);
 
       const associativeTable: LogicalTable = {
         id: relationship.id,
@@ -195,11 +187,7 @@ export class LogicalModelConverterService {
         continue;
       }
 
-      const primaryKey = this.findPrimaryKey(table);
-
-      if (!primaryKey) {
-        continue;
-      }
+      const primaryKey = this.ensurePrimaryKey(table);
 
       const multivaluedAttributes = entity.attributes.filter((attribute) => attribute.multivalued);
 
@@ -208,6 +196,15 @@ export class LogicalModelConverterService {
           id: `${entity.id}_${attribute.id}`,
           name: `${entity.name}${this.toPascalCase(attribute.name)}`,
           columns: [
+            {
+              id: `${entity.id}_${attribute.id}_id`,
+              name: 'id',
+              type: 'uuid',
+              primaryKey: true,
+              foreignKey: false,
+              required: true,
+              unique: true,
+            },
             this.createForeignKeyColumn({
               id: `${entity.id}_${attribute.id}_${entity.id}_id`,
               name: `${entity.id}Id`,
@@ -301,6 +298,28 @@ export class LogicalModelConverterService {
         columnId: referencedColumn.id,
       },
     };
+  }
+
+  private ensurePrimaryKey(table: LogicalTable): LogicalColumn {
+    const existingPrimaryKey = this.findPrimaryKey(table);
+
+    if (existingPrimaryKey) {
+      return existingPrimaryKey;
+    }
+
+    const idColumn: LogicalColumn = {
+      id: `${table.id}_id`,
+      name: 'id',
+      type: 'uuid',
+      primaryKey: true,
+      foreignKey: false,
+      required: true,
+      unique: true,
+    };
+
+    table.columns.unshift(idColumn);
+
+    return idColumn;
   }
 
   private findExistingForeignKeyCandidate(
