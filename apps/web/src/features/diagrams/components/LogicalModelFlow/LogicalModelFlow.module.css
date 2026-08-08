@@ -1,0 +1,64 @@
+.diagramFlow {
+  height: 560px;
+  margin-bottom: 32px;
+  overflow: hidden;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+}
+
+.tableNode {
+  width: 300px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 12%);
+}
+
+.tableTitle {
+  display: block;
+  margin-bottom: 12px;
+  color: #111827;
+  font-size: 16px;
+}
+
+.columnList {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.columnItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.columnItem:first-child {
+  border-top: 0;
+}
+
+.keyTag {
+  color: #b45309;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.columnType {
+  padding: 2px 8px;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 700;
+  background: #e0f2fe;
+  border-radius: 999px;
+}
+
+.columnMeta {
+  color: #6b7280;
+  font-size: 11px;
+}

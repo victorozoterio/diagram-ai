@@ -9,4 +9,4 @@ export type {
   RelationshipParticipant,
 } from './conceptual-model';
 
-export type { LogicalModel } from './logical-model';
+export type { LogicalModel, LogicalTable } from './logical-model';

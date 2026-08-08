@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
 import { ConceptualDiagramFlow, ConceptualModelViewer, LogicalModelViewer } from '@/features/diagrams/components';
+import { LogicalModelFlow } from '@/features/diagrams/components/LogicalModelFlow';
 import type { ConceptualModel, LogicalModel } from '@/features/diagrams/types';
 import styles from './DiagramGeneratorPage.module.css';
 
@@ -108,6 +109,8 @@ export function DiagramGeneratorPage() {
       {logicalModel && (
         <section className={styles.panel}>
           <h2>Modelo lógico</h2>
+
+          <LogicalModelFlow model={logicalModel} />
 
           <LogicalModelViewer model={logicalModel} />
         </section>
