@@ -6,11 +6,13 @@ import styles from './ConceptualDiagramFlow.module.css';
 
 type EntityNodeData = Entity & {
   onRemoveEntity?: (entityId: string) => void;
+  onAddAttribute?: (entityId: string) => void;
 };
 
 type ConceptualDiagramFlowProps = {
   model: ConceptualModel;
   onRemoveEntity?: (entityId: string) => void;
+  onAddAttribute?: (entityId: string) => void;
 };
 
 function EntityNode({ data }: { data: EntityNodeData }) {
@@ -20,8 +22,13 @@ function EntityNode({ data }: { data: EntityNodeData }) {
         <strong className={styles.entityNodeTitle}>{data.name}</strong>
 
         {data.onRemoveEntity && (
-          <button className={styles.removeButton} type='button' onClick={() => data.onRemoveEntity?.(data.id)}>
-            Remover
+          <button
+            className={styles.removeIconButton}
+            type='button'
+            onClick={() => data.onRemoveEntity?.(data.id)}
+            title='Remover entidade'
+          >
+            ×
           </button>
         )}
       </div>
@@ -46,6 +53,12 @@ function EntityNode({ data }: { data: EntityNodeData }) {
         ))}
       </ul>
 
+      {data.onAddAttribute && (
+        <button className={styles.addAttributeButton} type='button' onClick={() => data.onAddAttribute?.(data.id)}>
+          + Adicionar atributo
+        </button>
+      )}
+
       <Handle type='target' position={Position.Left} />
       <Handle type='source' position={Position.Right} />
     </div>
@@ -56,7 +69,7 @@ const nodeTypes = {
   entity: EntityNode,
 };
 
-export function ConceptualDiagramFlow({ model, onRemoveEntity }: ConceptualDiagramFlowProps) {
+export function ConceptualDiagramFlow({ model, onRemoveEntity, onAddAttribute }: ConceptualDiagramFlowProps) {
   const nodes: Node<EntityNodeData>[] = model.entities.map((entity, index) => ({
     id: entity.id,
     type: 'entity',
@@ -67,6 +80,7 @@ export function ConceptualDiagramFlow({ model, onRemoveEntity }: ConceptualDiagr
     data: {
       ...entity,
       onRemoveEntity,
+      onAddAttribute,
     },
   }));
 

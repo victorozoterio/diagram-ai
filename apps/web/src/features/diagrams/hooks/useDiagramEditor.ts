@@ -123,6 +123,58 @@ export function useDiagramEditor() {
     setLogicalModel(null);
   }
 
+  function createAttributeId(entityId: string, name: string) {
+    return `${entityId}_${name}`
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9\s_]/g, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .toLowerCase();
+  }
+
+  function addAttribute(entityId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        entities: currentModel.entities.map((entity) => {
+          if (entity.id !== entityId) {
+            return entity;
+          }
+
+          const attributeNumber = entity.attributes.length + 1;
+          const attributeName = `novoAtributo${attributeNumber}`;
+
+          return {
+            ...entity,
+            attributes: [
+              ...entity.attributes,
+              {
+                id: createAttributeId(entity.id, attributeName),
+                name: attributeName,
+                type: 'string',
+                description: 'Atributo adicionado manualmente pelo usuário.',
+                identifier: false,
+                required: false,
+                unique: false,
+                multivalued: false,
+                composite: false,
+                derived: false,
+                components: [],
+              },
+            ],
+          };
+        }),
+      };
+    });
+
+    setLogicalModel(null);
+  }
+
   return {
     description,
     conceptualModel,
@@ -140,5 +192,6 @@ export function useDiagramEditor() {
     clearDiagram,
     addEntity,
     removeEntity,
+    addAttribute,
   };
 }

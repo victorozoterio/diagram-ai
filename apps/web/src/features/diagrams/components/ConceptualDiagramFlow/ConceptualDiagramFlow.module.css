@@ -31,30 +31,16 @@
   line-height: 1.2;
 }
 
-.removeButton {
-  border: 0;
-  border-radius: 999px;
-  padding: 5px 9px;
+.removeIconButton {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
   background: #fee2e2;
   color: #991b1b;
   cursor: pointer;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 16px;
   line-height: 1;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.removeButton:hover {
-  background: #fecaca;
-  color: #7f1d1d;
-  transform: translateY(-1px);
-}
-
-.removeButton:active {
-  transform: translateY(0);
 }
 
 .entityNodeDescription {
@@ -100,4 +86,23 @@
 .primaryTag {
   color: #b45309;
   font-weight: 700;
+}
+
+.addAttributeButton {
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  border: 1px dashed #c7d2fe;
+  border-radius: 10px;
+  background: transparent;
+  color: #4338ca;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.addAttributeButton:hover {
+  background: #eef2ff;
+  border-color: #818cf8;
 }

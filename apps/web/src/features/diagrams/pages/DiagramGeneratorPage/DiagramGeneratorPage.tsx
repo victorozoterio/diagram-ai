@@ -16,6 +16,7 @@ export function DiagramGeneratorPage() {
     convertConceptualToLogicalDiagram,
     addEntity,
     removeEntity,
+    addAttribute,
   } = useDiagramEditor();
 
   return (
@@ -72,7 +73,7 @@ export function DiagramGeneratorPage() {
             </button>
           </div>
 
-          <ConceptualDiagramFlow model={conceptualModel} onRemoveEntity={removeEntity} />
+          <ConceptualDiagramFlow model={conceptualModel} onRemoveEntity={removeEntity} onAddAttribute={addAttribute} />
 
           <ConceptualModelViewer model={conceptualModel} />
         </section>
