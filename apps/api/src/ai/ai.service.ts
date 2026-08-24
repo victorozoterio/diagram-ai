@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-
-import { HuggingFaceProvider } from './providers/hugging-face.provider';
+import { OllamaProvider } from './providers/ollama.provider';
 
 @Injectable()
 export class AiService {
-  constructor(private readonly huggingFaceProvider: HuggingFaceProvider) {}
+  constructor(private readonly ollamaProvider: OllamaProvider) {}
 
   async generateConceptualModel(description: string) {
-    return this.huggingFaceProvider.generateConceptualModel(description);
+    return this.ollamaProvider.generateConceptualModel(description);
   }
 
   async fixConceptualModel(params: { description: string; invalidModel: unknown; validationError: unknown }) {
-    return this.huggingFaceProvider.fixConceptualModel(params);
+    return this.ollamaProvider.fixConceptualModel(params);
   }
 }
