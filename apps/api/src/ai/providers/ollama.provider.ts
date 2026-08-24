@@ -141,8 +141,11 @@ export class OllamaProvider {
         stream: false,
 
         options: {
-          temperature: 0.1,
-          num_predict: 1200,
+          temperature: 0,
+          num_ctx: 8192,
+          num_predict: 2048,
+          repeat_penalty: 1.15,
+          repeat_last_n: 256,
         },
       }),
     });
