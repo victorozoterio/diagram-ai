@@ -16,6 +16,13 @@
   box-shadow: 0 16px 40px rgb(15 23 42 / 12%);
 }
 
+.selectedEntity {
+  border-color: #4f46e5;
+  box-shadow:
+    0 0 0 3px rgb(99 102 241 / 20%),
+    0 16px 40px rgb(15 23 42 / 12%);
+}
+
 .entityNodeHeader {
   display: flex;
   align-items: flex-start;
@@ -29,6 +36,28 @@
   color: #111827;
   font-size: 16px;
   line-height: 1.2;
+}
+
+.entityNodeTitleButton {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.entityNodeTitleInput {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid #818cf8;
+  border-radius: 5px;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .removeIconButton {
@@ -47,6 +76,37 @@
   margin: 0 0 12px;
   color: #4b5563;
   font-size: 12px;
+}
+
+.entityNodeDescriptionButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: text;
+  text-align: left;
+}
+
+.entityNodeDescriptionButton:hover .entityNodeDescription,
+.entityNodeTitleButton:hover .entityNodeTitle {
+  color: #4338ca;
+}
+
+.entityNodeDescriptionInput {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 54px;
+  padding: 6px 8px;
+  margin: 0 0 12px;
+  border: 1px solid #818cf8;
+  border-radius: 6px;
+  color: #4b5563;
+  font: inherit;
+  font-size: 12px;
+  resize: vertical;
 }
 
 .attributeList {

@@ -12,11 +12,14 @@ export function DiagramGeneratorPage() {
     error,
     canConvertToLogical,
     selectedAttribute,
+    selectedEntityId,
     setDescription,
     generateConceptualDiagram,
     convertConceptualToLogicalDiagram,
     addEntity,
     removeEntity,
+    selectEntity,
+    updateEntity,
     addAttribute,
     selectAttribute,
     updateAttribute,
@@ -80,6 +83,9 @@ export function DiagramGeneratorPage() {
           <ConceptualDiagramFlow
             model={conceptualModel}
             onRemoveEntity={removeEntity}
+            onSelectEntity={selectEntity}
+            onUpdateEntity={updateEntity}
+            selectedEntityId={selectedEntityId}
             onAddAttribute={addAttribute}
             selectedAttribute={selectedAttribute}
             onSelectAttribute={selectAttribute}

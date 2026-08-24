@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
-import type { Attribute, ConceptualModel, LogicalModel } from '../types';
+import type { Attribute, ConceptualModel, Entity, LogicalModel } from '../types';
 
 const defaultDescription =
   'Um cliente pode realizar vários pedidos. Cada pedido pertence a apenas um cliente. O cliente possui nome, email e telefone. O pedido possui data e valor total.';
@@ -17,6 +17,7 @@ export function useDiagramEditor() {
     entityId: string;
     attributeId: string;
   } | null>(null);
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
 
   async function generateConceptualDiagram() {
     setError(null);
@@ -28,6 +29,7 @@ export function useDiagramEditor() {
 
       setConceptualModel(model);
       setSelectedAttribute(null);
+      setSelectedEntityId(null);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
     } finally {
@@ -63,6 +65,7 @@ export function useDiagramEditor() {
     setLogicalModel(null);
     setError(null);
     setSelectedAttribute(null);
+    setSelectedEntityId(null);
   }
 
   function createEntityId(name: string) {
@@ -108,6 +111,7 @@ export function useDiagramEditor() {
       };
     });
 
+    setSelectedEntityId(newEntity.id);
     setLogicalModel(null);
   }
 
@@ -127,6 +131,27 @@ export function useDiagramEditor() {
     });
 
     setSelectedAttribute((currentSelection) => (currentSelection?.entityId === entityId ? null : currentSelection));
+    setSelectedEntityId((currentSelection) => (currentSelection === entityId ? null : currentSelection));
+    setLogicalModel(null);
+  }
+
+  function selectEntity(entityId: string) {
+    setSelectedEntityId((currentSelection) => (currentSelection === entityId ? null : entityId));
+    setSelectedAttribute(null);
+  }
+
+  function updateEntity(entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        entities: currentModel.entities.map((entity) => (entity.id === entityId ? { ...entity, ...changes } : entity)),
+      };
+    });
+
     setLogicalModel(null);
   }
 
@@ -245,6 +270,7 @@ export function useDiagramEditor() {
     error,
     canConvertToLogical: !!conceptualModel,
     selectedAttribute,
+    selectedEntityId,
     setDescription,
     setConceptualModel,
     setLogicalModel,
@@ -254,6 +280,8 @@ export function useDiagramEditor() {
     clearDiagram,
     addEntity,
     removeEntity,
+    selectEntity,
+    updateEntity,
     addAttribute,
     selectAttribute,
     updateAttribute,

@@ -1,11 +1,15 @@
 import '@xyflow/react/dist/style.css';
 
 import { Background, Controls, type Edge, Handle, type Node, Position, ReactFlow } from '@xyflow/react';
+import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import type { AttributeType, ConceptualModel, Entity } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 
 type EntityNodeData = Entity & {
   onRemoveEntity?: (entityId: string) => void;
+  onSelectEntity?: (entityId: string) => void;
+  onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
+  isSelected?: boolean;
   onAddAttribute?: (entityId: string) => void;
   selectedAttributeId?: string;
   onSelectAttribute?: (entityId: string, attributeId: string) => void;
@@ -16,6 +20,9 @@ type EntityNodeData = Entity & {
 type ConceptualDiagramFlowProps = {
   model: ConceptualModel;
   onRemoveEntity?: (entityId: string) => void;
+  onSelectEntity?: (entityId: string) => void;
+  onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
+  selectedEntityId?: string | null;
   onAddAttribute?: (entityId: string) => void;
   selectedAttribute?: { entityId: string; attributeId: string } | null;
   onSelectAttribute?: (entityId: string, attributeId: string) => void;
@@ -38,10 +45,76 @@ const attributeTypes: AttributeType[] = [
 ];
 
 function EntityNode({ data }: { data: EntityNodeData }) {
+  const [editingField, setEditingField] = useState<'name' | 'description' | null>(null);
+  const [draft, setDraft] = useState('');
+  const editingInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editingField) {
+      editingInputRef.current?.focus();
+      editingInputRef.current?.select();
+    }
+  }, [editingField]);
+
+  function startEditing(field: 'name' | 'description') {
+    data.onSelectEntity?.(data.id);
+    setEditingField(field);
+    setDraft(data[field] ?? '');
+  }
+
+  function saveEditing() {
+    if (!editingField || !data.onUpdateEntity) {
+      return;
+    }
+
+    const value = draft.trim();
+
+    if (editingField === 'name' && !value) {
+      setDraft(data.name);
+    } else {
+      data.onUpdateEntity(data.id, { [editingField]: value });
+    }
+
+    setEditingField(null);
+  }
+
+  function handleEditingKeyDown(event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    if (event.key === 'Escape') {
+      setEditingField(null);
+      return;
+    }
+
+    if (event.key === 'Enter' && (editingField === 'name' || !event.shiftKey)) {
+      event.preventDefault();
+      saveEditing();
+    }
+  }
+
   return (
-    <div className={styles.entityNode}>
+    <div className={`${styles.entityNode} ${data.isSelected ? styles.selectedEntity : ''}`}>
       <div className={styles.entityNodeHeader}>
-        <strong className={styles.entityNodeTitle}>{data.name}</strong>
+        {editingField === 'name' ? (
+          <input
+            className={`${styles.entityNodeTitleInput} nodrag`}
+            value={draft}
+            ref={(element) => {
+              editingInputRef.current = element;
+            }}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={saveEditing}
+            onKeyDown={handleEditingKeyDown}
+            aria-label='Nome da entidade'
+          />
+        ) : (
+          <button
+            className={`${styles.entityNodeTitleButton} nodrag`}
+            type='button'
+            onClick={() => startEditing('name')}
+            aria-label={`Editar nome da entidade ${data.name}`}
+          >
+            <strong className={styles.entityNodeTitle}>{data.name}</strong>
+          </button>
+        )}
 
         {data.onRemoveEntity && (
           <button
@@ -55,7 +128,29 @@ function EntityNode({ data }: { data: EntityNodeData }) {
         )}
       </div>
 
-      {data.description && <p className={styles.entityNodeDescription}>{data.description}</p>}
+      {editingField === 'description' ? (
+        <textarea
+          className={`${styles.entityNodeDescriptionInput} nodrag`}
+          value={draft}
+          ref={(element) => {
+            editingInputRef.current = element;
+          }}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={saveEditing}
+          onKeyDown={handleEditingKeyDown}
+          aria-label='Descrição da entidade'
+          rows={3}
+        />
+      ) : (
+        <button
+          className={`${styles.entityNodeDescriptionButton} nodrag`}
+          type='button'
+          onClick={() => startEditing('description')}
+          aria-label='Editar descrição da entidade'
+        >
+          <p className={styles.entityNodeDescription}>{data.description || 'Clique para adicionar uma descrição.'}</p>
+        </button>
+      )}
 
       <ul className={styles.attributeList}>
         {data.attributes.map((attribute) => (
@@ -137,6 +232,9 @@ const nodeTypes = {
 export function ConceptualDiagramFlow({
   model,
   onRemoveEntity,
+  onSelectEntity,
+  onUpdateEntity,
+  selectedEntityId,
   onAddAttribute,
   selectedAttribute,
   onSelectAttribute,
@@ -153,6 +251,9 @@ export function ConceptualDiagramFlow({
     data: {
       ...entity,
       onRemoveEntity,
+      onSelectEntity,
+      onUpdateEntity,
+      isSelected: selectedEntityId === entity.id,
       onAddAttribute,
       selectedAttributeId: selectedAttribute?.entityId === entity.id ? selectedAttribute.attributeId : undefined,
       onSelectAttribute,
