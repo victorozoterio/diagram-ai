@@ -1,8 +1,21 @@
 import '@xyflow/react/dist/style.css';
 
-import { Background, Controls, type Edge, Handle, type Node, Position, ReactFlow } from '@xyflow/react';
+import {
+  Background,
+  BaseEdge,
+  type Connection,
+  Controls,
+  type Edge,
+  EdgeLabelRenderer,
+  type EdgeProps,
+  getSmoothStepPath,
+  Handle,
+  type Node,
+  Position,
+  ReactFlow,
+} from '@xyflow/react';
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
-import type { AttributeType, ConceptualModel, Entity } from '../../types';
+import type { AttributeType, ConceptualModel, Entity, Relationship } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 
 type EntityNodeData = Entity & {
@@ -17,17 +30,28 @@ type EntityNodeData = Entity & {
   onRemoveAttribute?: (entityId: string, attributeId: string) => void;
 };
 
+type RelationshipEdgeData = {
+  relationship: Relationship;
+  onUpdateRelationship: (relationshipId: string, changes: { name?: string }) => void;
+  onCycleRelationshipCardinality: (relationshipId: string, entityId: string) => void;
+};
+
+type RelationshipEdge = Edge<RelationshipEdgeData>;
+
 type ConceptualDiagramFlowProps = {
   model: ConceptualModel;
   onRemoveEntity?: (entityId: string) => void;
   onSelectEntity?: (entityId: string) => void;
   onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
-  selectedEntityId?: string | null;
+  selectedEntityIds?: string[];
   onAddAttribute?: (entityId: string) => void;
   selectedAttribute?: { entityId: string; attributeId: string } | null;
   onSelectAttribute?: (entityId: string, attributeId: string) => void;
   onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
   onRemoveAttribute?: (entityId: string, attributeId: string) => void;
+  onConnectEntities?: (sourceEntityId: string, targetEntityId: string) => void;
+  onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
+  onCycleRelationshipCardinality?: (relationshipId: string, entityId: string) => void;
 };
 
 const attributeTypes: AttributeType[] = [
@@ -43,6 +67,75 @@ const attributeTypes: AttributeType[] = [
   'phone',
   'unknown',
 ];
+
+function RelationshipEdge({
+  id,
+  source,
+  target,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  data,
+}: EdgeProps<RelationshipEdge>) {
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+  const sourceParticipant = data?.relationship.participants.find((participant) => participant.entityId === source);
+  const targetParticipant = data?.relationship.participants.find((participant) => participant.entityId === target);
+  const sourceLabelX = sourceX + (labelX - sourceX) * 0.3;
+  const sourceLabelY = sourceY + (labelY - sourceY) * 0.3;
+  const targetLabelX = targetX + (labelX - targetX) * 0.3;
+  const targetLabelY = targetY + (labelY - targetY) * 0.3;
+
+  if (!data || !sourceParticipant || !targetParticipant) {
+    return <BaseEdge id={id} path={edgePath} />;
+  }
+
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} />
+      <EdgeLabelRenderer>
+        <div
+          className={`${styles.relationshipLabel} nodrag nopan`}
+          style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+        >
+          <input
+            className={styles.relationshipNameInput}
+            value={data.relationship.name}
+            onChange={(event) => data.onUpdateRelationship(id, { name: event.target.value })}
+            aria-label='Nome do relacionamento'
+          />
+        </div>
+        <button
+          className={`${styles.cardinalityLabel} nodrag nopan`}
+          style={{ transform: `translate(-50%, -50%) translate(${sourceLabelX}px, ${sourceLabelY}px)` }}
+          type='button'
+          onClick={() => data.onCycleRelationshipCardinality(id, source)}
+          title='Alternar cardinalidade'
+        >
+          {sourceParticipant.cardinality}
+        </button>
+        <button
+          className={`${styles.cardinalityLabel} nodrag nopan`}
+          style={{ transform: `translate(-50%, -50%) translate(${targetLabelX}px, ${targetLabelY}px)` }}
+          type='button'
+          onClick={() => data.onCycleRelationshipCardinality(id, target)}
+          title='Alternar cardinalidade'
+        >
+          {targetParticipant.cardinality}
+        </button>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
 
 function EntityNode({ data }: { data: EntityNodeData }) {
   const [editingField, setEditingField] = useState<'name' | 'description' | null>(null);
@@ -229,17 +322,24 @@ const nodeTypes = {
   entity: EntityNode,
 };
 
+const edgeTypes = {
+  relationship: RelationshipEdge,
+};
+
 export function ConceptualDiagramFlow({
   model,
   onRemoveEntity,
   onSelectEntity,
   onUpdateEntity,
-  selectedEntityId,
+  selectedEntityIds,
   onAddAttribute,
   selectedAttribute,
   onSelectAttribute,
   onUpdateAttribute,
   onRemoveAttribute,
+  onConnectEntities,
+  onUpdateRelationship,
+  onCycleRelationshipCardinality,
 }: ConceptualDiagramFlowProps) {
   const nodes: Node<EntityNodeData>[] = model.entities.map((entity, index) => ({
     id: entity.id,
@@ -253,7 +353,7 @@ export function ConceptualDiagramFlow({
       onRemoveEntity,
       onSelectEntity,
       onUpdateEntity,
-      isSelected: selectedEntityId === entity.id,
+      isSelected: selectedEntityIds?.includes(entity.id),
       onAddAttribute,
       selectedAttributeId: selectedAttribute?.entityId === entity.id ? selectedAttribute.attributeId : undefined,
       onSelectAttribute,
@@ -262,7 +362,7 @@ export function ConceptualDiagramFlow({
     },
   }));
 
-  const edges: Edge[] = model.relationships.flatMap((relationship) => {
+  const edges: RelationshipEdge[] = model.relationships.flatMap((relationship) => {
     const [source, target] = relationship.participants;
 
     if (!source || !target) {
@@ -274,15 +374,30 @@ export function ConceptualDiagramFlow({
         id: relationship.id,
         source: source.entityId,
         target: target.entityId,
-        label: `${relationship.name} (${relationship.type})`,
-        type: 'smoothstep',
+        type: 'relationship',
+        data: {
+          relationship,
+          onUpdateRelationship: onUpdateRelationship ?? (() => undefined),
+          onCycleRelationshipCardinality: onCycleRelationshipCardinality ?? (() => undefined),
+        },
       },
     ];
   });
 
   return (
     <div className={styles.diagramFlow}>
-      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onConnect={(connection: Connection) => {
+          if (connection.source && connection.target && connection.source !== connection.target) {
+            onConnectEntities?.(connection.source, connection.target);
+          }
+        }}
+        fitView
+      >
         <Background />
         <Controls />
       </ReactFlow>

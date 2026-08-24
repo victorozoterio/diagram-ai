@@ -12,7 +12,7 @@ export function DiagramGeneratorPage() {
     error,
     canConvertToLogical,
     selectedAttribute,
-    selectedEntityId,
+    selectedEntityIds,
     setDescription,
     generateConceptualDiagram,
     convertConceptualToLogicalDiagram,
@@ -20,6 +20,9 @@ export function DiagramGeneratorPage() {
     removeEntity,
     selectEntity,
     updateEntity,
+    createRelationshipFromConnection,
+    updateRelationship,
+    cycleRelationshipCardinality,
     addAttribute,
     selectAttribute,
     updateAttribute,
@@ -85,12 +88,15 @@ export function DiagramGeneratorPage() {
             onRemoveEntity={removeEntity}
             onSelectEntity={selectEntity}
             onUpdateEntity={updateEntity}
-            selectedEntityId={selectedEntityId}
+            selectedEntityIds={selectedEntityIds}
             onAddAttribute={addAttribute}
             selectedAttribute={selectedAttribute}
             onSelectAttribute={selectAttribute}
             onUpdateAttribute={updateAttribute}
             onRemoveAttribute={removeAttribute}
+            onConnectEntities={createRelationshipFromConnection}
+            onUpdateRelationship={updateRelationship}
+            onCycleRelationshipCardinality={cycleRelationshipCardinality}
           />
 
           <ConceptualModelViewer model={conceptualModel} />

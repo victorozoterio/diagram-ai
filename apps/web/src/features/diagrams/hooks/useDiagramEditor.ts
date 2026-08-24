@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
-import type { Attribute, ConceptualModel, Entity, LogicalModel } from '../types';
+import type { Attribute, Cardinality, ConceptualModel, Entity, LogicalModel, Relationship } from '../types';
 
 const defaultDescription =
   'Um cliente pode realizar vários pedidos. Cada pedido pertence a apenas um cliente. O cliente possui nome, email e telefone. O pedido possui data e valor total.';
@@ -17,7 +17,7 @@ export function useDiagramEditor() {
     entityId: string;
     attributeId: string;
   } | null>(null);
-  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
+  const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
 
   async function generateConceptualDiagram() {
     setError(null);
@@ -29,7 +29,7 @@ export function useDiagramEditor() {
 
       setConceptualModel(model);
       setSelectedAttribute(null);
-      setSelectedEntityId(null);
+      setSelectedEntityIds([]);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
     } finally {
@@ -65,7 +65,7 @@ export function useDiagramEditor() {
     setLogicalModel(null);
     setError(null);
     setSelectedAttribute(null);
-    setSelectedEntityId(null);
+    setSelectedEntityIds([]);
   }
 
   function createEntityId(name: string) {
@@ -111,7 +111,7 @@ export function useDiagramEditor() {
       };
     });
 
-    setSelectedEntityId(newEntity.id);
+    setSelectedEntityIds([newEntity.id]);
     setLogicalModel(null);
   }
 
@@ -131,13 +131,23 @@ export function useDiagramEditor() {
     });
 
     setSelectedAttribute((currentSelection) => (currentSelection?.entityId === entityId ? null : currentSelection));
-    setSelectedEntityId((currentSelection) => (currentSelection === entityId ? null : currentSelection));
+    setSelectedEntityIds((currentSelection) => currentSelection.filter((selectedId) => selectedId !== entityId));
     setLogicalModel(null);
   }
 
   function selectEntity(entityId: string) {
-    setSelectedEntityId((currentSelection) => (currentSelection === entityId ? null : entityId));
+    setSelectedEntityIds((currentSelection) => {
+      if (currentSelection.includes(entityId)) {
+        return currentSelection;
+      }
+
+      return currentSelection.length < 2 ? [...currentSelection, entityId] : [currentSelection[1], entityId];
+    });
     setSelectedAttribute(null);
+  }
+
+  function clearEntitySelection() {
+    setSelectedEntityIds([]);
   }
 
   function updateEntity(entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) {
@@ -149,6 +159,115 @@ export function useDiagramEditor() {
       return {
         ...currentModel,
         entities: currentModel.entities.map((entity) => (entity.id === entityId ? { ...entity, ...changes } : entity)),
+      };
+    });
+
+    setLogicalModel(null);
+  }
+
+  function createRelationship(entityIds: string[], name = 'novoRelacionamento', type: Cardinality = '1:N') {
+    const relationshipName = name.trim();
+
+    if (entityIds.length !== 2 || !relationshipName) {
+      return;
+    }
+
+    setConceptualModel((currentModel) => {
+      if (
+        !currentModel ||
+        entityIds.some((entityId) => !currentModel.entities.some((entity) => entity.id === entityId))
+      ) {
+        return currentModel;
+      }
+
+      const participantsCardinality = type === '1:1' ? ['1', '1'] : type === '1:N' ? ['1', 'N'] : ['N', 'N'];
+      const baseId = `relationship_${createEntityId(relationshipName)}`;
+      let relationshipId = baseId;
+      let suffix = 2;
+
+      while (currentModel.relationships.some((relationship) => relationship.id === relationshipId)) {
+        relationshipId = `${baseId}_${suffix}`;
+        suffix += 1;
+      }
+
+      return {
+        ...currentModel,
+        relationships: [
+          ...currentModel.relationships,
+          {
+            id: relationshipId,
+            name: relationshipName,
+            type,
+            participants: entityIds.map((entityId, index) => ({
+              entityId,
+              cardinality: participantsCardinality[index] as '1' | 'N',
+            })),
+            attributes: [],
+          },
+        ],
+      };
+    });
+
+    setSelectedEntityIds([]);
+    setLogicalModel(null);
+  }
+
+  function createRelationshipFromConnection(sourceEntityId: string, targetEntityId: string) {
+    createRelationship([sourceEntityId, targetEntityId]);
+  }
+
+  function updateRelationship(relationshipId: string, changes: Partial<Pick<Relationship, 'name'>>) {
+    if (changes.name !== undefined && !changes.name.trim()) {
+      return;
+    }
+
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        relationships: currentModel.relationships.map((relationship) =>
+          relationship.id === relationshipId ? { ...relationship, ...changes } : relationship,
+        ),
+      };
+    });
+
+    setLogicalModel(null);
+  }
+
+  function cycleRelationshipCardinality(relationshipId: string, entityId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        relationships: currentModel.relationships.map((relationship) => {
+          if (relationship.id !== relationshipId) {
+            return relationship;
+          }
+
+          const participants = relationship.participants.map((participant) =>
+            participant.entityId === entityId
+              ? {
+                  ...participant,
+                  cardinality: (participant.cardinality === '1' ? 'N' : '1') as '1' | 'N',
+                }
+              : participant,
+          );
+          const [first, second] = participants;
+          const type: Cardinality =
+            first.cardinality === '1' && second.cardinality === '1'
+              ? '1:1'
+              : first.cardinality === 'N' && second.cardinality === 'N'
+                ? 'N:N'
+                : '1:N';
+
+          return { ...relationship, type, participants };
+        }),
       };
     });
 
@@ -270,7 +389,7 @@ export function useDiagramEditor() {
     error,
     canConvertToLogical: !!conceptualModel,
     selectedAttribute,
-    selectedEntityId,
+    selectedEntityIds,
     setDescription,
     setConceptualModel,
     setLogicalModel,
@@ -281,7 +400,12 @@ export function useDiagramEditor() {
     addEntity,
     removeEntity,
     selectEntity,
+    clearEntitySelection,
     updateEntity,
+    createRelationship,
+    createRelationshipFromConnection,
+    updateRelationship,
+    cycleRelationshipCardinality,
     addAttribute,
     selectAttribute,
     updateAttribute,
