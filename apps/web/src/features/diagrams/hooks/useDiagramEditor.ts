@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
-import type { ConceptualModel, LogicalModel } from '../types';
+import type { Attribute, ConceptualModel, LogicalModel } from '../types';
 
 const defaultDescription =
   'Um cliente pode realizar vários pedidos. Cada pedido pertence a apenas um cliente. O cliente possui nome, email e telefone. O pedido possui data e valor total.';
@@ -13,6 +13,10 @@ export function useDiagramEditor() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAttribute, setSelectedAttribute] = useState<{
+    entityId: string;
+    attributeId: string;
+  } | null>(null);
 
   async function generateConceptualDiagram() {
     setError(null);
@@ -23,6 +27,7 @@ export function useDiagramEditor() {
       const model = await generateConceptualModel(description);
 
       setConceptualModel(model);
+      setSelectedAttribute(null);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
     } finally {
@@ -57,6 +62,7 @@ export function useDiagramEditor() {
     setConceptualModel(null);
     setLogicalModel(null);
     setError(null);
+    setSelectedAttribute(null);
   }
 
   function createEntityId(name: string) {
@@ -120,6 +126,7 @@ export function useDiagramEditor() {
       };
     });
 
+    setSelectedAttribute((currentSelection) => (currentSelection?.entityId === entityId ? null : currentSelection));
     setLogicalModel(null);
   }
 
@@ -175,6 +182,60 @@ export function useDiagramEditor() {
     setLogicalModel(null);
   }
 
+  function selectAttribute(entityId: string, attributeId: string) {
+    setSelectedAttribute((currentSelection) =>
+      currentSelection?.entityId === entityId && currentSelection.attributeId === attributeId
+        ? null
+        : { entityId, attributeId },
+    );
+  }
+
+  function updateAttribute(entityId: string, attributeId: string, changes: Partial<Attribute>) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        entities: currentModel.entities.map((entity) =>
+          entity.id !== entityId
+            ? entity
+            : {
+                ...entity,
+                attributes: entity.attributes.map((attribute) =>
+                  attribute.id === attributeId ? { ...attribute, ...changes } : attribute,
+                ),
+              },
+        ),
+      };
+    });
+
+    setLogicalModel(null);
+  }
+
+  function removeAttribute(entityId: string, attributeId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        entities: currentModel.entities.map((entity) =>
+          entity.id !== entityId
+            ? entity
+            : { ...entity, attributes: entity.attributes.filter((attribute) => attribute.id !== attributeId) },
+        ),
+      };
+    });
+
+    setSelectedAttribute((currentSelection) =>
+      currentSelection?.entityId === entityId && currentSelection.attributeId === attributeId ? null : currentSelection,
+    );
+    setLogicalModel(null);
+  }
+
   return {
     description,
     conceptualModel,
@@ -183,6 +244,7 @@ export function useDiagramEditor() {
     isConverting,
     error,
     canConvertToLogical: !!conceptualModel,
+    selectedAttribute,
     setDescription,
     setConceptualModel,
     setLogicalModel,
@@ -193,5 +255,8 @@ export function useDiagramEditor() {
     addEntity,
     removeEntity,
     addAttribute,
+    selectAttribute,
+    updateAttribute,
+    removeAttribute,
   };
 }

@@ -65,6 +65,29 @@
   font-size: 13px;
 }
 
+.attributeSelectButton {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.selectedAttribute {
+  padding-right: 6px;
+  padding-left: 6px;
+  background: #eef2ff;
+  border-radius: 8px;
+}
+
 .attributeItem:first-child {
   border-top: 0;
 }
@@ -100,6 +123,48 @@
   font-size: 12px;
   font-weight: 600;
   transition: all 0.2s ease;
+}
+
+.attributeEditor {
+  display: grid;
+  flex-basis: 100%;
+  gap: 8px;
+  padding: 8px;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+}
+
+.attributeEditor label {
+  display: grid;
+  gap: 4px;
+  color: #4b5563;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.attributeEditor input,
+.attributeEditor select {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 12px;
+}
+
+.removeAttributeButton {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #991b1b;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .addAttributeButton:hover {
