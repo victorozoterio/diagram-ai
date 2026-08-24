@@ -51,6 +51,7 @@ type ConceptualDiagramFlowProps = {
   onRemoveAttribute?: (entityId: string, attributeId: string) => void;
   onConnectEntities?: (sourceEntityId: string, targetEntityId: string) => void;
   onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
+  onRemoveRelationship?: (relationshipId: string) => void;
   onCycleRelationshipCardinality?: (relationshipId: string, entityId: string) => void;
 };
 
@@ -111,6 +112,7 @@ function RelationshipEdge({
             className={styles.relationshipNameInput}
             value={data.relationship.name}
             onChange={(event) => data.onUpdateRelationship(id, { name: event.target.value })}
+            onKeyDown={(event) => event.stopPropagation()}
             aria-label='Nome do relacionamento'
           />
         </div>
@@ -339,8 +341,32 @@ export function ConceptualDiagramFlow({
   onRemoveAttribute,
   onConnectEntities,
   onUpdateRelationship,
+  onRemoveRelationship,
   onCycleRelationshipCardinality,
 }: ConceptualDiagramFlowProps) {
+  const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleDeleteKey(event: globalThis.KeyboardEvent) {
+      const target = event.target;
+      const isTextEditingTarget =
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+
+      if (!selectedRelationshipId || isTextEditingTarget || !['Backspace', 'Delete'].includes(event.key)) {
+        return;
+      }
+
+      event.preventDefault();
+      onRemoveRelationship?.(selectedRelationshipId);
+      setSelectedRelationshipId(null);
+    }
+
+    window.addEventListener('keydown', handleDeleteKey);
+
+    return () => window.removeEventListener('keydown', handleDeleteKey);
+  }, [onRemoveRelationship, selectedRelationshipId]);
+
   const nodes: Node<EntityNodeData>[] = model.entities.map((entity, index) => ({
     id: entity.id,
     type: 'entity',
@@ -396,6 +422,14 @@ export function ConceptualDiagramFlow({
             onConnectEntities?.(connection.source, connection.target);
           }
         }}
+        onEdgeClick={(_, edge) => setSelectedRelationshipId(edge.id)}
+        onPaneClick={() => setSelectedRelationshipId(null)}
+        onEdgesDelete={(deletedEdges) => {
+          deletedEdges.forEach((edge) => {
+            onRemoveRelationship?.(edge.id);
+          });
+        }}
+        deleteKeyCode={null}
         fitView
       >
         <Background />

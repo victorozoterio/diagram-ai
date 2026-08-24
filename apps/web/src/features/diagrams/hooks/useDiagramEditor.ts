@@ -237,6 +237,21 @@ export function useDiagramEditor() {
     setLogicalModel(null);
   }
 
+  function removeRelationship(relationshipId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        relationships: currentModel.relationships.filter((relationship) => relationship.id !== relationshipId),
+      };
+    });
+
+    setLogicalModel(null);
+  }
+
   function cycleRelationshipCardinality(relationshipId: string, entityId: string) {
     setConceptualModel((currentModel) => {
       if (!currentModel) {
@@ -405,6 +420,7 @@ export function useDiagramEditor() {
     createRelationship,
     createRelationshipFromConnection,
     updateRelationship,
+    removeRelationship,
     cycleRelationshipCardinality,
     addAttribute,
     selectAttribute,
