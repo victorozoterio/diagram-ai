@@ -1,6 +1,7 @@
 import '@xyflow/react/dist/style.css';
 
 import {
+  applyNodeChanges,
   Background,
   BaseEdge,
   type Connection,
@@ -11,10 +12,11 @@ import {
   getSmoothStepPath,
   Handle,
   type Node,
+  type NodeChange,
   Position,
   ReactFlow,
 } from '@xyflow/react';
-import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AttributeType, ConceptualModel, Entity, Relationship } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 
@@ -26,13 +28,25 @@ type EntityNodeData = Entity & {
   onAddAttribute?: (entityId: string) => void;
   selectedAttributeId?: string;
   onSelectAttribute?: (entityId: string, attributeId: string) => void;
-  onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
+  onUpdateAttribute?: (
+    entityId: string,
+    attributeId: string,
+    changes: {
+      name?: string;
+      type?: AttributeType;
+    },
+  ) => void;
   onRemoveAttribute?: (entityId: string, attributeId: string) => void;
 };
 
 type RelationshipEdgeData = {
   relationship: Relationship;
-  onUpdateRelationship: (relationshipId: string, changes: { name?: string }) => void;
+  onUpdateRelationship: (
+    relationshipId: string,
+    changes: {
+      name?: string;
+    },
+  ) => void;
   onCycleRelationshipCardinality: (relationshipId: string, entityId: string) => void;
 };
 
@@ -44,10 +58,34 @@ type ConceptualDiagramFlowProps = {
   onSelectEntity?: (entityId: string) => void;
   onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
   selectedEntityIds?: string[];
+  entityPositions?: Record<
+    string,
+    {
+      x: number;
+      y: number;
+    }
+  >;
+  onUpdateEntityPosition?: (
+    entityId: string,
+    position: {
+      x: number;
+      y: number;
+    },
+  ) => void;
   onAddAttribute?: (entityId: string) => void;
-  selectedAttribute?: { entityId: string; attributeId: string } | null;
+  selectedAttribute?: {
+    entityId: string;
+    attributeId: string;
+  } | null;
   onSelectAttribute?: (entityId: string, attributeId: string) => void;
-  onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
+  onUpdateAttribute?: (
+    entityId: string,
+    attributeId: string,
+    changes: {
+      name?: string;
+      type?: AttributeType;
+    },
+  ) => void;
   onRemoveAttribute?: (entityId: string, attributeId: string) => void;
   onConnectEntities?: (sourceEntityId: string, targetEntityId: string) => void;
   onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
@@ -106,28 +144,40 @@ function RelationshipEdge({
       <EdgeLabelRenderer>
         <div
           className={`${styles.relationshipLabel} nodrag nopan`}
-          style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+          style={{
+            transform: `translate(-50%, -50%) ` + `translate(${labelX}px, ${labelY}px)`,
+          }}
         >
           <input
             className={styles.relationshipNameInput}
             value={data.relationship.name}
-            onChange={(event) => data.onUpdateRelationship(id, { name: event.target.value })}
+            onChange={(event) =>
+              data.onUpdateRelationship(id, {
+                name: event.target.value,
+              })
+            }
             onKeyDown={(event) => event.stopPropagation()}
             aria-label='Nome do relacionamento'
           />
         </div>
+
         <button
           className={`${styles.cardinalityLabel} nodrag nopan`}
-          style={{ transform: `translate(-50%, -50%) translate(${sourceLabelX}px, ${sourceLabelY}px)` }}
+          style={{
+            transform: `translate(-50%, -50%) ` + `translate(${sourceLabelX}px, ${sourceLabelY}px)`,
+          }}
           type='button'
           onClick={() => data.onCycleRelationshipCardinality(id, source)}
           title='Alternar cardinalidade'
         >
           {sourceParticipant.cardinality}
         </button>
+
         <button
           className={`${styles.cardinalityLabel} nodrag nopan`}
-          style={{ transform: `translate(-50%, -50%) translate(${targetLabelX}px, ${targetLabelY}px)` }}
+          style={{
+            transform: `translate(-50%, -50%) ` + `translate(${targetLabelX}px, ${targetLabelY}px)`,
+          }}
           type='button'
           onClick={() => data.onCycleRelationshipCardinality(id, target)}
           title='Alternar cardinalidade'
@@ -145,10 +195,10 @@ function EntityNode({ data }: { data: EntityNodeData }) {
   const editingInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (editingField) {
-      editingInputRef.current?.focus();
-      editingInputRef.current?.select();
-    }
+    if (!editingField) return;
+
+    editingInputRef.current?.focus();
+    editingInputRef.current?.select();
   }, [editingField]);
 
   function startEditing(field: 'name' | 'description') {
@@ -186,11 +236,28 @@ function EntityNode({ data }: { data: EntityNodeData }) {
   }
 
   return (
-    <div className={`${styles.entityNode} ${data.isSelected ? styles.selectedEntity : ''}`}>
-      <div className={styles.entityNodeHeader}>
+    <div
+      className={`
+        ${styles.entityNode}
+        ${data.isSelected ? styles.selectedEntity : ''}
+      `}
+    >
+      <div
+        className={`
+          ${styles.entityNodeHeader}
+          entity-drag-handle
+        `}
+      >
+        <span className={styles.dragHandle} title='Arrastar entidade' aria-hidden='true'>
+          ⋮⋮
+        </span>
+
         {editingField === 'name' ? (
           <input
-            className={`${styles.entityNodeTitleInput} nodrag`}
+            className={`
+              ${styles.entityNodeTitleInput}
+              nodrag
+            `}
             value={draft}
             ref={(element) => {
               editingInputRef.current = element;
@@ -202,7 +269,10 @@ function EntityNode({ data }: { data: EntityNodeData }) {
           />
         ) : (
           <button
-            className={`${styles.entityNodeTitleButton} nodrag`}
+            className={`
+              ${styles.entityNodeTitleButton}
+              nodrag
+            `}
             type='button'
             onClick={() => startEditing('name')}
             aria-label={`Editar nome da entidade ${data.name}`}
@@ -213,7 +283,10 @@ function EntityNode({ data }: { data: EntityNodeData }) {
 
         {data.onRemoveEntity && (
           <button
-            className={styles.removeIconButton}
+            className={`
+              ${styles.removeIconButton}
+              nodrag
+            `}
             type='button'
             onClick={() => data.onRemoveEntity?.(data.id)}
             title='Remover entidade'
@@ -225,7 +298,10 @@ function EntityNode({ data }: { data: EntityNodeData }) {
 
       {editingField === 'description' ? (
         <textarea
-          className={`${styles.entityNodeDescriptionInput} nodrag`}
+          className={`
+            ${styles.entityNodeDescriptionInput}
+            nodrag
+          `}
           value={draft}
           ref={(element) => {
             editingInputRef.current = element;
@@ -238,7 +314,10 @@ function EntityNode({ data }: { data: EntityNodeData }) {
         />
       ) : (
         <button
-          className={`${styles.entityNodeDescriptionButton} nodrag`}
+          className={`
+            ${styles.entityNodeDescriptionButton}
+            nodrag
+          `}
           type='button'
           onClick={() => startEditing('description')}
           aria-label='Editar descrição da entidade'
@@ -251,41 +330,74 @@ function EntityNode({ data }: { data: EntityNodeData }) {
         {data.attributes.map((attribute) => (
           <li
             key={attribute.id}
-            className={`${styles.attributeItem} ${data.selectedAttributeId === attribute.id ? styles.selectedAttribute : ''}`}
+            className={`
+                ${styles.attributeItem}
+                ${data.selectedAttributeId === attribute.id ? styles.selectedAttribute : ''}
+              `}
           >
             <button
-              className={styles.attributeSelectButton}
+              className={`
+                  ${styles.attributeSelectButton}
+                  nodrag
+                `}
               type='button'
               onClick={() => data.onSelectAttribute?.(data.id, attribute.id)}
             >
-              {attribute.identifier && <span className={`${styles.attributeTag} ${styles.primaryTag}`}>PK</span>}
+              {attribute.identifier && (
+                <span
+                  className={`
+                      ${styles.attributeTag}
+                      ${styles.primaryTag}
+                    `}
+                >
+                  PK
+                </span>
+              )}
 
               <span>{attribute.name}</span>
 
               <small className={styles.attributeType}>{attribute.type}</small>
 
               {attribute.required && <span className={styles.attributeTag}>obrigatório</span>}
+
               {attribute.unique && <span className={styles.attributeTag}>único</span>}
+
               {attribute.multivalued && <span className={styles.attributeTag}>multivalorado</span>}
+
               {attribute.composite && <span className={styles.attributeTag}>composto</span>}
+
               {attribute.derived && <span className={styles.attributeTag}>derivado</span>}
             </button>
 
             {data.selectedAttributeId === attribute.id && data.onUpdateAttribute && data.onRemoveAttribute && (
-              <div className={styles.attributeEditor}>
+              <div
+                className={`
+                      ${styles.attributeEditor}
+                      nodrag
+                    `}
+              >
                 <label>
                   Nome
                   <input
+                    className='nodrag'
                     value={attribute.name}
-                    onChange={(event) => data.onUpdateAttribute?.(data.id, attribute.id, { name: event.target.value })}
+                    onChange={(event) =>
+                      data.onUpdateAttribute?.(data.id, attribute.id, {
+                        name: event.target.value,
+                      })
+                    }
                   />
                 </label>
+
                 <label>
                   Tipo
                   <select
+                    className='nodrag'
                     value={attribute.type}
                     onChange={(event) =>
-                      data.onUpdateAttribute?.(data.id, attribute.id, { type: event.target.value as AttributeType })
+                      data.onUpdateAttribute?.(data.id, attribute.id, {
+                        type: event.target.value as AttributeType,
+                      })
                     }
                   >
                     {attributeTypes.map((type) => (
@@ -295,8 +407,12 @@ function EntityNode({ data }: { data: EntityNodeData }) {
                     ))}
                   </select>
                 </label>
+
                 <button
-                  className={styles.removeAttributeButton}
+                  className={`
+                        ${styles.removeAttributeButton}
+                        nodrag
+                      `}
                   type='button'
                   onClick={() => data.onRemoveAttribute?.(data.id, attribute.id)}
                 >
@@ -309,7 +425,14 @@ function EntityNode({ data }: { data: EntityNodeData }) {
       </ul>
 
       {data.onAddAttribute && (
-        <button className={styles.addAttributeButton} type='button' onClick={() => data.onAddAttribute?.(data.id)}>
+        <button
+          className={`
+            ${styles.addAttributeButton}
+            nodrag
+          `}
+          type='button'
+          onClick={() => data.onAddAttribute?.(data.id)}
+        >
           + Adicionar atributo
         </button>
       )}
@@ -334,6 +457,8 @@ export function ConceptualDiagramFlow({
   onSelectEntity,
   onUpdateEntity,
   selectedEntityIds,
+  entityPositions,
+  onUpdateEntityPosition,
   onAddAttribute,
   selectedAttribute,
   onSelectAttribute,
@@ -345,6 +470,114 @@ export function ConceptualDiagramFlow({
   onCycleRelationshipCardinality,
 }: ConceptualDiagramFlowProps) {
   const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
+
+  const mappedNodes = useMemo<Node<EntityNodeData>[]>(() => {
+    return model.entities.map((entity, index) => ({
+      id: entity.id,
+      type: 'entity',
+      dragHandle: '.entity-drag-handle',
+      position: entityPositions?.[entity.id] ?? {
+        x: 80 + (index % 3) * 360,
+        y: 80 + Math.floor(index / 3) * 280,
+      },
+      data: {
+        ...entity,
+        onRemoveEntity,
+        onSelectEntity,
+        onUpdateEntity,
+        isSelected: selectedEntityIds?.includes(entity.id),
+        onAddAttribute,
+        selectedAttributeId: selectedAttribute?.entityId === entity.id ? selectedAttribute.attributeId : undefined,
+        onSelectAttribute,
+        onUpdateAttribute,
+        onRemoveAttribute,
+      },
+    }));
+  }, [
+    model.entities,
+    entityPositions,
+    onRemoveEntity,
+    onSelectEntity,
+    onUpdateEntity,
+    selectedEntityIds,
+    onAddAttribute,
+    selectedAttribute,
+    onSelectAttribute,
+    onUpdateAttribute,
+    onRemoveAttribute,
+  ]);
+
+  const [nodes, setNodes] = useState<Node<EntityNodeData>[]>(() => mappedNodes);
+
+  useEffect(() => {
+    setNodes((currentNodes) => {
+      return mappedNodes.map((mappedNode) => {
+        const currentNode = currentNodes.find((node) => node.id === mappedNode.id);
+
+        if (!currentNode) {
+          return mappedNode;
+        }
+
+        return {
+          ...mappedNode,
+          position: currentNode.position,
+        };
+      });
+    });
+  }, [mappedNodes]);
+
+  const edges = useMemo<RelationshipEdge[]>(() => {
+    return model.relationships.flatMap((relationship) => {
+      const [source, target] = relationship.participants;
+
+      if (!source || !target) {
+        return [];
+      }
+
+      return [
+        {
+          id: relationship.id,
+          source: source.entityId,
+          target: target.entityId,
+          type: 'relationship',
+          selectable: true,
+          data: {
+            relationship,
+            onUpdateRelationship: onUpdateRelationship ?? (() => undefined),
+            onCycleRelationshipCardinality: onCycleRelationshipCardinality ?? (() => undefined),
+          },
+        },
+      ];
+    });
+  }, [model.relationships, onUpdateRelationship, onCycleRelationshipCardinality]);
+
+  const handleNodesChange = useCallback(
+    (changes: NodeChange<Node<EntityNodeData>>[]) => {
+      setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
+
+      changes.forEach((change) => {
+        if (change.type === 'position' && change.position && change.dragging === false) {
+          onUpdateEntityPosition?.(change.id, change.position);
+        }
+      });
+    },
+    [onUpdateEntityPosition],
+  );
+
+  const handleConnect = useCallback(
+    (connection: Connection) => {
+      if (!connection.source || !connection.target) {
+        return;
+      }
+
+      if (connection.source === connection.target) {
+        return;
+      }
+
+      onConnectEntities?.(connection.source, connection.target);
+    },
+    [onConnectEntities],
+  );
 
   useEffect(() => {
     function handleDeleteKey(event: globalThis.KeyboardEvent) {
@@ -367,49 +600,6 @@ export function ConceptualDiagramFlow({
     return () => window.removeEventListener('keydown', handleDeleteKey);
   }, [onRemoveRelationship, selectedRelationshipId]);
 
-  const nodes: Node<EntityNodeData>[] = model.entities.map((entity, index) => ({
-    id: entity.id,
-    type: 'entity',
-    position: {
-      x: 80 + (index % 3) * 360,
-      y: 80 + Math.floor(index / 3) * 280,
-    },
-    data: {
-      ...entity,
-      onRemoveEntity,
-      onSelectEntity,
-      onUpdateEntity,
-      isSelected: selectedEntityIds?.includes(entity.id),
-      onAddAttribute,
-      selectedAttributeId: selectedAttribute?.entityId === entity.id ? selectedAttribute.attributeId : undefined,
-      onSelectAttribute,
-      onUpdateAttribute,
-      onRemoveAttribute,
-    },
-  }));
-
-  const edges: RelationshipEdge[] = model.relationships.flatMap((relationship) => {
-    const [source, target] = relationship.participants;
-
-    if (!source || !target) {
-      return [];
-    }
-
-    return [
-      {
-        id: relationship.id,
-        source: source.entityId,
-        target: target.entityId,
-        type: 'relationship',
-        data: {
-          relationship,
-          onUpdateRelationship: onUpdateRelationship ?? (() => undefined),
-          onCycleRelationshipCardinality: onCycleRelationshipCardinality ?? (() => undefined),
-        },
-      },
-    ];
-  });
-
   return (
     <div className={styles.diagramFlow}>
       <ReactFlow
@@ -417,19 +607,25 @@ export function ConceptualDiagramFlow({
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onConnect={(connection: Connection) => {
-          if (connection.source && connection.target && connection.source !== connection.target) {
-            onConnectEntities?.(connection.source, connection.target);
-          }
+        onNodesChange={handleNodesChange}
+        onConnect={handleConnect}
+        onEdgeClick={(_, edge) => {
+          setSelectedRelationshipId(edge.id);
         }}
-        onEdgeClick={(_, edge) => setSelectedRelationshipId(edge.id)}
-        onPaneClick={() => setSelectedRelationshipId(null)}
+        onPaneClick={() => {
+          setSelectedRelationshipId(null);
+        }}
         onEdgesDelete={(deletedEdges) => {
           deletedEdges.forEach((edge) => {
             onRemoveRelationship?.(edge.id);
           });
+
+          setSelectedRelationshipId(null);
         }}
         deleteKeyCode={null}
+        nodesDraggable
+        nodesConnectable
+        elementsSelectable
         fitView
       >
         <Background />

@@ -13,6 +13,7 @@ export function DiagramGeneratorPage() {
     canConvertToLogical,
     selectedAttribute,
     selectedEntityIds,
+    entityPositions,
     setDescription,
     generateConceptualDiagram,
     convertConceptualToLogicalDiagram,
@@ -20,6 +21,7 @@ export function DiagramGeneratorPage() {
     removeEntity,
     selectEntity,
     updateEntity,
+    updateEntityPosition,
     createRelationshipFromConnection,
     updateRelationship,
     removeRelationship,
@@ -90,6 +92,8 @@ export function DiagramGeneratorPage() {
             onSelectEntity={selectEntity}
             onUpdateEntity={updateEntity}
             selectedEntityIds={selectedEntityIds}
+            entityPositions={entityPositions}
+            onUpdateEntityPosition={updateEntityPosition}
             onAddAttribute={addAttribute}
             selectedAttribute={selectedAttribute}
             onSelectAttribute={selectAttribute}

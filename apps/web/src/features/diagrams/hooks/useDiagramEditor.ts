@@ -13,6 +13,7 @@ export function useDiagramEditor() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [entityPositions, setEntityPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [selectedAttribute, setSelectedAttribute] = useState<{
     entityId: string;
     attributeId: string;
@@ -30,6 +31,7 @@ export function useDiagramEditor() {
       setConceptualModel(model);
       setSelectedAttribute(null);
       setSelectedEntityIds([]);
+      setEntityPositions({});
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
     } finally {
@@ -66,6 +68,7 @@ export function useDiagramEditor() {
     setError(null);
     setSelectedAttribute(null);
     setSelectedEntityIds([]);
+    setEntityPositions({});
   }
 
   function createEntityId(name: string) {
@@ -132,7 +135,18 @@ export function useDiagramEditor() {
 
     setSelectedAttribute((currentSelection) => (currentSelection?.entityId === entityId ? null : currentSelection));
     setSelectedEntityIds((currentSelection) => currentSelection.filter((selectedId) => selectedId !== entityId));
+    setEntityPositions((currentPositions) => {
+      const { [entityId]: _removedPosition, ...remainingPositions } = currentPositions;
+      return remainingPositions;
+    });
     setLogicalModel(null);
+  }
+
+  function updateEntityPosition(entityId: string, position: { x: number; y: number }) {
+    setEntityPositions((currentPositions) => ({
+      ...currentPositions,
+      [entityId]: position,
+    }));
   }
 
   function selectEntity(entityId: string) {
@@ -405,6 +419,7 @@ export function useDiagramEditor() {
     canConvertToLogical: !!conceptualModel,
     selectedAttribute,
     selectedEntityIds,
+    entityPositions,
     setDescription,
     setConceptualModel,
     setLogicalModel,
@@ -414,6 +429,7 @@ export function useDiagramEditor() {
     clearDiagram,
     addEntity,
     removeEntity,
+    updateEntityPosition,
     selectEntity,
     clearEntitySelection,
     updateEntity,
