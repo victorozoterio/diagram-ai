@@ -1,0 +1,88 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  padding: 20px 14px;
+  border-right: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sectionHeading button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  background: #eef2ff;
+  color: #4338ca;
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.modeLabel {
+  padding: 28px 8px 10px;
+  color: #9ca3af;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.entityList {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.entityList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 8px;
+  border-radius: 7px;
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.entityList li:hover {
+  background: #f3f4f6;
+}
+
+.entityIcon {
+  color: #6366f1;
+  font-size: 15px;
+}
+
+.entityList small {
+  margin-left: auto;
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+.emptyState {
+  padding: 8px;
+  margin: 0;
+  color: #9ca3af;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sidebarFooter {
+  padding: 14px 8px 0;
+  margin-top: auto;
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 1.5;
+}

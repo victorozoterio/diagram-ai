@@ -1,0 +1,6 @@
+.canvas {
+  min-width: 0;
+  padding: 24px;
+  overflow: auto;
+  background: #f8fafc;
+}
