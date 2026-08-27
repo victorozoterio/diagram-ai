@@ -1,12 +1,10 @@
 import {
   ConceptualDiagramFlow,
-  ConceptualModelViewer,
   EditorAssistant,
   EditorCanvas,
   EditorHeader,
   EditorSidebar,
   LogicalModelFlow,
-  LogicalModelViewer,
 } from '../../components';
 import { useDiagramEditor } from '../../hooks';
 import styles from './DiagramGeneratorPage.module.css';
@@ -83,8 +81,6 @@ export function DiagramGeneratorPage() {
                 onRemoveRelationship={removeRelationship}
                 onCycleRelationshipCardinality={cycleRelationshipCardinality}
               />
-
-              <ConceptualModelViewer model={conceptualModel} />
             </section>
           ) : (
             <div className={styles.emptyCanvas}>
@@ -103,7 +99,6 @@ export function DiagramGeneratorPage() {
                 </div>
               </div>
               <LogicalModelFlow model={logicalModel} />
-              <LogicalModelViewer model={logicalModel} />
             </section>
           )}
         </EditorCanvas>

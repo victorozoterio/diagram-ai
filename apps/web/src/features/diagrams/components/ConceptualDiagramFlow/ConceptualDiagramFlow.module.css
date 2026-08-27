@@ -1,6 +1,8 @@
 .diagramFlow {
-  height: 560px;
-  margin-bottom: 32px;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  margin-bottom: 0;
   overflow: hidden;
   background: #f9fafb;
   border: 1px solid #e5e7eb;

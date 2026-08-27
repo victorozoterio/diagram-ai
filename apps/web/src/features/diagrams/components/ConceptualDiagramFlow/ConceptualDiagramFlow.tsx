@@ -11,10 +11,12 @@ import {
   type EdgeProps,
   getSmoothStepPath,
   Handle,
+  MiniMap,
   type Node,
   type NodeChange,
   Position,
   ReactFlow,
+  useReactFlow,
 } from '@xyflow/react';
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AttributeType, ConceptualModel, Entity, Relationship } from '../../types';
@@ -145,7 +147,7 @@ function RelationshipEdge({
         <div
           className={`${styles.relationshipLabel} nodrag nopan`}
           style={{
-            transform: `translate(-50%, -50%) ` + `translate(${labelX}px, ${labelY}px)`,
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
           }}
         >
           <input
@@ -164,7 +166,7 @@ function RelationshipEdge({
         <button
           className={`${styles.cardinalityLabel} nodrag nopan`}
           style={{
-            transform: `translate(-50%, -50%) ` + `translate(${sourceLabelX}px, ${sourceLabelY}px)`,
+            transform: `translate(-50%, -50%) translate(${sourceLabelX}px, ${sourceLabelY}px)`,
           }}
           type='button'
           onClick={() => data.onCycleRelationshipCardinality(id, source)}
@@ -176,7 +178,7 @@ function RelationshipEdge({
         <button
           className={`${styles.cardinalityLabel} nodrag nopan`}
           style={{
-            transform: `translate(-50%, -50%) ` + `translate(${targetLabelX}px, ${targetLabelY}px)`,
+            transform: `translate(-50%, -50%) translate(${targetLabelX}px, ${targetLabelY}px)`,
           }}
           type='button'
           onClick={() => data.onCycleRelationshipCardinality(id, target)}
@@ -187,6 +189,24 @@ function RelationshipEdge({
       </EdgeLabelRenderer>
     </>
   );
+}
+
+function FitViewOnNodeChange({ nodeCount }: { nodeCount: number }) {
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    if (nodeCount === 0) {
+      return;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      fitView({ padding: 0.2, duration: 200 });
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [fitView, nodeCount]);
+
+  return null;
 }
 
 function EntityNode({ data }: { data: EntityNodeData }) {
@@ -630,6 +650,8 @@ export function ConceptualDiagramFlow({
       >
         <Background />
         <Controls />
+        <MiniMap />
+        <FitViewOnNodeChange nodeCount={nodes.length} />
       </ReactFlow>
     </div>
   );

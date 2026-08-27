@@ -1,4 +1,4 @@
-import { Background, Controls, type Edge, Handle, type Node, Position, ReactFlow } from '@xyflow/react';
+import { Background, Controls, type Edge, Handle, MiniMap, type Node, Position, ReactFlow } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import type { LogicalModel, LogicalTable } from '../../types';
@@ -73,6 +73,7 @@ export function LogicalModelFlow({ model }: LogicalModelFlowProps) {
       <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView>
         <Background />
         <Controls />
+        <MiniMap />
       </ReactFlow>
     </div>
   );
