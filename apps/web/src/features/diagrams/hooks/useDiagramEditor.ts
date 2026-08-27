@@ -23,6 +23,7 @@ export function useDiagramEditor() {
   const [isConverting, setIsConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [entityPositions, setEntityPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [elementPositions, setElementPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [selectedAttribute, setSelectedAttribute] = useState<{
     entityId: string;
     attributeId: string;
@@ -41,6 +42,7 @@ export function useDiagramEditor() {
       setSelectedAttribute(null);
       setSelectedEntityIds([]);
       setEntityPositions({});
+      setElementPositions({});
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
     } finally {
@@ -78,6 +80,7 @@ export function useDiagramEditor() {
     setSelectedAttribute(null);
     setSelectedEntityIds([]);
     setEntityPositions({});
+    setElementPositions({});
   }
 
   function createEntityId(name: string) {
@@ -158,6 +161,9 @@ export function useDiagramEditor() {
       const { [entityId]: _removedPosition, ...remainingPositions } = currentPositions;
       return remainingPositions;
     });
+    setElementPositions((currentPositions) =>
+      Object.fromEntries(Object.entries(currentPositions).filter(([key]) => !key.startsWith(`${entityId}:`))),
+    );
     setLogicalModel(null);
   }
 
@@ -166,6 +172,10 @@ export function useDiagramEditor() {
       ...currentPositions,
       [entityId]: position,
     }));
+  }
+
+  function updateElementPosition(elementId: string, position: { x: number; y: number }) {
+    setElementPositions((currentPositions) => ({ ...currentPositions, [elementId]: position }));
   }
 
   function selectEntity(entityId: string) {
@@ -267,23 +277,26 @@ export function useDiagramEditor() {
       'composite-attribute',
       'derived-attribute',
       'identifier-attribute',
+      'subattribute',
     ];
 
     if (attributeKinds.includes(kind)) {
       const targetId = targetEntityId ?? (selectedEntityIds.length === 1 ? selectedEntityIds[0] : undefined);
       if (targetId) {
-        addAttribute(targetId, kind);
+        addAttribute(targetId, kind === 'subattribute' ? 'simple-attribute' : kind, position);
       }
       return;
     }
 
     const relationshipKinds: ElementKind[] = [
       'relationship',
+      'identifying-relationship',
       'one-to-one',
       'one-to-many',
       'many-to-many',
       'generalization',
       'specialization',
+      'generalization-specialization',
     ];
 
     if (relationshipKinds.includes(kind) && targetEntityId && selectedEntityIds.length > 0) {
@@ -291,7 +304,12 @@ export function useDiagramEditor() {
         selectedEntityIds.length >= 2 ? selectedEntityIds.slice(0, 2) : [selectedEntityIds[0], targetEntityId];
       if (entityIds[0] !== entityIds[1]) {
         const relationshipType: Cardinality = kind === 'one-to-one' ? '1:1' : kind === 'many-to-many' ? 'N:N' : '1:N';
-        const relationshipKind = kind === 'generalization' || kind === 'specialization' ? kind : 'relationship';
+        const relationshipKind =
+          kind === 'generalization-specialization'
+            ? 'generalization'
+            : kind === 'generalization' || kind === 'specialization' || kind === 'identifying-relationship'
+              ? kind
+              : 'relationship';
         createRelationship(entityIds, undefined, relationshipType, relationshipKind);
       }
     }
@@ -380,7 +398,7 @@ export function useDiagramEditor() {
       .toLowerCase();
   }
 
-  function addAttribute(entityId: string, kind: ElementKind = 'simple-attribute') {
+  function addAttribute(entityId: string, kind: ElementKind = 'simple-attribute', position?: { x: number; y: number }) {
     setConceptualModel((currentModel) => {
       if (!currentModel) {
         return currentModel;
@@ -412,12 +430,29 @@ export function useDiagramEditor() {
                 composite: kind === 'composite-attribute',
                 derived: kind === 'derived-attribute',
                 components: [],
+                kind:
+                  kind === 'multivalued-attribute'
+                    ? 'multivalued'
+                    : kind === 'composite-attribute'
+                      ? 'composite'
+                      : kind === 'derived-attribute'
+                        ? 'derived'
+                        : kind === 'identifier-attribute'
+                          ? 'identifier'
+                          : 'simple',
               },
             ],
           };
         }),
       };
     });
+
+    if (position) {
+      const currentAttributeCount =
+        conceptualModel?.entities.find((entity) => entity.id === entityId)?.attributes.length ?? 0;
+      const attributeId = createAttributeId(entityId, `novoAtributo${currentAttributeCount + 1}`);
+      setElementPositions((currentPositions) => ({ ...currentPositions, [`${entityId}:${attributeId}`]: position }));
+    }
 
     setLogicalModel(null);
   }
@@ -487,6 +522,7 @@ export function useDiagramEditor() {
     selectedAttribute,
     selectedEntityIds,
     entityPositions,
+    elementPositions,
     setDescription,
     setConceptualModel,
     setLogicalModel,
@@ -498,6 +534,7 @@ export function useDiagramEditor() {
     addEntityAtPosition,
     removeEntity,
     updateEntityPosition,
+    updateElementPosition,
     selectEntity,
     clearEntitySelection,
     updateEntity,

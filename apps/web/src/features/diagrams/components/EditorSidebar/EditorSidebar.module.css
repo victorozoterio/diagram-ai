@@ -113,6 +113,84 @@
   text-align: left;
 }
 
+.elementPreview {
+  display: inline-block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 14px;
+  overflow: visible;
+}
+
+.previewShape {
+  fill: #fff;
+  stroke: #6366f1;
+  stroke-width: 1.5;
+}
+
+.preview-attribute .previewShape,
+.preview-simple-attribute .previewShape,
+.preview-multivalued-attribute .previewShape,
+.preview-composite-attribute .previewShape,
+.preview-derived-attribute .previewShape,
+.preview-identifier-attribute .previewShape {
+  stroke: #64748b;
+}
+
+.preview-derived-attribute .previewShape {
+  stroke-dasharray: 3 2;
+}
+
+.preview-relationship .previewShape {
+  stroke: #c2410c;
+}
+
+.preview-generalization-specialization .previewShape {
+  stroke: #7c3aed;
+}
+
+.preview-weak-entity {
+  filter: drop-shadow(0 0 0 #fff) drop-shadow(0 0 1px #6366f1);
+}
+.preview-associative-entity {
+  filter: drop-shadow(0 0 1px #6366f1);
+}
+.preview-simple-attribute,
+.preview-multivalued-attribute,
+.preview-composite-attribute,
+.preview-derived-attribute,
+.preview-identifier-attribute,
+.preview-subattribute {
+  height: 16px;
+}
+.preview-multivalued-attribute {
+  filter: drop-shadow(0 0 1px #64748b);
+}
+.preview-derived-attribute {
+  opacity: 0.8;
+}
+.preview-identifier-attribute {
+  filter: drop-shadow(0 0 1px #64748b);
+}
+.preview-relationship,
+.preview-identifying-relationship,
+.preview-one-to-one,
+.preview-one-to-many,
+.preview-many-to-many {
+  width: 14px;
+  height: 14px;
+  transform: rotate(45deg);
+}
+.preview-identifying-relationship {
+  filter: drop-shadow(0 0 1px #c2410c);
+}
+.preview-generalization,
+.preview-specialization,
+.preview-generalization-specialization {
+  width: 16px;
+  height: 14px;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
 .elementItem:hover {
   border-color: #e0e7ff;
   background: #f5f7ff;

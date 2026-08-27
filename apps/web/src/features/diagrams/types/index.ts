@@ -1,6 +1,7 @@
 export type {
   Ambiguity,
   Attribute,
+  AttributeKind,
   AttributeType,
   Cardinality,
   ConceptualModel,

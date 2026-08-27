@@ -15,6 +15,8 @@ export type Cardinality = '1:1' | '1:N' | 'N:N';
 
 export type EntityKind = 'regular' | 'weak' | 'associative';
 
+export type AttributeKind = 'simple' | 'identifier' | 'multivalued' | 'composite' | 'derived' | 'subattribute';
+
 export type ElementKind =
   | 'entity'
   | 'weak-entity'
@@ -24,12 +26,15 @@ export type ElementKind =
   | 'composite-attribute'
   | 'derived-attribute'
   | 'identifier-attribute'
+  | 'subattribute'
   | 'relationship'
+  | 'identifying-relationship'
   | 'one-to-one'
   | 'one-to-many'
   | 'many-to-many'
   | 'generalization'
-  | 'specialization';
+  | 'specialization'
+  | 'generalization-specialization';
 
 export type Attribute = {
   id: string;
@@ -47,6 +52,8 @@ export type Attribute = {
     name: string;
     type: AttributeType;
   }>;
+  kind?: AttributeKind;
+  parentAttributeId?: string;
 };
 
 export type Entity = {
@@ -68,7 +75,7 @@ export type Relationship = {
   name: string;
   description?: string;
   type: Cardinality;
-  kind?: 'relationship' | 'generalization' | 'specialization';
+  kind?: 'relationship' | 'identifying-relationship' | 'generalization' | 'specialization';
   participants: RelationshipParticipant[];
   attributes: Attribute[];
 };
