@@ -16,10 +16,11 @@ import {
   type NodeChange,
   Position,
   ReactFlow,
+  type ReactFlowInstance,
   useReactFlow,
 } from '@xyflow/react';
-import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AttributeType, ConceptualModel, Entity, Relationship } from '../../types';
+import { type DragEvent, type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { AttributeType, ConceptualModel, ElementKind, Entity, Relationship } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 
 type EntityNodeData = Entity & {
@@ -93,6 +94,7 @@ type ConceptualDiagramFlowProps = {
   onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
   onRemoveRelationship?: (relationshipId: string) => void;
   onCycleRelationshipCardinality?: (relationshipId: string, entityId: string) => void;
+  onAddElementAtPosition?: (kind: ElementKind, position: { x: number; y: number }, targetEntityId?: string) => void;
 };
 
 const attributeTypes: AttributeType[] = [
@@ -259,6 +261,8 @@ function EntityNode({ data }: { data: EntityNodeData }) {
     <div
       className={`
         ${styles.entityNode}
+        ${data.kind === 'weak' ? styles.weakEntity : ''}
+        ${data.kind === 'associative' ? styles.associativeEntity : ''}
         ${data.isSelected ? styles.selectedEntity : ''}
       `}
     >
@@ -488,8 +492,10 @@ export function ConceptualDiagramFlow({
   onUpdateRelationship,
   onRemoveRelationship,
   onCycleRelationshipCardinality,
+  onAddElementAtPosition,
 }: ConceptualDiagramFlowProps) {
   const [selectedRelationshipId, setSelectedRelationshipId] = useState<string | null>(null);
+  const [flowInstance, setFlowInstance] = useState<ReactFlowInstance | null>(null);
 
   const mappedNodes = useMemo<Node<EntityNodeData>[]>(() => {
     return model.entities.map((entity, index) => ({
@@ -572,8 +578,8 @@ export function ConceptualDiagramFlow({
   }, [model.relationships, onUpdateRelationship, onCycleRelationshipCardinality]);
 
   const handleNodesChange = useCallback(
-    (changes: NodeChange<Node<EntityNodeData>>[]) => {
-      setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
+    (changes: NodeChange[]) => {
+      setNodes((currentNodes) => applyNodeChanges(changes, currentNodes) as Node<EntityNodeData>[]);
 
       changes.forEach((change) => {
         if (change.type === 'position' && change.position && change.dragging === false) {
@@ -599,6 +605,31 @@ export function ConceptualDiagramFlow({
     [onConnectEntities],
   );
 
+  const handleDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+
+      const kind = event.dataTransfer.getData('application/diagram-element') as ElementKind;
+      if (!kind || !flowInstance || !onAddElementAtPosition) {
+        return;
+      }
+
+      const position = flowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      const targetNode = flowInstance.getIntersectingNodes({
+        x: position.x,
+        y: position.y,
+        width: 1,
+        height: 1,
+      })[0];
+
+      onAddElementAtPosition(kind, position, targetNode?.id);
+    },
+    [flowInstance, onAddElementAtPosition],
+  );
+
   useEffect(() => {
     function handleDeleteKey(event: globalThis.KeyboardEvent) {
       const target = event.target;
@@ -621,7 +652,16 @@ export function ConceptualDiagramFlow({
   }, [onRemoveRelationship, selectedRelationshipId]);
 
   return (
-    <div className={styles.diagramFlow}>
+    <div
+      className={styles.diagramFlow}
+      role='application'
+      aria-label='Canvas do modelo conceitual'
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+      }}
+      onDrop={handleDrop}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -647,6 +687,7 @@ export function ConceptualDiagramFlow({
         nodesConnectable
         elementsSelectable
         fitView
+        onInit={setFlowInstance}
       >
         <Background />
         <Controls />

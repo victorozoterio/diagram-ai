@@ -13,6 +13,24 @@ export type AttributeType =
 
 export type Cardinality = '1:1' | '1:N' | 'N:N';
 
+export type EntityKind = 'regular' | 'weak' | 'associative';
+
+export type ElementKind =
+  | 'entity'
+  | 'weak-entity'
+  | 'associative-entity'
+  | 'simple-attribute'
+  | 'multivalued-attribute'
+  | 'composite-attribute'
+  | 'derived-attribute'
+  | 'identifier-attribute'
+  | 'relationship'
+  | 'one-to-one'
+  | 'one-to-many'
+  | 'many-to-many'
+  | 'generalization'
+  | 'specialization';
+
 export type Attribute = {
   id: string;
   name: string;
@@ -35,6 +53,7 @@ export type Entity = {
   id: string;
   name: string;
   description?: string;
+  kind?: EntityKind;
   attributes: Attribute[];
 };
 
@@ -49,6 +68,7 @@ export type Relationship = {
   name: string;
   description?: string;
   type: Cardinality;
+  kind?: 'relationship' | 'generalization' | 'specialization';
   participants: RelationshipParticipant[];
   attributes: Attribute[];
 };

@@ -4,7 +4,9 @@ export type {
   AttributeType,
   Cardinality,
   ConceptualModel,
+  ElementKind,
   Entity,
+  EntityKind,
   Relationship,
   RelationshipParticipant,
 } from './conceptual-model';

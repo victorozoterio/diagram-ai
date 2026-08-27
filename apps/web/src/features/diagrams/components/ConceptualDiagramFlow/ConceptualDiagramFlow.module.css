@@ -18,6 +18,14 @@
   box-shadow: 0 16px 40px rgb(15 23 42 / 12%);
 }
 
+.weakEntity {
+  border-style: dashed;
+}
+
+.associativeEntity {
+  border-width: 3px;
+}
+
 .selectedEntity {
   border-color: #4f46e5;
   box-shadow:

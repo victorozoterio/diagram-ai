@@ -29,6 +29,7 @@ export function DiagramGeneratorPage() {
     selectEntity,
     updateEntity,
     updateEntityPosition,
+    addElementAtPosition,
     createRelationshipFromConnection,
     updateRelationship,
     removeRelationship,
@@ -71,6 +72,7 @@ export function DiagramGeneratorPage() {
                 selectedEntityIds={selectedEntityIds}
                 entityPositions={entityPositions}
                 onUpdateEntityPosition={updateEntityPosition}
+                onAddElementAtPosition={addElementAtPosition}
                 onAddAttribute={addAttribute}
                 selectedAttribute={selectedAttribute}
                 onSelectAttribute={selectAttribute}
