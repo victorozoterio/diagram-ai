@@ -45,7 +45,6 @@ export function DiagramGeneratorPage() {
     updateRelationship,
     removeRelationship,
     cycleRelationshipCardinality,
-    addAttribute,
     selectAttribute,
     updateAttribute,
     removeAttribute,
@@ -86,7 +85,6 @@ export function DiagramGeneratorPage() {
               onUpdateEntityPosition={updateEntityPosition}
               onUpdateElementPosition={updateElementPosition}
               onAddElementAtPosition={addElementAtPosition}
-              onAddAttribute={addAttribute}
               selectedAttribute={selectedAttribute}
               onSelectAttribute={selectAttribute}
               onUpdateAttribute={updateAttribute}

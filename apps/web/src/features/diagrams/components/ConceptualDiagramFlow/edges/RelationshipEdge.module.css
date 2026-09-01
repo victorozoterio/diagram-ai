@@ -1,0 +1,17 @@
+.cardinality {
+  position: absolute;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 2px 5px;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+.cardinality:hover {
+  border-color: #4f46e5;
+  box-shadow: 0 4px 14px rgb(79 70 229 / 20%);
+}

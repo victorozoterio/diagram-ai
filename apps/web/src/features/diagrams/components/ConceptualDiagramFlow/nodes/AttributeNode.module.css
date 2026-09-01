@@ -1,0 +1,47 @@
+.node {
+  position: relative;
+  display: grid;
+  width: 132px;
+  height: 68px;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 10px;
+  border: 1.5px solid #64748b;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 5px 14px rgb(15 23 42 / 8%);
+}
+
+.node button,
+.node input {
+  max-width: 100%;
+  padding: 3px 5px;
+  border: 0;
+  background: transparent;
+  color: #1e293b;
+  font: inherit;
+  font-size: 12px;
+  text-align: center;
+}
+.nameButton {
+  cursor: text;
+}
+.multivalued {
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 0 5.5px #64748b,
+    0 5px 14px rgb(15 23 42 / 8%);
+}
+.derived {
+  border-style: dashed;
+}
+.identifier .nameButton {
+  text-decoration: underline;
+}
+.composite {
+  border-width: 2.5px;
+}
+.selected {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 20%);
+}

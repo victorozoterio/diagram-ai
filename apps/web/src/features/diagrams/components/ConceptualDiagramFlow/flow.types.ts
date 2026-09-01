@@ -1,0 +1,61 @@
+import type { AttributeType, ConceptualModel, ElementKind, Entity, Relationship } from '../../types';
+
+export type DiagramPosition = { x: number; y: number };
+
+export type EntityNodeData = Pick<Entity, 'id' | 'name' | 'kind'> & {
+  isSelected?: boolean;
+  onSelectEntity?: (entityId: string) => void;
+  onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
+};
+
+export type AttributeNodeData = {
+  attribute: Entity['attributes'][number];
+  entityId: string;
+  selected?: boolean;
+  onSelectAttribute?: (entityId: string, attributeId: string) => void;
+  onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
+};
+
+export type RelationshipNodeData = {
+  relationship: Relationship;
+  onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
+};
+
+export type RelationshipEdgeData = {
+  relationship: Relationship;
+  entityId: string;
+  onCycleRelationshipCardinality: (relationshipId: string, entityId: string) => void;
+};
+
+export type ConceptualDiagramFlowProps = {
+  model: ConceptualModel;
+  onRemoveEntity?: (entityId: string) => void;
+  onSelectEntity?: (entityId: string) => void;
+  onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
+  selectedEntityIds?: string[];
+  entityPositions?: Record<string, DiagramPosition>;
+  elementPositions?: Record<string, DiagramPosition>;
+  selectedAttribute?: { entityId: string; attributeId: string } | null;
+  onUpdateEntityPosition?: (entityId: string, position: DiagramPosition) => void;
+  onUpdateElementPosition?: (elementId: string, position: DiagramPosition) => void;
+  onSelectAttribute?: (entityId: string, attributeId: string) => void;
+  onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
+  onRemoveAttribute?: (entityId: string, attributeId: string) => void;
+  onConnectEntities?: (
+    sourceEntityId: string,
+    targetEntityId: string,
+    sourceHandle?: string,
+    targetHandle?: string,
+  ) => void;
+  onConnectEntityToRelationship?: (
+    relationshipId: string,
+    entityId: string,
+    connectionHandle?: string,
+    entityHandle?: string,
+    connectionDirection?: 'entity-to-relationship' | 'relationship-to-entity',
+  ) => void;
+  onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
+  onRemoveRelationship?: (relationshipId: string) => void;
+  onCycleRelationshipCardinality?: (relationshipId: string, entityId: string) => void;
+  onAddElementAtPosition?: (kind: ElementKind, position: DiagramPosition, targetEntityId?: string) => void;
+};
