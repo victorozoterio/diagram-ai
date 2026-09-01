@@ -68,6 +68,9 @@ export type RelationshipParticipant = {
   entityId: string;
   role?: string;
   cardinality: '1' | 'N';
+  connectionHandle?: string;
+  entityHandle?: string;
+  connectionDirection?: 'entity-to-relationship' | 'relationship-to-entity';
 };
 
 export type Relationship = {

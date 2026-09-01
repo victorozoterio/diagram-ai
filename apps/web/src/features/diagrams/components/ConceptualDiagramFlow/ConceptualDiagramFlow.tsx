@@ -5,6 +5,7 @@ import {
   Background,
   BaseEdge,
   type Connection,
+  ConnectionMode,
   Controls,
   type Edge,
   EdgeLabelRenderer,
@@ -24,7 +25,6 @@ import type { AttributeType, ConceptualModel, ElementKind, Entity, Relationship 
 import styles from './ConceptualDiagramFlow.module.css';
 
 type EntityNodeData = Entity & {
-  onRemoveEntity?: (entityId: string) => void;
   onSelectEntity?: (entityId: string) => void;
   onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
   isSelected?: boolean;
@@ -105,7 +105,19 @@ type ConceptualDiagramFlowProps = {
     },
   ) => void;
   onRemoveAttribute?: (entityId: string, attributeId: string) => void;
-  onConnectEntities?: (sourceEntityId: string, targetEntityId: string) => void;
+  onConnectEntities?: (
+    sourceEntityId: string,
+    targetEntityId: string,
+    sourceHandle?: string,
+    targetHandle?: string,
+  ) => void;
+  onConnectEntityToRelationship?: (
+    relationshipId: string,
+    entityId: string,
+    connectionHandle?: string,
+    entityHandle?: string,
+    connectionDirection?: 'entity-to-relationship' | 'relationship-to-entity',
+  ) => void;
   onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
   onRemoveRelationship?: (relationshipId: string) => void;
   onCycleRelationshipCardinality?: (relationshipId: string, entityId: string) => void;
@@ -130,6 +142,7 @@ const attributeTypes: AttributeType[] = [
 
 function RelationshipEdge({
   id,
+  source,
   sourceX,
   sourceY,
   targetX,
@@ -152,6 +165,10 @@ function RelationshipEdge({
     return <BaseEdge id={id} path={edgePath} />;
   }
 
+  const entityIsSource = source === data.entityId;
+  const entityX = entityIsSource ? sourceX : targetX;
+  const entityY = entityIsSource ? sourceY : targetY;
+
   return (
     <>
       <BaseEdge id={id} path={edgePath} />
@@ -159,7 +176,7 @@ function RelationshipEdge({
         <button
           className={`${styles.cardinalityLabel} nodrag nopan`}
           style={{
-            transform: `translate(-50%, -50%) translate(${sourceX + (labelX - sourceX) * 0.38}px, ${sourceY + (labelY - sourceY) * 0.38}px)`,
+            transform: `translate(-50%, -50%) translate(${entityX + (labelX - entityX) * 0.38}px, ${entityY + (labelY - entityY) * 0.38}px)`,
           }}
           type='button'
           onClick={() => data.onCycleRelationshipCardinality(data.relationship.id, data.entityId)}
@@ -245,16 +262,7 @@ function EntityNode({ data }: { data: EntityNodeData }) {
         ${data.isSelected ? styles.selectedEntity : ''}
       `}
     >
-      <div
-        className={`
-          ${styles.entityNodeHeader}
-          entity-drag-handle
-        `}
-      >
-        <span className={styles.dragHandle} title='Arrastar entidade' aria-hidden='true'>
-          ⋮⋮
-        </span>
-
+      <div className={styles.entityNodeHeader}>
         {editingField === 'name' ? (
           <input
             className={`
@@ -272,29 +280,12 @@ function EntityNode({ data }: { data: EntityNodeData }) {
           />
         ) : (
           <button
-            className={`
-              ${styles.entityNodeTitleButton}
-              nodrag
-            `}
+            className={styles.entityNodeTitleButton}
             type='button'
             onClick={() => startEditing('name')}
             aria-label={`Editar nome da entidade ${data.name}`}
           >
             <strong className={styles.entityNodeTitle}>{data.name}</strong>
-          </button>
-        )}
-
-        {data.onRemoveEntity && (
-          <button
-            className={`
-              ${styles.removeIconButton}
-              nodrag
-            `}
-            type='button'
-            onClick={() => data.onRemoveEntity?.(data.id)}
-            title='Remover entidade'
-          >
-            ×
           </button>
         )}
       </div>
@@ -440,8 +431,10 @@ function EntityNode({ data }: { data: EntityNodeData }) {
         </button>
       )}
 
-      <Handle type='target' position={Position.Left} />
-      <Handle type='source' position={Position.Right} />
+      <Handle id='entity-left' type='target' position={Position.Left} />
+      <Handle id='entity-right' type='source' position={Position.Right} />
+      <Handle id='entity-top' type='source' position={Position.Top} />
+      <Handle id='entity-bottom' type='source' position={Position.Bottom} />
     </div>
   );
 }
@@ -473,7 +466,7 @@ function AttributeNode({ data }: { data: AttributeNodeData }) {
         />
       ) : (
         <button
-          className='nodrag'
+          className={styles.attributeNodeName}
           type='button'
           onClick={() => {
             data.onSelectAttribute?.(data.entityId, data.attribute.id);
@@ -491,11 +484,17 @@ function AttributeNode({ data }: { data: AttributeNodeData }) {
 
 function RelationshipNode({ data }: { data: RelationshipNodeData }) {
   const [isEditing, setIsEditing] = useState(false);
+  const isGeneralization = data.relationship.kind === 'generalization' || data.relationship.kind === 'specialization';
 
   return (
     <div
       className={`${styles.relationshipNode} ${data.relationship.kind === 'identifying-relationship' ? styles.identifyingRelationshipNode : ''} ${data.relationship.kind === 'generalization' ? styles.generalizationNode : ''} ${data.relationship.kind === 'specialization' ? styles.specializationNode : ''}`}
     >
+      {isGeneralization && (
+        <svg className={styles.generalizationShape} viewBox='0 0 102 86' aria-hidden='true'>
+          <path d='M 51 3 L 99 83 L 3 83 Z' fill='#fff' stroke='#7c3aed' strokeWidth='4' />
+        </svg>
+      )}
       {isEditing ? (
         <input
           className={`${styles.relationshipNodeInput} nodrag nopan`}
@@ -509,16 +508,25 @@ function RelationshipNode({ data }: { data: RelationshipNodeData }) {
           aria-label='Nome do relacionamento'
         />
       ) : (
-        <button
-          className={`${styles.relationshipNodeName} nodrag nopan`}
-          type='button'
-          onClick={() => setIsEditing(true)}
-        >
+        <button className={`${styles.relationshipNodeName} nopan`} type='button' onClick={() => setIsEditing(true)}>
           {data.relationship.name}
         </button>
       )}
-      <Handle type='target' position={Position.Left} />
-      <Handle type='source' position={Position.Right} />
+      {isGeneralization ? (
+        <>
+          <Handle id='source-top' type='source' position={Position.Top} />
+          <Handle id='source-bottom' type='source' position={Position.Bottom} />
+          <Handle id='target-left' type='target' position={Position.Left} />
+          <Handle id='source-right' type='source' position={Position.Right} />
+        </>
+      ) : (
+        <>
+          <Handle id='target-left' type='target' position={Position.Left} />
+          <Handle id='source-right' type='source' position={Position.Right} />
+          <Handle id='source-top' type='source' position={Position.Top} />
+          <Handle id='source-bottom' type='source' position={Position.Bottom} />
+        </>
+      )}
     </div>
   );
 }
@@ -547,6 +555,7 @@ export function ConceptualDiagramFlow({
   onUpdateAttribute,
   onRemoveAttribute,
   onConnectEntities,
+  onConnectEntityToRelationship,
   onUpdateRelationship,
   onRemoveRelationship,
   onCycleRelationshipCardinality,
@@ -561,14 +570,12 @@ export function ConceptualDiagramFlow({
     const entityNodes = model.entities.map((entity, index) => ({
       id: entity.id,
       type: 'entity',
-      dragHandle: '.entity-drag-handle',
       position: entityPositions?.[entity.id] ?? {
         x: 80 + (index % 3) * 360,
         y: 80 + Math.floor(index / 3) * 280,
       },
       data: {
         ...entity,
-        onRemoveEntity,
         onSelectEntity,
         onUpdateEntity,
         isSelected: selectedEntityIds?.includes(entity.id),
@@ -623,7 +630,6 @@ export function ConceptualDiagramFlow({
   }, [
     model.entities,
     entityPositions,
-    onRemoveEntity,
     onSelectEntity,
     onUpdateEntity,
     selectedEntityIds,
@@ -667,25 +673,32 @@ export function ConceptualDiagramFlow({
       })),
     );
     const relationshipEdges = model.relationships.flatMap((relationship) => {
-      const [source, target] = relationship.participants;
-
-      if (!source || !target) {
+      if (relationship.participants.length === 0) {
         return [];
       }
 
-      return relationship.participants.map((participant) => ({
-        id: `${relationship.id}:${participant.entityId}`,
-        source: participant.entityId,
-        target: `relationship:${relationship.id}`,
-        type: 'relationship',
-        selectable: true,
-        data: {
-          relationship,
-          entityId: participant.entityId,
-          onUpdateRelationship: onUpdateRelationship ?? (() => undefined),
-          onCycleRelationshipCardinality: onCycleRelationshipCardinality ?? (() => undefined),
-        },
-      }));
+      return relationship.participants.map((participant, index) => {
+        const startsAtRelationship = participant.connectionDirection === 'relationship-to-entity';
+        const connectionHandle =
+          participant.connectionHandle ??
+          (startsAtRelationship ? 'source-right' : `target-${index === 0 ? 'left' : 'right'}`);
+
+        return {
+          id: `${relationship.id}:${participant.entityId}`,
+          source: startsAtRelationship ? `relationship:${relationship.id}` : participant.entityId,
+          sourceHandle: startsAtRelationship ? connectionHandle : (participant.entityHandle ?? 'entity-right'),
+          target: startsAtRelationship ? participant.entityId : `relationship:${relationship.id}`,
+          targetHandle: startsAtRelationship ? (participant.entityHandle ?? 'entity-left') : connectionHandle,
+          type: 'relationship',
+          selectable: true,
+          data: {
+            relationship,
+            entityId: participant.entityId,
+            onUpdateRelationship: onUpdateRelationship ?? (() => undefined),
+            onCycleRelationshipCardinality: onCycleRelationshipCardinality ?? (() => undefined),
+          },
+        };
+      });
     });
     return [...attributeEdges, ...relationshipEdges];
   }, [model.entities, model.relationships, onUpdateRelationship, onCycleRelationshipCardinality]);
@@ -707,6 +720,28 @@ export function ConceptualDiagramFlow({
     [model.entities, onUpdateEntityPosition, onUpdateElementPosition],
   );
 
+  const handleNodesDelete = useCallback(
+    (deletedNodes: Node[]) => {
+      deletedNodes.forEach((node) => {
+        if (model.entities.some((entity) => entity.id === node.id)) {
+          onRemoveEntity?.(node.id);
+          return;
+        }
+
+        if (node.id.startsWith('relationship:')) {
+          onRemoveRelationship?.(node.id.replace('relationship:', ''));
+          return;
+        }
+
+        const separatorIndex = node.id.indexOf(':');
+        if (separatorIndex > 0) {
+          onRemoveAttribute?.(node.id.slice(0, separatorIndex), node.id.slice(separatorIndex + 1));
+        }
+      });
+    },
+    [model.entities, onRemoveAttribute, onRemoveEntity, onRemoveRelationship],
+  );
+
   const handleConnect = useCallback(
     (connection: Connection) => {
       if (!connection.source || !connection.target) {
@@ -721,10 +756,42 @@ export function ConceptualDiagramFlow({
         model.entities.some((entity) => entity.id === connection.source) &&
         model.entities.some((entity) => entity.id === connection.target)
       ) {
-        onConnectEntities?.(connection.source, connection.target);
+        onConnectEntities?.(
+          connection.source,
+          connection.target,
+          connection.sourceHandle ?? undefined,
+          connection.targetHandle ?? undefined,
+        );
+        return;
+      }
+
+      const relationshipNodeId = connection.source.startsWith('relationship:')
+        ? connection.source
+        : connection.target.startsWith('relationship:')
+          ? connection.target
+          : null;
+      const entityId = model.entities.some((entity) => entity.id === connection.source)
+        ? connection.source
+        : model.entities.some((entity) => entity.id === connection.target)
+          ? connection.target
+          : null;
+
+      if (relationshipNodeId && entityId) {
+        const connectionHandle =
+          connection.source === relationshipNodeId ? connection.sourceHandle : connection.targetHandle;
+        const entityHandle = connection.source === entityId ? connection.sourceHandle : connection.targetHandle;
+        const connectionDirection =
+          connection.source === relationshipNodeId ? 'relationship-to-entity' : 'entity-to-relationship';
+        onConnectEntityToRelationship?.(
+          relationshipNodeId.replace('relationship:', ''),
+          entityId,
+          connectionHandle ?? undefined,
+          entityHandle ?? undefined,
+          connectionDirection,
+        );
       }
     },
-    [model.entities, onConnectEntities],
+    [model.entities, onConnectEntities, onConnectEntityToRelationship],
   );
 
   const handleDrop = useCallback(
@@ -790,7 +857,9 @@ export function ConceptualDiagramFlow({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={handleNodesChange}
+        onNodesDelete={handleNodesDelete}
         onConnect={handleConnect}
+        connectionMode={ConnectionMode.Loose}
         onEdgeClick={(_, edge) => {
           const relationshipData = edge.data as RelationshipEdgeData | undefined;
           setSelectedRelationshipId(relationshipData?.relationship.id ?? null);
@@ -808,7 +877,7 @@ export function ConceptualDiagramFlow({
 
           setSelectedRelationshipId(null);
         }}
-        deleteKeyCode={null}
+        deleteKeyCode={['Backspace', 'Delete']}
         nodesDraggable
         nodesConnectable
         elementsSelectable

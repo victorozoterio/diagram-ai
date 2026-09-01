@@ -13,6 +13,7 @@
 }
 
 .modelSection {
+  position: relative;
   display: flex;
   height: 100%;
   min-height: 0;
@@ -58,15 +59,14 @@
 }
 
 .emptyCanvas {
+  position: absolute;
+  inset: 82px 0 0;
+  z-index: 1;
   display: grid;
-  height: 100%;
-  min-height: 0;
+  pointer-events: none;
   place-content: center;
   justify-items: center;
   padding: 32px;
-  border: 1px dashed #c7d2fe;
-  border-radius: 18px;
-  background: #ffffff;
   text-align: center;
 }
 

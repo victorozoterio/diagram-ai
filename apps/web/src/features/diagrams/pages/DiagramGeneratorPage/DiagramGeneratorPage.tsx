@@ -7,7 +7,15 @@ import {
   LogicalModelFlow,
 } from '../../components';
 import { useDiagramEditor } from '../../hooks';
+import type { ConceptualModel } from '../../types';
 import styles from './DiagramGeneratorPage.module.css';
+
+const emptyConceptualModel: ConceptualModel = {
+  metadata: {},
+  entities: [],
+  relationships: [],
+  ambiguities: [],
+};
 
 export function DiagramGeneratorPage() {
   const {
@@ -33,6 +41,7 @@ export function DiagramGeneratorPage() {
     updateElementPosition,
     addElementAtPosition,
     createRelationshipFromConnection,
+    connectEntityToRelationship,
     updateRelationship,
     removeRelationship,
     cycleRelationshipCardinality,
@@ -41,6 +50,7 @@ export function DiagramGeneratorPage() {
     updateAttribute,
     removeAttribute,
   } = useDiagramEditor();
+  const activeConceptualModel = conceptualModel ?? emptyConceptualModel;
 
   return (
     <main className={styles.app}>
@@ -56,45 +66,45 @@ export function DiagramGeneratorPage() {
         <EditorSidebar model={conceptualModel} onAddEntity={addEntity} />
 
         <EditorCanvas>
-          {conceptualModel ? (
-            <section className={styles.modelSection}>
-              <div className={styles.canvasHeading}>
-                <div>
-                  <span className={styles.eyebrow}>CANVAS</span>
-                  <h1>Modelo conceitual</h1>
-                </div>
-                <span className={styles.canvasHint}>Clique nos textos para editar · arraste para organizar</span>
+          <section className={styles.modelSection}>
+            <div className={styles.canvasHeading}>
+              <div>
+                <span className={styles.eyebrow}>CANVAS</span>
+                <h1>Modelo conceitual</h1>
               </div>
-
-              <ConceptualDiagramFlow
-                model={conceptualModel}
-                onRemoveEntity={removeEntity}
-                onSelectEntity={selectEntity}
-                onUpdateEntity={updateEntity}
-                selectedEntityIds={selectedEntityIds}
-                entityPositions={entityPositions}
-                elementPositions={elementPositions}
-                onUpdateEntityPosition={updateEntityPosition}
-                onUpdateElementPosition={updateElementPosition}
-                onAddElementAtPosition={addElementAtPosition}
-                onAddAttribute={addAttribute}
-                selectedAttribute={selectedAttribute}
-                onSelectAttribute={selectAttribute}
-                onUpdateAttribute={updateAttribute}
-                onRemoveAttribute={removeAttribute}
-                onConnectEntities={createRelationshipFromConnection}
-                onUpdateRelationship={updateRelationship}
-                onRemoveRelationship={removeRelationship}
-                onCycleRelationshipCardinality={cycleRelationshipCardinality}
-              />
-            </section>
-          ) : (
-            <div className={styles.emptyCanvas}>
-              <span className={styles.emptyIcon}>⌘</span>
-              <h1>Seu modelo começa aqui</h1>
-              <p>Gere um modelo a partir de uma descrição ou adicione uma entidade pela barra lateral.</p>
+              <span className={styles.canvasHint}>Clique nos textos para editar · arraste para organizar</span>
             </div>
-          )}
+
+            <ConceptualDiagramFlow
+              model={activeConceptualModel}
+              onRemoveEntity={removeEntity}
+              onSelectEntity={selectEntity}
+              onUpdateEntity={updateEntity}
+              selectedEntityIds={selectedEntityIds}
+              entityPositions={entityPositions}
+              elementPositions={elementPositions}
+              onUpdateEntityPosition={updateEntityPosition}
+              onUpdateElementPosition={updateElementPosition}
+              onAddElementAtPosition={addElementAtPosition}
+              onAddAttribute={addAttribute}
+              selectedAttribute={selectedAttribute}
+              onSelectAttribute={selectAttribute}
+              onUpdateAttribute={updateAttribute}
+              onRemoveAttribute={removeAttribute}
+              onConnectEntities={createRelationshipFromConnection}
+              onConnectEntityToRelationship={connectEntityToRelationship}
+              onUpdateRelationship={updateRelationship}
+              onRemoveRelationship={removeRelationship}
+              onCycleRelationshipCardinality={cycleRelationshipCardinality}
+            />
+            {!conceptualModel && (
+              <div className={styles.emptyCanvas}>
+                <span className={styles.emptyIcon}>⌘</span>
+                <h1>Seu modelo começa aqui</h1>
+                <p>Gere um modelo ou arraste um elemento da biblioteca para começar.</p>
+              </div>
+            )}
+          </section>
 
           {logicalModel && (
             <section className={styles.modelSection}>
