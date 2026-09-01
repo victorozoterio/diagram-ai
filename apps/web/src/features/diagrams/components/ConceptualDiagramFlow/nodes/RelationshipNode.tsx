@@ -1,6 +1,6 @@
-import { Handle, Position } from '@xyflow/react';
 import { useState } from 'react';
 import type { RelationshipNodeData } from '../flow.types';
+import { ConnectionHandles } from './ConnectionHandles';
 import styles from './RelationshipNode.module.css';
 
 export function RelationshipNode({ data }: { data: RelationshipNodeData }) {
@@ -31,10 +31,15 @@ export function RelationshipNode({ data }: { data: RelationshipNodeData }) {
           {data.relationship.name}
         </button>
       )}
-      <Handle id='target-left' type='target' position={Position.Left} />
-      <Handle id='source-right' type='source' position={Position.Right} />
-      <Handle id='source-top' type='source' position={Position.Top} />
-      <Handle id='source-bottom' type='source' position={Position.Bottom} />
+      <ConnectionHandles
+        prefix='relationship'
+        middleHandleIds={{
+          left: 'target-left',
+          right: 'source-right',
+          top: 'source-top',
+          bottom: 'source-bottom',
+        }}
+      />
     </div>
   );
 }

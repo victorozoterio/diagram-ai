@@ -90,8 +90,7 @@ export function buildFlowEdges(model: ConceptualModel, callbacks: FlowMapperCall
       id: `attribute:${entity.id}:${attribute.id}`,
       source: entity.id,
       target: `${entity.id}:${attribute.id}`,
-      type: 'smoothstep',
-      style: { stroke: '#94a3b8', strokeDasharray: '4 4' },
+      type: 'attribute',
     })),
   );
 

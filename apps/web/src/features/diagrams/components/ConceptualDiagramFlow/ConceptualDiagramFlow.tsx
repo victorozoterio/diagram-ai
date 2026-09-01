@@ -1,6 +1,7 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
 import { useMemo } from 'react';
 import styles from './ConceptualDiagramFlow.module.css';
+import { AttributeEdge } from './edges/AttributeEdge';
 import { RelationshipEdge } from './edges/RelationshipEdge';
 import { FitViewOnNodeChange } from './FitViewOnNodeChange';
 import type { ConceptualDiagramFlowProps } from './flow.types';
@@ -18,6 +19,7 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
+  attribute: AttributeEdge,
   relationship: RelationshipEdge,
 };
 

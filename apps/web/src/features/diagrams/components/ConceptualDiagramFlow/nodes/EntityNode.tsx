@@ -1,6 +1,6 @@
-import { Handle, Position } from '@xyflow/react';
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import type { EntityNodeData } from '../flow.types';
+import { ConnectionHandles } from './ConnectionHandles';
 import styles from './EntityNode.module.css';
 
 export function EntityNode({ data }: { data: EntityNodeData }) {
@@ -61,10 +61,7 @@ export function EntityNode({ data }: { data: EntityNodeData }) {
           {data.name}
         </button>
       )}
-      <Handle id='entity-left' type='target' position={Position.Left} />
-      <Handle id='entity-right' type='source' position={Position.Right} />
-      <Handle id='entity-top' type='source' position={Position.Top} />
-      <Handle id='entity-bottom' type='source' position={Position.Bottom} />
+      <ConnectionHandles prefix='entity' />
     </div>
   );
 }

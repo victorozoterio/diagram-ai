@@ -10,6 +10,7 @@ type FlowInteractionDependencies = Pick<
   | 'onRemoveAttribute'
   | 'onRemoveRelationship'
   | 'onAddElementAtPosition'
+  | 'onConnectAttributeToEntity'
   | 'onConnectEntities'
   | 'onConnectEntityToRelationship'
 >;
@@ -20,6 +21,7 @@ export function useFlowInteractions({
   onRemoveAttribute,
   onRemoveRelationship,
   onAddElementAtPosition,
+  onConnectAttributeToEntity,
   onConnectEntities,
   onConnectEntityToRelationship,
 }: FlowInteractionDependencies) {
@@ -56,6 +58,18 @@ export function useFlowInteractions({
 
       const sourceIsRelationship = connection.source.startsWith('relationship:');
       const targetIsRelationship = connection.target.startsWith('relationship:');
+      const sourceAttribute = parseAttributeNodeId(connection.source);
+      const targetAttribute = parseAttributeNodeId(connection.target);
+
+      if (sourceAttribute && !targetIsRelationship && !targetAttribute) {
+        onConnectAttributeToEntity?.(sourceAttribute.entityId, sourceAttribute.attributeId, connection.target);
+        return;
+      }
+
+      if (targetAttribute && !sourceIsRelationship && !sourceAttribute) {
+        onConnectAttributeToEntity?.(targetAttribute.entityId, targetAttribute.attributeId, connection.source);
+        return;
+      }
 
       if (!sourceIsRelationship && !targetIsRelationship) {
         onConnectEntities?.(
@@ -85,7 +99,7 @@ export function useFlowInteractions({
         sourceIsRelationship ? 'relationship-to-entity' : 'entity-to-relationship',
       );
     },
-    [onConnectEntities, onConnectEntityToRelationship],
+    [onConnectAttributeToEntity, onConnectEntities, onConnectEntityToRelationship],
   );
 
   const handleDrop = useCallback(
@@ -133,5 +147,21 @@ export function useFlowInteractions({
     handleConnect,
     handleDrop,
     handleEdgesDelete,
+  };
+}
+
+function parseAttributeNodeId(nodeId: string): { entityId: string; attributeId: string } | null {
+  if (nodeId.startsWith('relationship:')) {
+    return null;
+  }
+
+  const separatorIndex = nodeId.indexOf(':');
+  if (separatorIndex <= 0 || separatorIndex === nodeId.length - 1) {
+    return null;
+  }
+
+  return {
+    entityId: nodeId.slice(0, separatorIndex),
+    attributeId: nodeId.slice(separatorIndex + 1),
   };
 }

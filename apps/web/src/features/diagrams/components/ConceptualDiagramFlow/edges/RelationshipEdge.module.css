@@ -3,6 +3,7 @@
   min-width: 24px;
   min-height: 24px;
   padding: 2px 5px;
+  pointer-events: all;
   border: 1px solid #c7d2fe;
   border-radius: 999px;
   background: #eef2ff;

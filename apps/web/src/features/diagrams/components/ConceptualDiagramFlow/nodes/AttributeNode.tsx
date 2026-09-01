@@ -1,7 +1,7 @@
-import { Handle, Position } from '@xyflow/react';
 import { useState } from 'react';
 import type { AttributeNodeData } from '../flow.types';
 import styles from './AttributeNode.module.css';
+import { ConnectionHandles } from './ConnectionHandles';
 
 export function AttributeNode({ data }: { data: AttributeNodeData }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -34,8 +34,7 @@ export function AttributeNode({ data }: { data: AttributeNodeData }) {
           {attribute.name}
         </button>
       )}
-      <Handle type='target' position={Position.Left} />
-      <Handle type='source' position={Position.Right} />
+      <ConnectionHandles prefix='attribute' />
     </div>
   );
 }

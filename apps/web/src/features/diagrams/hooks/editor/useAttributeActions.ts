@@ -63,5 +63,53 @@ export function useAttributeActions({
     setLogicalModel(null);
   }
 
-  return { addAttribute, selectAttribute, updateAttribute, removeAttribute };
+  function connectAttributeToEntity(sourceEntityId: string, attributeId: string, targetEntityId: string) {
+    if (sourceEntityId === targetEntityId) {
+      return;
+    }
+
+    setConceptualModel((currentModel) => {
+      const sourceEntity = currentModel?.entities.find((entity) => entity.id === sourceEntityId);
+      const attribute = sourceEntity?.attributes.find((currentAttribute) => currentAttribute.id === attributeId);
+      const targetEntityExists = currentModel?.entities.some((entity) => entity.id === targetEntityId);
+
+      if (!currentModel || !attribute || !targetEntityExists) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        entities: currentModel.entities.map((entity) => {
+          if (entity.id === sourceEntityId) {
+            return {
+              ...entity,
+              attributes: entity.attributes.filter((currentAttribute) => currentAttribute.id !== attributeId),
+            };
+          }
+
+          if (entity.id === targetEntityId) {
+            return { ...entity, attributes: [...entity.attributes, attribute] };
+          }
+
+          return entity;
+        }),
+      };
+    });
+    setElementPositions((currentPositions) => {
+      const position = currentPositions[attributePositionKey(sourceEntityId, attributeId)];
+      const { [attributePositionKey(sourceEntityId, attributeId)]: _removed, ...remaining } = currentPositions;
+
+      return position ? { ...remaining, [attributePositionKey(targetEntityId, attributeId)]: position } : remaining;
+    });
+    setSelectedAttribute({ entityId: targetEntityId, attributeId });
+    setLogicalModel(null);
+  }
+
+  return {
+    addAttribute,
+    selectAttribute,
+    updateAttribute,
+    removeAttribute,
+    connectAttributeToEntity,
+  };
 }

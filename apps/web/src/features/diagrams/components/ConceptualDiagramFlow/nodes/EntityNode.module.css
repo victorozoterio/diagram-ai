@@ -11,6 +11,19 @@
   background: #fff;
   box-shadow: 0 8px 22px rgb(15 23 42 / 10%);
 }
+.node :global(.react-flow__handle) {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: #4338ca;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.node:hover :global(.react-flow__handle),
+.node:focus-within :global(.react-flow__handle) {
+  opacity: 1;
+}
 
 .weak {
   border-style: double;

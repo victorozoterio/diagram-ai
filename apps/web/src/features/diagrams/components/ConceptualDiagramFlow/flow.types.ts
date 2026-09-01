@@ -41,6 +41,7 @@ export type ConceptualDiagramFlowProps = {
   onSelectAttribute?: (entityId: string, attributeId: string) => void;
   onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
   onRemoveAttribute?: (entityId: string, attributeId: string) => void;
+  onConnectAttributeToEntity?: (sourceEntityId: string, attributeId: string, targetEntityId: string) => void;
   onConnectEntities?: (
     sourceEntityId: string,
     targetEntityId: string,

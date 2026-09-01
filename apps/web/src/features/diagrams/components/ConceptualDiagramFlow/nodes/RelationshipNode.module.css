@@ -55,10 +55,17 @@
 }
 .node :global(.react-flow__handle) {
   z-index: 2;
-  width: 9px;
-  height: 9px;
-  border: 2px solid #fff;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
   background: #c2410c;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.node:hover :global(.react-flow__handle),
+.node:focus-within :global(.react-flow__handle) {
+  opacity: 1;
 }
 .generalization :global(.react-flow__handle) {
   background: #7c3aed;
