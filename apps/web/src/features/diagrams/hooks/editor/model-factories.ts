@@ -28,7 +28,7 @@ export function createSlug(value: string) {
 }
 
 export function createManualEntity(kind: EntityKind, entityCount: number): Entity {
-  const label = kind === 'weak' ? 'Entidade Fraca' : kind === 'associative' ? 'Entidade Associativa' : 'Nova Entidade';
+  const label = kind === 'weak' ? 'Entidade Fraca' : kind === 'associative' ? 'Entidade Associativa' : 'Entidade';
   const name = `${label} ${entityCount + 1}`;
 
   return {
@@ -45,7 +45,7 @@ export function createManualAttribute(
   attributeCount: number,
   kind: ElementKind,
 ): Entity['attributes'][number] {
-  const name = `novoAtributo${attributeCount + 1}`;
+  const name = `Atributo${attributeCount + 1}`;
   const attributeKind =
     kind === 'multivalued-attribute'
       ? 'multivalued'
@@ -76,7 +76,7 @@ export function createManualAttribute(
 export function createStandaloneRelationship(kind: Relationship['kind']): Relationship {
   return {
     id: `relationship_${Date.now().toString(36)}`,
-    name: 'novoRelacionamento',
+    name: 'Rel',
     type: '1:N',
     kind,
     participants: [],

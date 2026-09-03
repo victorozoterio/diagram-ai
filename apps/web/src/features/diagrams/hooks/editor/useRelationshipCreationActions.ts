@@ -25,7 +25,7 @@ export function useRelationshipCreationActions({
 }: RelationshipCreationDependencies) {
   function createRelationship(
     entityIds: string[],
-    name = 'novoRelacionamento',
+    name = 'Rel',
     type: Cardinality = '1:N',
     kind: Relationship['kind'] = 'relationship',
     entityHandles?: Array<string | undefined>,
