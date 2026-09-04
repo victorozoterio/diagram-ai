@@ -12,6 +12,7 @@ type FlowInteractionDependencies = Pick<
   | 'onAddElementAtPosition'
   | 'onConnectAttributeToEntity'
   | 'onDisconnectAttributeFromEntity'
+  | 'onDisconnectEntityFromRelationship'
   | 'onConnectEntities'
   | 'onConnectEntityToRelationship'
 >;
@@ -24,11 +25,21 @@ export function useFlowInteractions({
   onAddElementAtPosition,
   onConnectAttributeToEntity,
   onDisconnectAttributeFromEntity,
+  onDisconnectEntityFromRelationship,
   onConnectEntities,
   onConnectEntityToRelationship,
 }: FlowInteractionDependencies) {
   const [flowInstance, setFlowInstance] = useState<ReactFlowInstance | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement>(null);
+  const edgesRemovedWithNodesRef = useRef(new Set<string>());
+
+  const handleBeforeDelete = useCallback(async ({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
+    const deletedNodeIds = new Set(nodes.map((node) => node.id));
+    edgesRemovedWithNodesRef.current = new Set(
+      edges.filter((edge) => deletedNodeIds.has(edge.source) || deletedNodeIds.has(edge.target)).map((edge) => edge.id),
+    );
+    return true;
+  }, []);
 
   const handleNodesDelete = useCallback(
     (deletedNodes: Node[]) => {
@@ -48,8 +59,31 @@ export function useFlowInteractions({
           if (attribute) onRemoveAttribute?.(attribute.entityId, attribute.attributeId);
         }
       });
+      edgesRemovedWithNodesRef.current.clear();
     },
     [onRemoveAttribute, onRemoveEntity, onRemoveRelationship],
+  );
+
+  const handleEdgesDelete = useCallback(
+    (deletedEdges: Edge[]) => {
+      const disconnectedEdges = deletedEdges.filter((edge) => !edgesRemovedWithNodesRef.current.has(edge.id));
+
+      disconnectedEdges
+        .filter((edge) => edge.type === 'attribute')
+        .forEach((edge) => {
+          const [entityId, attributeId] = edge.id.replace('attribute:', '').split(':');
+          if (entityId && attributeId) onDisconnectAttributeFromEntity?.(entityId, attributeId);
+        });
+
+      disconnectedEdges
+        .filter((edge) => edge.type === 'relationship')
+        .forEach((edge) => {
+          const relationshipId = edge.id.split(':')[0];
+          const entityId = edge.data?.entityId as string | undefined;
+          if (relationshipId && entityId) onDisconnectEntityFromRelationship?.(relationshipId, entityId);
+        });
+    },
+    [onDisconnectAttributeFromEntity, onDisconnectEntityFromRelationship],
   );
 
   const handleConnect = useCallback(
@@ -129,32 +163,14 @@ export function useFlowInteractions({
     [flowInstance, onAddElementAtPosition],
   );
 
-  const handleEdgesDelete = useCallback(
-    (deletedEdges: Edge[]) => {
-      deletedEdges
-        .filter((edge) => edge.type === 'attribute')
-        .forEach((edge) => {
-          const [entityId, attributeId] = edge.id.replace('attribute:', '').split(':');
-          if (entityId && attributeId) onDisconnectAttributeFromEntity?.(entityId, attributeId);
-        });
-      const relationshipIds = new Set(
-        deletedEdges.filter((edge) => edge.type === 'relationship').map((edge) => edge.id.split(':')[0]),
-      );
-
-      relationshipIds.forEach((relationshipId) => {
-        onRemoveRelationship?.(relationshipId);
-      });
-    },
-    [onDisconnectAttributeFromEntity, onRemoveRelationship],
-  );
-
   return {
     flowWrapperRef,
     setFlowInstance,
+    handleBeforeDelete,
     handleNodesDelete,
+    handleEdgesDelete,
     handleConnect,
     handleDrop,
-    handleEdgesDelete,
   };
 }
 

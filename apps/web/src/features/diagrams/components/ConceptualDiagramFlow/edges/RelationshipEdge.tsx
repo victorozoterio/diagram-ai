@@ -14,6 +14,7 @@ export function RelationshipEdge({
   sourcePosition,
   targetPosition,
   data,
+  selected,
 }: EdgeProps<RelationshipEdgeDefinition>) {
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
@@ -25,7 +26,13 @@ export function RelationshipEdge({
   });
   const participant = data?.relationship.participants.find((item) => item.entityId === data.entityId);
 
-  if (!data || !participant) return <BaseEdge id={id} path={edgePath} />;
+  const edgeStyle = {
+    stroke: selected ? '#c2410c' : undefined,
+    strokeWidth: selected ? 2 : undefined,
+    filter: selected ? 'drop-shadow(0 0 3px rgb(194 65 12 / 35%))' : undefined,
+  };
+
+  if (!data || !participant) return <BaseEdge id={id} path={edgePath} style={edgeStyle} />;
 
   const entityIsSource = source === data.entityId;
   const entityX = entityIsSource ? sourceX : targetX;
@@ -33,7 +40,7 @@ export function RelationshipEdge({
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} />
+      <BaseEdge id={id} path={edgePath} style={edgeStyle} />
       <EdgeLabelRenderer>
         <button
           className={`${styles.cardinality} nodrag nopan`}

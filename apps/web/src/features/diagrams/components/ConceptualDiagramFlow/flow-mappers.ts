@@ -102,9 +102,12 @@ export function buildFlowEdges(model: ConceptualModel, callbacks: FlowMapperCall
     entity.attributes.map((attribute) => ({
       id: `attribute:${entity.id}:${attribute.id}`,
       source: entity.id,
+      sourceHandle: 'entity-right',
       target: `${entity.id}:${attribute.id}`,
+      targetHandle: 'attribute-left',
       type: 'attribute',
       selectable: true,
+      interactionWidth: 20,
     })),
   );
 
@@ -126,6 +129,7 @@ export function buildFlowEdges(model: ConceptualModel, callbacks: FlowMapperCall
         targetHandle: startsAtRelationship ? (participant.entityHandle ?? 'entity-left') : relationshipHandle,
         type: 'relationship',
         selectable: true,
+        interactionWidth: 20,
         data: {
           relationship,
           entityId: participant.entityId,

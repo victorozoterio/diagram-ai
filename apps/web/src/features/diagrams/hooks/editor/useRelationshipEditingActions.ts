@@ -33,6 +33,31 @@ export function useRelationshipEditingActions({
     setLogicalModel(null);
   }
 
+  function disconnectEntityFromRelationship(relationshipId: string, entityId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) {
+        return currentModel;
+      }
+
+      return {
+        ...currentModel,
+        relationships: currentModel.relationships.map((relationship) => {
+          if (relationship.id !== relationshipId) {
+            return relationship;
+          }
+
+          const participants = relationship.participants.filter((participant) => participant.entityId !== entityId);
+          return {
+            ...relationship,
+            participants,
+            type: participants.length > 0 ? resolveRelationshipCardinality(participants) : relationship.type,
+          };
+        }),
+      };
+    });
+    setLogicalModel(null);
+  }
+
   function cycleRelationshipCardinality(relationshipId: string, entityId: string) {
     setConceptualModel((currentModel) => {
       if (!currentModel) {
@@ -69,6 +94,7 @@ export function useRelationshipEditingActions({
   return {
     updateRelationship,
     removeRelationship,
+    disconnectEntityFromRelationship,
     cycleRelationshipCardinality,
   };
 }

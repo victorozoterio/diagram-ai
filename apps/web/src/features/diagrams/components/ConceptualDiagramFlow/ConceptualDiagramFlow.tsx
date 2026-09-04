@@ -1,14 +1,13 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
-import { useMemo } from 'react';
 import styles from './ConceptualDiagramFlow.module.css';
 import { AttributeEdge } from './edges/AttributeEdge';
 import { RelationshipEdge } from './edges/RelationshipEdge';
 import { FitViewOnNodeChange } from './FitViewOnNodeChange';
 import type { ConceptualDiagramFlowProps } from './flow.types';
-import { buildFlowEdges } from './flow-mappers';
 import { AttributeNode } from './nodes/AttributeNode';
 import { EntityNode } from './nodes/EntityNode';
 import { RelationshipNode } from './nodes/RelationshipNode';
+import { useFlowEdges } from './useFlowEdges';
 import { useFlowInteractions } from './useFlowInteractions';
 import { useFlowNodes } from './useFlowNodes';
 
@@ -25,18 +24,17 @@ const edgeTypes = {
 
 /** Camada visual do editor: adapta o modelo conceitual para o React Flow. */
 export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
-  const { model, onCycleRelationshipCardinality } = props;
   const { nodes, handleNodesChange } = useFlowNodes(props);
-  const { flowWrapperRef, setFlowInstance, handleNodesDelete, handleConnect, handleDrop, handleEdgesDelete } =
-    useFlowInteractions(props);
-  const edges = useMemo(
-    () =>
-      buildFlowEdges(model, {
-        onCycleRelationshipCardinality,
-      }),
-    [model, onCycleRelationshipCardinality],
-  );
-
+  const { edges, handleEdgesChange } = useFlowEdges(props);
+  const {
+    flowWrapperRef,
+    setFlowInstance,
+    handleBeforeDelete,
+    handleNodesDelete,
+    handleEdgesDelete,
+    handleConnect,
+    handleDrop,
+  } = useFlowInteractions(props);
   return (
     <div
       ref={flowWrapperRef}
@@ -55,9 +53,14 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        onBeforeDelete={handleBeforeDelete}
         onNodesDelete={handleNodesDelete}
         onEdgesDelete={handleEdgesDelete}
         onConnect={handleConnect}
+        onEdgeClick={props.onClearSelection}
+        elementsSelectable
+        edgesFocusable
         onNodeClick={(_, node) => {
           if (node.type === 'relationship') props.onClearSelection?.();
         }}
