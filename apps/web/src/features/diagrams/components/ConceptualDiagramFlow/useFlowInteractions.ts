@@ -98,12 +98,24 @@ export function useFlowInteractions({
       const targetAttribute = parseAttributeNodeId(connection.target);
 
       if (sourceAttribute && !targetIsRelationship && !targetAttribute) {
-        onConnectAttributeToEntity?.(sourceAttribute.entityId, sourceAttribute.attributeId, connection.target);
+        onConnectAttributeToEntity?.(
+          sourceAttribute.entityId,
+          sourceAttribute.attributeId,
+          connection.target,
+          connection.targetHandle ?? undefined,
+          connection.sourceHandle ?? undefined,
+        );
         return;
       }
 
       if (targetAttribute && !sourceIsRelationship && !sourceAttribute) {
-        onConnectAttributeToEntity?.(targetAttribute.entityId, targetAttribute.attributeId, connection.source);
+        onConnectAttributeToEntity?.(
+          targetAttribute.entityId,
+          targetAttribute.attributeId,
+          connection.source,
+          connection.sourceHandle ?? undefined,
+          connection.targetHandle ?? undefined,
+        );
         return;
       }
 

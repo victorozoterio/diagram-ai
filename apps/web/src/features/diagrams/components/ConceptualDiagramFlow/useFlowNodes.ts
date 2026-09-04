@@ -69,7 +69,7 @@ export function useFlowNodes({
     setNodes((currentNodes) =>
       mappedNodes.map((nextNode) => {
         const currentNode = currentNodes.find((node) => node.id === nextNode.id);
-        return currentNode ? { ...nextNode, position: currentNode.position } : nextNode;
+        return currentNode ? { ...nextNode, position: currentNode.position, selected: currentNode.selected } : nextNode;
       }),
     );
   }, [mappedNodes]);

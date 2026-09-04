@@ -54,6 +54,8 @@ export type Attribute = {
   }>;
   kind?: AttributeKind;
   parentAttributeId?: string;
+  connectionHandle?: string;
+  entityHandle?: string;
 };
 
 export type Entity = {

@@ -77,7 +77,13 @@ export function useAttributeActions({
     setLogicalModel(null);
   }
 
-  function connectAttributeToEntity(sourceEntityId: string | null, attributeId: string, targetEntityId: string) {
+  function connectAttributeToEntity(
+    sourceEntityId: string | null,
+    attributeId: string,
+    targetEntityId: string,
+    entityHandle?: string,
+    attributeHandle?: string,
+  ) {
     if (sourceEntityId === targetEntityId) {
       return;
     }
@@ -107,7 +113,10 @@ export function useAttributeActions({
           }
 
           if (entity.id === targetEntityId) {
-            return { ...entity, attributes: [...entity.attributes, attribute] };
+            return {
+              ...entity,
+              attributes: [...entity.attributes, { ...attribute, entityHandle, connectionHandle: attributeHandle }],
+            };
           }
 
           return entity;

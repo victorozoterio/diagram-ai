@@ -102,9 +102,9 @@ export function buildFlowEdges(model: ConceptualModel, callbacks: FlowMapperCall
     entity.attributes.map((attribute) => ({
       id: `attribute:${entity.id}:${attribute.id}`,
       source: entity.id,
-      sourceHandle: 'entity-right',
+      sourceHandle: attribute.entityHandle ?? 'entity-right',
       target: `${entity.id}:${attribute.id}`,
-      targetHandle: 'attribute-left',
+      targetHandle: attribute.connectionHandle ?? 'attribute-left',
       type: 'attribute',
       selectable: true,
       interactionWidth: 20,

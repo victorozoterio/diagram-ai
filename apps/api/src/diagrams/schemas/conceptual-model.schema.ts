@@ -36,6 +36,8 @@ export const AttributeSchema = z.object({
       }),
     )
     .default([]),
+  connectionHandle: z.string().optional(),
+  entityHandle: z.string().optional(),
 });
 
 export const EntitySchema = z.object({
