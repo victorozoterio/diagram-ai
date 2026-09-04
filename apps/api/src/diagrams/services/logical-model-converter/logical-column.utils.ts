@@ -116,8 +116,8 @@ export function addOrPromoteForeignKey({
   referencedColumn: LogicalColumn;
   unique: boolean;
 }): void {
-  const expectedId = `${targetTable.id}_${referencedTable.id}_id`;
-  const expectedName = `${referencedTable.id}Id`;
+  const expectedId = `${referencedTable.id}_id`;
+  const expectedName = `${referencedTable.id}_id`;
   const existingColumn = findForeignKeyCandidate(targetTable, referencedTable, expectedId, expectedName);
 
   if (existingColumn) {
@@ -162,7 +162,8 @@ function findForeignKeyCandidate(
     return (
       normalizedColumnName === normalizedExpectedName ||
       normalizedColumnName === `${normalizedReferencedTableId}id` ||
-      normalizedColumnName === `${normalizedReferencedTableName}id`
+      normalizedColumnName === `${normalizedReferencedTableName}id` ||
+      normalizedColumnName === `${normalizedReferencedTableId}_id`
     );
   });
 }

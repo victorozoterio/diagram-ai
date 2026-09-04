@@ -55,8 +55,8 @@ export class DiagramsController {
             description: 'Pessoa que realiza pedidos no sistema',
             attributes: [
               {
-                id: 'cliente_id',
-                name: 'id',
+                id: 'id_cliente',
+                name: 'id_cliente',
                 type: 'uuid',
                 description: 'Identificador único do cliente',
                 identifier: true,
@@ -68,7 +68,7 @@ export class DiagramsController {
                 components: [],
               },
               {
-                id: 'cliente_nome',
+                id: 'nome',
                 name: 'nome',
                 type: 'string',
                 description: 'Nome do cliente',
@@ -88,8 +88,8 @@ export class DiagramsController {
             description: 'Pedido realizado por um cliente',
             attributes: [
               {
-                id: 'pedido_id',
-                name: 'id',
+                id: 'id_pedido',
+                name: 'id_pedido',
                 type: 'uuid',
                 description: 'Identificador único do pedido',
                 identifier: true,
@@ -101,7 +101,7 @@ export class DiagramsController {
                 components: [],
               },
               {
-                id: 'pedido_data',
+                id: 'data',
                 name: 'data',
                 type: 'date',
                 description: 'Data do pedido',

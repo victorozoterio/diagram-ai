@@ -1,4 +1,5 @@
 export type OllamaChatResponse = {
+  error?: string;
   message?: {
     role: string;
     content: string;

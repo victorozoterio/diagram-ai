@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { AiService } from '../../ai/ai.service';
 import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
@@ -8,7 +8,8 @@ import { LogicalModelConverterService } from './logical-model-converter.service'
 
 @Injectable()
 export class DiagramsService {
-  private readonly maxValidationAttempts = 3;
+  private readonly maxValidationAttempts = 2;
+  private readonly logger = new Logger(DiagramsService.name);
 
   constructor(
     private readonly aiService: AiService,
@@ -26,6 +27,8 @@ export class DiagramsService {
       }
 
       const validationError = z.treeifyError(parsed.error);
+
+      this.logger.warn(`Modelo conceitual requer correção na tentativa ${attempt}: ${JSON.stringify(validationError)}`);
 
       if (attempt === this.maxValidationAttempts) {
         throw new BadRequestException({
