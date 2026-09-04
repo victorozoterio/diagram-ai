@@ -67,6 +67,11 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         onPaneClick={props.onClearSelection}
         onInit={setFlowInstance}
         connectionMode={ConnectionMode.Loose}
+        selectionOnDrag
+        panOnDrag={[1]}
+        panOnScroll
+        zoomOnScroll
+        zoomOnPinch
         fitView
         deleteKeyCode={['Backspace', 'Delete']}
         selectionKeyCode={['Shift', 'Meta']}
