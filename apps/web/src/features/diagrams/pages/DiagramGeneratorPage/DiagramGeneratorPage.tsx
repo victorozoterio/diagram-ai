@@ -28,6 +28,7 @@ export function DiagramGeneratorPage() {
     canConvertToLogical,
     selectedAttribute,
     selectedEntityIds,
+    layoutVersion,
     entityPositions,
     elementPositions,
     setDescription,
@@ -85,6 +86,7 @@ export function DiagramGeneratorPage() {
               onClearSelection={clearCanvasSelection}
               onUpdateEntity={updateEntity}
               selectedEntityIds={selectedEntityIds}
+              layoutVersion={layoutVersion}
               entityPositions={entityPositions}
               elementPositions={elementPositions}
               onUpdateEntityPosition={updateEntityPosition}

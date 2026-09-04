@@ -38,6 +38,7 @@ export type ConceptualDiagramFlowProps = {
   onClearSelection?: () => void;
   onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
   selectedEntityIds?: string[];
+  layoutVersion?: number;
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;

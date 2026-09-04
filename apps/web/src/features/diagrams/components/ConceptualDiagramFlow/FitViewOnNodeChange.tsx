@@ -1,7 +1,7 @@
 import { useReactFlow } from '@xyflow/react';
 import { useEffect } from 'react';
 
-/** Ajusta a câmera somente quando a quantidade de elementos muda. */
+/** Ajusta a câmera quando a quantidade de elementos ou o layout inicial muda. */
 export function FitViewOnNodeChange({ nodeCount }: { nodeCount: number }) {
   const { fitView } = useReactFlow();
 

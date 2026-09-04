@@ -3,13 +3,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ConceptualDiagramFlowProps } from './flow.types';
 import { buildFlowEdges } from './flow-mappers';
 
-type FlowEdgeDependencies = Pick<ConceptualDiagramFlowProps, 'model' | 'onCycleRelationshipCardinality'>;
+type FlowEdgeDependencies = Pick<
+  ConceptualDiagramFlowProps,
+  'model' | 'entityPositions' | 'elementPositions' | 'onCycleRelationshipCardinality'
+>;
 
 /** Mantém seleção e remoção das edges sincronizadas com o estado controlado do React Flow. */
-export function useFlowEdges({ model, onCycleRelationshipCardinality }: FlowEdgeDependencies) {
+export function useFlowEdges({
+  model,
+  entityPositions,
+  elementPositions,
+  onCycleRelationshipCardinality,
+}: FlowEdgeDependencies) {
   const mappedEdges = useMemo(
-    () => buildFlowEdges(model, { onCycleRelationshipCardinality }),
-    [model, onCycleRelationshipCardinality],
+    () => buildFlowEdges(model, { entityPositions, elementPositions }, { onCycleRelationshipCardinality }),
+    [elementPositions, entityPositions, model, onCycleRelationshipCardinality],
   );
   const [edges, setEdges] = useState<Edge[]>(mappedEdges);
 

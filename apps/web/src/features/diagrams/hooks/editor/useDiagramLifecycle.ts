@@ -1,5 +1,6 @@
 import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
 import type { ConceptualModel, LogicalModel } from '../../types';
+import { calculateInitialConceptualLayout } from './auto-layout';
 import type { AttributeSelection, DiagramPosition, StateSetter } from './editor.types';
 
 type LifecycleDependencies = {
@@ -14,6 +15,7 @@ type LifecycleDependencies = {
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
   setSelectedAttribute: StateSetter<AttributeSelection>;
   setSelectedEntityIds: StateSetter<string[]>;
+  setLayoutVersion: StateSetter<number>;
 };
 
 export function useDiagramLifecycle({
@@ -28,6 +30,7 @@ export function useDiagramLifecycle({
   setElementPositions,
   setSelectedAttribute,
   setSelectedEntityIds,
+  setLayoutVersion,
 }: LifecycleDependencies) {
   async function generateConceptualDiagram() {
     setError(null);
@@ -35,11 +38,19 @@ export function useDiagramLifecycle({
     setIsGenerating(true);
 
     try {
-      setConceptualModel(await generateConceptualModel(description));
+      const generatedModel = await generateConceptualModel(description);
+      let layout = { entityPositions: {}, elementPositions: {} };
+      try {
+        layout = await calculateInitialConceptualLayout(generatedModel);
+      } catch {
+        // O modelo ainda deve ser exibido caso o mecanismo de layout não consiga calculá-lo.
+      }
+      setConceptualModel(generatedModel);
       setSelectedAttribute(null);
       setSelectedEntityIds([]);
-      setEntityPositions({});
-      setElementPositions({});
+      setEntityPositions(layout.entityPositions);
+      setElementPositions(layout.elementPositions);
+      setLayoutVersion((currentVersion) => currentVersion + 1);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
     } finally {

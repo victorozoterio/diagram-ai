@@ -25,6 +25,7 @@ export function useDiagramEditor() {
   const [elementPositions, setElementPositions] = useState<Record<string, DiagramPosition>>({});
   const [selectedAttribute, setSelectedAttribute] = useState<AttributeSelection>(null);
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
+  const [layoutVersion, setLayoutVersion] = useState(0);
 
   const entityActions = useEntityActions({
     conceptualModel,
@@ -72,6 +73,7 @@ export function useDiagramEditor() {
     setElementPositions,
     setSelectedAttribute,
     setSelectedEntityIds,
+    setLayoutVersion,
   });
 
   function updateElementPosition(elementId: string, position: DiagramPosition) {
@@ -95,6 +97,7 @@ export function useDiagramEditor() {
     selectedEntityIds,
     entityPositions,
     elementPositions,
+    layoutVersion,
     setDescription,
     setConceptualModel,
     setLogicalModel,

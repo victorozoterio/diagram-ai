@@ -1,5 +1,5 @@
 import { applyNodeChanges, type Node, type NodeChange } from '@xyflow/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ConceptualDiagramFlowProps } from './flow.types';
 import { buildFlowNodes } from './flow-mappers';
 
@@ -10,6 +10,7 @@ type FlowNodeDependencies = Pick<
   | 'elementPositions'
   | 'selectedAttribute'
   | 'selectedEntityIds'
+  | 'layoutVersion'
   | 'onSelectEntity'
   | 'onUpdateEntity'
   | 'onSelectAttribute'
@@ -26,6 +27,7 @@ export function useFlowNodes({
   elementPositions,
   selectedAttribute,
   selectedEntityIds,
+  layoutVersion = 0,
   onSelectEntity,
   onUpdateEntity,
   onSelectAttribute,
@@ -64,15 +66,22 @@ export function useFlowNodes({
   );
 
   const [nodes, setNodes] = useState<Node[]>(mappedNodes);
+  const previousLayoutVersion = useRef(layoutVersion);
 
   useEffect(() => {
+    if (previousLayoutVersion.current !== layoutVersion) {
+      previousLayoutVersion.current = layoutVersion;
+      setNodes(mappedNodes);
+      return;
+    }
+
     setNodes((currentNodes) =>
       mappedNodes.map((nextNode) => {
         const currentNode = currentNodes.find((node) => node.id === nextNode.id);
         return currentNode ? { ...nextNode, position: currentNode.position, selected: currentNode.selected } : nextNode;
       }),
     );
-  }, [mappedNodes]);
+  }, [layoutVersion, mappedNodes]);
 
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
