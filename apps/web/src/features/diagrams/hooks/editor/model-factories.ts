@@ -12,6 +12,7 @@ export function createEmptyConceptualModel(): ConceptualModel {
       generatedAt: new Date().toISOString(),
     },
     entities: [],
+    standaloneAttributes: [],
     relationships: [],
     ambiguities: [],
   };
@@ -41,7 +42,7 @@ export function createManualEntity(kind: EntityKind, entityCount: number): Entit
 }
 
 export function createManualAttribute(
-  entityId: string,
+  entityId: string | null,
   attributeCount: number,
   kind: ElementKind,
 ): Entity['attributes'][number] {
@@ -58,7 +59,7 @@ export function createManualAttribute(
             : 'simple';
 
   return {
-    id: `${entityId}_${createSlug(name)}`,
+    id: entityId ? `${entityId}_${createSlug(name)}` : `attribute_${Date.now().toString(36)}`,
     name,
     type: 'string',
     description: 'Atributo adicionado manualmente pelo usuário.',
@@ -98,6 +99,6 @@ export function relationshipPositionKey(relationshipId: string) {
   return `relationship:${relationshipId}`;
 }
 
-export function attributePositionKey(entityId: string, attributeId: string) {
-  return `${entityId}:${attributeId}`;
+export function attributePositionKey(entityId: string | null, attributeId: string) {
+  return `${entityId ?? 'standalone'}:${attributeId}`;
 }

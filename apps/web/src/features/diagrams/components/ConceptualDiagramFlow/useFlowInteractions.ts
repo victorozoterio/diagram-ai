@@ -11,6 +11,7 @@ type FlowInteractionDependencies = Pick<
   | 'onRemoveRelationship'
   | 'onAddElementAtPosition'
   | 'onConnectAttributeToEntity'
+  | 'onDisconnectAttributeFromEntity'
   | 'onConnectEntities'
   | 'onConnectEntityToRelationship'
 >;
@@ -22,6 +23,7 @@ export function useFlowInteractions({
   onRemoveRelationship,
   onAddElementAtPosition,
   onConnectAttributeToEntity,
+  onDisconnectAttributeFromEntity,
   onConnectEntities,
   onConnectEntityToRelationship,
 }: FlowInteractionDependencies) {
@@ -42,8 +44,8 @@ export function useFlowInteractions({
         }
 
         if (node.type === 'attribute') {
-          const [entityId, attributeId] = node.id.split(':');
-          onRemoveAttribute?.(entityId, attributeId);
+          const attribute = parseAttributeNodeId(node.id);
+          if (attribute) onRemoveAttribute?.(attribute.entityId, attribute.attributeId);
         }
       });
     },
@@ -129,6 +131,12 @@ export function useFlowInteractions({
 
   const handleEdgesDelete = useCallback(
     (deletedEdges: Edge[]) => {
+      deletedEdges
+        .filter((edge) => edge.type === 'attribute')
+        .forEach((edge) => {
+          const [entityId, attributeId] = edge.id.replace('attribute:', '').split(':');
+          if (entityId && attributeId) onDisconnectAttributeFromEntity?.(entityId, attributeId);
+        });
       const relationshipIds = new Set(
         deletedEdges.filter((edge) => edge.type === 'relationship').map((edge) => edge.id.split(':')[0]),
       );
@@ -137,7 +145,7 @@ export function useFlowInteractions({
         onRemoveRelationship?.(relationshipId);
       });
     },
-    [onRemoveRelationship],
+    [onDisconnectAttributeFromEntity, onRemoveRelationship],
   );
 
   return {
@@ -150,9 +158,13 @@ export function useFlowInteractions({
   };
 }
 
-function parseAttributeNodeId(nodeId: string): { entityId: string; attributeId: string } | null {
+function parseAttributeNodeId(nodeId: string): { entityId: string | null; attributeId: string } | null {
   if (nodeId.startsWith('relationship:')) {
     return null;
+  }
+
+  if (nodeId.startsWith('standalone:')) {
+    return { entityId: null, attributeId: nodeId.slice('standalone:'.length) };
   }
 
   const separatorIndex = nodeId.indexOf(':');

@@ -4,7 +4,7 @@ import type { DiagramPosition } from './editor.types';
 type PaletteActionDependencies = {
   selectedEntityIds: string[];
   addEntity: (kind: EntityKind, position: DiagramPosition) => void;
-  addAttribute: (entityId: string, kind: ElementKind, position: DiagramPosition) => void;
+  addAttribute: (entityId: string | null, kind: ElementKind, position: DiagramPosition) => void;
   addStandaloneRelationship: (kind: Relationship['kind'], position: DiagramPosition) => void;
   createRelationship: (entityIds: string[], name?: string, type?: Cardinality, kind?: Relationship['kind']) => void;
 };
@@ -45,9 +45,7 @@ export function usePaletteActions({
 
     if (attributeKinds.includes(kind)) {
       const targetId = targetEntityId ?? (selectedEntityIds.length === 1 ? selectedEntityIds[0] : undefined);
-      if (targetId) {
-        addAttribute(targetId, kind === 'subattribute' ? 'simple-attribute' : kind, position);
-      }
+      addAttribute(targetId ?? null, kind === 'subattribute' ? 'simple-attribute' : kind, position);
       return;
     }
 

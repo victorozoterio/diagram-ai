@@ -30,7 +30,10 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
   const { flowWrapperRef, setFlowInstance, handleNodesDelete, handleConnect, handleDrop, handleEdgesDelete } =
     useFlowInteractions(props);
   const edges = useMemo(
-    () => buildFlowEdges(model, { onCycleRelationshipCardinality }),
+    () =>
+      buildFlowEdges(model, {
+        onCycleRelationshipCardinality,
+      }),
     [model, onCycleRelationshipCardinality],
   );
 

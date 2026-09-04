@@ -99,6 +99,7 @@ export type ConceptualModel = {
     generatedAt?: string;
   };
   entities: Entity[];
+  standaloneAttributes?: Attribute[];
   relationships: Relationship[];
   ambiguities: Ambiguity[];
 };

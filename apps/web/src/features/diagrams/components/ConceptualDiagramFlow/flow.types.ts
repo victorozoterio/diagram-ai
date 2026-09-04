@@ -10,10 +10,14 @@ export type EntityNodeData = Pick<Entity, 'id' | 'name' | 'kind'> & {
 
 export type AttributeNodeData = {
   attribute: Entity['attributes'][number];
-  entityId: string;
+  entityId: string | null;
   selected?: boolean;
-  onSelectAttribute?: (entityId: string, attributeId: string) => void;
-  onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
+  onSelectAttribute?: (entityId: string | null, attributeId: string) => void;
+  onUpdateAttribute?: (
+    entityId: string | null,
+    attributeId: string,
+    changes: { name?: string; type?: AttributeType },
+  ) => void;
 };
 
 export type RelationshipNodeData = {
@@ -35,13 +39,18 @@ export type ConceptualDiagramFlowProps = {
   selectedEntityIds?: string[];
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
-  selectedAttribute?: { entityId: string; attributeId: string } | null;
+  selectedAttribute?: { entityId: string | null; attributeId: string } | null;
   onUpdateEntityPosition?: (entityId: string, position: DiagramPosition) => void;
   onUpdateElementPosition?: (elementId: string, position: DiagramPosition) => void;
-  onSelectAttribute?: (entityId: string, attributeId: string) => void;
-  onUpdateAttribute?: (entityId: string, attributeId: string, changes: { name?: string; type?: AttributeType }) => void;
-  onRemoveAttribute?: (entityId: string, attributeId: string) => void;
-  onConnectAttributeToEntity?: (sourceEntityId: string, attributeId: string, targetEntityId: string) => void;
+  onSelectAttribute?: (entityId: string | null, attributeId: string) => void;
+  onUpdateAttribute?: (
+    entityId: string | null,
+    attributeId: string,
+    changes: { name?: string; type?: AttributeType },
+  ) => void;
+  onRemoveAttribute?: (entityId: string | null, attributeId: string) => void;
+  onConnectAttributeToEntity?: (sourceEntityId: string | null, attributeId: string, targetEntityId: string) => void;
+  onDisconnectAttributeFromEntity?: (entityId: string, attributeId: string) => void;
   onConnectEntities?: (
     sourceEntityId: string,
     targetEntityId: string,

@@ -21,7 +21,7 @@ type FlowMapperState = {
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
   selectedEntityIds?: string[];
-  selectedAttribute?: { entityId: string; attributeId: string } | null;
+  selectedAttribute?: { entityId: string | null; attributeId: string } | null;
 };
 
 const fallbackEntityPosition = (index: number): DiagramPosition => ({
@@ -48,6 +48,7 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
     entity.attributes.map((attribute, index) => ({
       id: `${entity.id}:${attribute.id}`,
       type: 'attribute',
+      selectable: true,
       position: state.elementPositions?.[`${entity.id}:${attribute.id}`] ?? {
         x: (state.entityPositions?.[entity.id]?.x ?? 80) + 250,
         y: (state.entityPositions?.[entity.id]?.y ?? 80) + index * 100,
@@ -62,6 +63,18 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
       } satisfies AttributeNodeData,
     })),
   );
+  const standaloneAttributeNodes = (model.standaloneAttributes ?? []).map((attribute) => ({
+    id: `standalone:${attribute.id}`,
+    type: 'attribute',
+    position: state.elementPositions?.[`standalone:${attribute.id}`] ?? { x: 120, y: 120 },
+    data: {
+      attribute,
+      entityId: null,
+      selected: state.selectedAttribute?.entityId === null && state.selectedAttribute.attributeId === attribute.id,
+      onSelectAttribute: callbacks.onSelectAttribute,
+      onUpdateAttribute: callbacks.onUpdateAttribute,
+    } satisfies AttributeNodeData,
+  }));
 
   const relationshipNodes = model.relationships.map((relationship, index) => {
     const positions = relationship.participants
@@ -81,7 +94,7 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
     };
   });
 
-  return [...entityNodes, ...attributeNodes, ...relationshipNodes];
+  return [...entityNodes, ...attributeNodes, ...standaloneAttributeNodes, ...relationshipNodes];
 }
 
 export function buildFlowEdges(model: ConceptualModel, callbacks: FlowMapperCallbacks): Edge[] {
@@ -91,6 +104,7 @@ export function buildFlowEdges(model: ConceptualModel, callbacks: FlowMapperCall
       source: entity.id,
       target: `${entity.id}:${attribute.id}`,
       type: 'attribute',
+      selectable: true,
     })),
   );
 

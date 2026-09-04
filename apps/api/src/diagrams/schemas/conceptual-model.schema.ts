@@ -80,6 +80,7 @@ export const ConceptualModelMetadataSchema = z.object({
 export const ConceptualModelStructureSchema = z.object({
   metadata: ConceptualModelMetadataSchema.default({}),
   entities: z.array(EntitySchema).default([]),
+  standaloneAttributes: z.array(AttributeSchema).default([]),
   relationships: z.array(RelationshipSchema).default([]),
   ambiguities: z.array(AmbiguitySchema).default([]),
 });

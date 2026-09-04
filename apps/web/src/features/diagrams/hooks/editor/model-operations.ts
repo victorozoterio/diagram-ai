@@ -34,14 +34,21 @@ export function addAttributeToModel(
   };
 }
 
+export function addStandaloneAttributeToModel(model: ConceptualModel, attribute: Attribute): ConceptualModel {
+  return { ...model, standaloneAttributes: [...(model.standaloneAttributes ?? []), attribute] };
+}
+
 export function updateAttributeInModel(
   model: ConceptualModel,
-  entityId: string,
+  entityId: string | null,
   attributeId: string,
   changes: Partial<Attribute>,
 ): ConceptualModel {
   return {
     ...model,
+    standaloneAttributes: (model.standaloneAttributes ?? []).map((attribute) =>
+      entityId === null && attribute.id === attributeId ? { ...attribute, ...changes } : attribute,
+    ),
     entities: model.entities.map((entity) =>
       entity.id !== entityId
         ? entity
@@ -57,11 +64,14 @@ export function updateAttributeInModel(
 
 export function removeAttributeFromModel(
   model: ConceptualModel,
-  entityId: string,
+  entityId: string | null,
   attributeId: string,
 ): ConceptualModel {
   return {
     ...model,
+    standaloneAttributes: (model.standaloneAttributes ?? []).filter(
+      (attribute) => entityId !== null || attribute.id !== attributeId,
+    ),
     entities: model.entities.map((entity) =>
       entity.id !== entityId
         ? entity

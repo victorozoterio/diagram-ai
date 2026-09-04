@@ -4,7 +4,7 @@ import type { ConceptualModel, LogicalModel } from '../../types';
 export type DiagramPosition = { x: number; y: number };
 
 export type AttributeSelection = {
-  entityId: string;
+  entityId: string | null;
   attributeId: string;
 } | null;
 

@@ -35,6 +35,7 @@ export function parseConceptualModelResponse(content: string): ConceptualModel {
           attributes: withTechnicalIdentifier(entityId, mapAttributes(entity.a ?? [])),
         };
       }),
+      standaloneAttributes: [],
       relationships: generatedModel.r.map((relationship, index) => ({
         id: uniqueRelationshipId(relationship, index),
         name: relationship.n,
