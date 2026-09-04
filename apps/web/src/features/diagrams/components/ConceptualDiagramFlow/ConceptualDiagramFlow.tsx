@@ -58,6 +58,10 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         onNodesDelete={handleNodesDelete}
         onEdgesDelete={handleEdgesDelete}
         onConnect={handleConnect}
+        onNodeClick={(_, node) => {
+          if (node.type === 'relationship') props.onClearSelection?.();
+        }}
+        onPaneClick={props.onClearSelection}
         onInit={setFlowInstance}
         connectionMode={ConnectionMode.Loose}
         fitView

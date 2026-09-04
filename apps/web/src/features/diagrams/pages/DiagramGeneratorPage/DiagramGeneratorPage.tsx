@@ -39,6 +39,7 @@ export function DiagramGeneratorPage() {
     updateEntity,
     updateEntityPosition,
     updateElementPosition,
+    clearCanvasSelection,
     addElementAtPosition,
     createRelationshipFromConnection,
     connectEntityToRelationship,
@@ -80,6 +81,7 @@ export function DiagramGeneratorPage() {
               model={activeConceptualModel}
               onRemoveEntity={removeEntity}
               onSelectEntity={selectEntity}
+              onClearSelection={clearCanvasSelection}
               onUpdateEntity={updateEntity}
               selectedEntityIds={selectedEntityIds}
               entityPositions={entityPositions}

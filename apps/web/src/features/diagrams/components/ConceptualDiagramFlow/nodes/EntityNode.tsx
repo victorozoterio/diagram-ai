@@ -3,7 +3,7 @@ import type { EntityNodeData } from '../flow.types';
 import { ConnectionHandles } from './ConnectionHandles';
 import styles from './EntityNode.module.css';
 
-export function EntityNode({ data }: { data: EntityNodeData }) {
+export function EntityNode({ data, selected }: { data: EntityNodeData; selected?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(data.name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +35,7 @@ export function EntityNode({ data }: { data: EntityNodeData }) {
 
   return (
     <div
-      className={`${styles.node} ${data.kind === 'weak' ? styles.weak : ''} ${data.kind === 'associative' ? styles.associative : ''} ${data.isSelected ? styles.selected : ''}`}
+      className={`${styles.node} ${data.kind === 'weak' ? styles.weak : ''} ${data.kind === 'associative' ? styles.associative : ''} ${selected || data.isSelected ? styles.selected : ''}`}
     >
       {isEditing ? (
         <input

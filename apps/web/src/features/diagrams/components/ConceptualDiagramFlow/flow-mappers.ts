@@ -38,7 +38,7 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
       id: entity.id,
       name: entity.name,
       kind: entity.kind,
-      isSelected: state.selectedEntityIds?.includes(entity.id),
+      isSelected: state.selectedEntityIds?.at(-1) === entity.id && !state.selectedAttribute,
       onSelectEntity: callbacks.onSelectEntity,
       onUpdateEntity: callbacks.onUpdateEntity,
     } satisfies EntityNodeData,

@@ -14,6 +14,7 @@ type AttributeActionDependencies = {
   setLogicalModel: StateSetter<LogicalModel | null>;
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
   setSelectedAttribute: StateSetter<AttributeSelection>;
+  setSelectedEntityIds: StateSetter<string[]>;
 };
 
 export function useAttributeActions({
@@ -22,6 +23,7 @@ export function useAttributeActions({
   setLogicalModel,
   setElementPositions,
   setSelectedAttribute,
+  setSelectedEntityIds,
 }: AttributeActionDependencies) {
   function addAttribute(entityId: string | null, kind: ElementKind = 'simple-attribute', position?: DiagramPosition) {
     const entity = conceptualModel?.entities.find((currentEntity) => currentEntity.id === entityId);
@@ -49,6 +51,7 @@ export function useAttributeActions({
   }
 
   function selectAttribute(entityId: string | null, attributeId: string) {
+    setSelectedEntityIds([]);
     setSelectedAttribute((currentSelection) =>
       currentSelection?.entityId === entityId && currentSelection.attributeId === attributeId
         ? null

@@ -3,12 +3,14 @@ import type { RelationshipNodeData } from '../flow.types';
 import { ConnectionHandles } from './ConnectionHandles';
 import styles from './RelationshipNode.module.css';
 
-export function RelationshipNode({ data }: { data: RelationshipNodeData }) {
+export function RelationshipNode({ data, selected }: { data: RelationshipNodeData; selected?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const isGeneralization = data.relationship.kind === 'generalization' || data.relationship.kind === 'specialization';
 
   return (
-    <div className={`${styles.node} ${isGeneralization ? styles.generalization : ''}`}>
+    <div
+      className={`${styles.node} ${isGeneralization ? styles.generalization : ''} ${selected ? styles.selected : ''}`}
+    >
       {isGeneralization && (
         <svg className={styles.generalizationShape} viewBox='0 0 102 86' aria-hidden='true'>
           <path d='M 51 3 L 99 83 L 3 83 Z' fill='#fff' stroke='#7c3aed' strokeWidth='4' />

@@ -3,13 +3,13 @@ import type { AttributeNodeData } from '../flow.types';
 import styles from './AttributeNode.module.css';
 import { ConnectionHandles } from './ConnectionHandles';
 
-export function AttributeNode({ data }: { data: AttributeNodeData }) {
+export function AttributeNode({ data, selected }: { data: AttributeNodeData; selected?: boolean }) {
   const [isEditing, setIsEditing] = useState(false);
   const { attribute } = data;
 
   return (
     <div
-      className={`${styles.node} ${attribute.multivalued ? styles.multivalued : ''} ${attribute.derived ? styles.derived : ''} ${attribute.identifier ? styles.identifier : ''} ${attribute.composite ? styles.composite : ''} ${data.selected ? styles.selected : ''}`}
+      className={`${styles.node} ${attribute.multivalued ? styles.multivalued : ''} ${attribute.derived ? styles.derived : ''} ${attribute.identifier ? styles.identifier : ''} ${attribute.composite ? styles.composite : ''} ${selected || data.selected ? styles.selected : ''}`}
     >
       {isEditing ? (
         <input

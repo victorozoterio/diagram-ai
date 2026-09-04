@@ -42,6 +42,7 @@ export function useDiagramEditor() {
     setLogicalModel,
     setElementPositions,
     setSelectedAttribute,
+    setSelectedEntityIds,
   });
 
   const relationshipActions = useRelationshipActions({
@@ -77,6 +78,11 @@ export function useDiagramEditor() {
     setElementPositions((currentPositions) => ({ ...currentPositions, [elementId]: position }));
   }
 
+  function clearCanvasSelection() {
+    setSelectedAttribute(null);
+    setSelectedEntityIds([]);
+  }
+
   return {
     description,
     conceptualModel,
@@ -95,6 +101,7 @@ export function useDiagramEditor() {
     ...lifecycleActions,
     ...entityActions,
     updateElementPosition,
+    clearCanvasSelection,
     ...relationshipActions,
     ...attributeActions,
     ...paletteActions,

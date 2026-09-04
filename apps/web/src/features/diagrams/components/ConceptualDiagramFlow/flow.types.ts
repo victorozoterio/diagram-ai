@@ -35,6 +35,7 @@ export type ConceptualDiagramFlowProps = {
   model: ConceptualModel;
   onRemoveEntity?: (entityId: string) => void;
   onSelectEntity?: (entityId: string) => void;
+  onClearSelection?: () => void;
   onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
   selectedEntityIds?: string[];
   entityPositions?: Record<string, DiagramPosition>;
