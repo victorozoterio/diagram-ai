@@ -41,6 +41,10 @@
   height: 86px;
   padding: 20px 12px 8px;
 }
+.generalization .nameButton,
+.generalization .nameInput {
+  color: #6d28d9;
+}
 .generalization::before {
   content: none;
 }
@@ -69,6 +73,12 @@
 .generalization :global(.react-flow__handle) {
   background: #7c3aed;
 }
+.generalization .nameInput {
+  outline-color: #a78bfa;
+}
 .selected {
   filter: drop-shadow(0 0 5px rgb(194 65 12 / 42%));
+}
+.generalization.selected {
+  filter: drop-shadow(0 0 5px rgb(124 58 237 / 42%));
 }
