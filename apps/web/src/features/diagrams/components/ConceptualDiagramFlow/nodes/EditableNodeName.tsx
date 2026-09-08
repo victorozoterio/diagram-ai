@@ -16,7 +16,7 @@ type EditableNodeNameProps = {
   editingClassName: string;
   textSafeArea: TextSafeArea;
   onSave: (name: string) => void;
-  onStartEditing?: () => void;
+  onSelect?: () => void;
   stopPropagationOnKeyDown?: boolean;
 };
 
@@ -37,7 +37,7 @@ export function EditableNodeName({
   editingClassName,
   textSafeArea,
   onSave,
-  onStartEditing,
+  onSelect,
   stopPropagationOnKeyDown = false,
 }: EditableNodeNameProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -69,7 +69,6 @@ export function EditableNodeName({
       });
     }
     setDraftName(value);
-    onStartEditing?.();
     setIsEditing(true);
   }
 
@@ -129,7 +128,14 @@ export function EditableNodeName({
       aria-label={ariaLabel}
     />
   ) : (
-    <button className={normalClassName} type='button' onClick={startEditing} style={normalStyle} aria-label={ariaLabel}>
+    <button
+      className={normalClassName}
+      type='button'
+      onClick={onSelect}
+      onDoubleClick={startEditing}
+      style={normalStyle}
+      aria-label={ariaLabel}
+    >
       <span ref={textRef}>{value}</span>
     </button>
   );

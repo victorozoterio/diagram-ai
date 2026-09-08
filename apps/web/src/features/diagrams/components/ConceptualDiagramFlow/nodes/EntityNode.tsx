@@ -29,7 +29,7 @@ export function EntityNode({ data, selected }: { data: EntityNodeData; selected?
         editingClassName={`${styles.nameInput} ${data.kind === 'associative' ? styles.associativeEditor : ''}`}
         textSafeArea={textSafeArea}
         onSave={(name) => data.onUpdateEntity?.(data.id, { name })}
-        onStartEditing={() => data.onSelectEntity?.(data.id)}
+        onSelect={() => data.onSelectEntity?.(data.id)}
       />
       <ConnectionHandles prefix='entity' />
     </div>

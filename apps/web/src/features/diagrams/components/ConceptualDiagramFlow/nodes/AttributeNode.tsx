@@ -28,7 +28,7 @@ export function AttributeNode({ data, selected }: { data: AttributeNodeData; sel
           verticalPadding: 6,
         }}
         onSave={(name) => data.onUpdateAttribute?.(data.entityId, attribute.id, { name })}
-        onStartEditing={() => data.onSelectAttribute?.(data.entityId, attribute.id)}
+        onSelect={() => data.onSelectAttribute?.(data.entityId, attribute.id)}
       />
       <ConnectionHandles prefix='attribute' />
     </div>
