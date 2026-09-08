@@ -31,7 +31,16 @@
   text-align: center;
 }
 .nameButton {
+  display: inline-block;
+  width: 78px;
+  max-width: 78px;
+  max-height: 52px;
+  box-sizing: border-box;
   cursor: text;
+  line-height: 1.05;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
 }
 .nameInput {
   outline: 1px solid #fb923c;
@@ -44,6 +53,11 @@
 .generalization .nameButton,
 .generalization .nameInput {
   color: #6d28d9;
+}
+.generalization .nameButton {
+  width: 72px;
+  max-width: 72px;
+  max-height: 44px;
 }
 .generalization::before {
   content: none;

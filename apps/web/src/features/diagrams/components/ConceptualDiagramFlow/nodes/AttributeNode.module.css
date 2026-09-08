@@ -36,7 +36,16 @@
   text-align: center;
 }
 .nameButton {
+  display: inline-block;
+  width: 108px;
+  max-width: 108px;
+  max-height: 40px;
+  box-sizing: border-box;
   cursor: text;
+  line-height: 1.05;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
 }
 .multivalued {
   box-shadow:
