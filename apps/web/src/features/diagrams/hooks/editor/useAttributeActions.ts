@@ -133,6 +133,70 @@ export function useAttributeActions({
     setLogicalModel(null);
   }
 
+  function connectAttributeToAttribute(
+    sourceEntityId: string | null,
+    sourceAttributeId: string,
+    targetEntityId: string | null,
+    targetAttributeId: string,
+    sourceHandle?: string,
+    targetHandle?: string,
+  ) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) return currentModel;
+
+      const attributes = [
+        ...currentModel.entities.flatMap((entity) =>
+          entity.attributes.map((attribute) => ({ entityId: entity.id, attribute })),
+        ),
+        ...(currentModel.standaloneAttributes ?? []).map((attribute) => ({ entityId: null, attribute })),
+      ];
+      const source = attributes.find(
+        ({ entityId, attribute }) => entityId === sourceEntityId && attribute.id === sourceAttributeId,
+      )?.attribute;
+      const target = attributes.find(
+        ({ entityId, attribute }) => entityId === targetEntityId && attribute.id === targetAttributeId,
+      )?.attribute;
+
+      if (!source || !target || source.id === target.id) return currentModel;
+
+      const simple = isSimpleAttribute(source) ? source : isSimpleAttribute(target) ? target : null;
+      const composite = source.composite ? source : target.composite ? target : null;
+      if (!simple || !composite || simple.id === composite.id) return currentModel;
+      const simpleHandle = source.id === simple.id ? sourceHandle : targetHandle;
+      const compositeHandle = source.id === composite.id ? sourceHandle : targetHandle;
+
+      return {
+        ...currentModel,
+        standaloneAttributes: (currentModel.standaloneAttributes ?? []).map((attribute) =>
+          attribute.id === simple.id
+            ? {
+                ...attribute,
+                parentAttributeId: composite.id,
+                parentHandle: simpleHandle,
+                parentAttributeHandle: compositeHandle,
+                kind: 'subattribute',
+              }
+            : attribute,
+        ),
+        entities: currentModel.entities.map((entity) => ({
+          ...entity,
+          attributes: entity.attributes.map((attribute) =>
+            attribute.id === simple.id
+              ? {
+                  ...attribute,
+                  parentAttributeId: composite.id,
+                  parentHandle: simpleHandle,
+                  parentAttributeHandle: compositeHandle,
+                  kind: 'subattribute',
+                }
+              : attribute,
+          ),
+        })),
+      };
+    });
+    setLogicalModel(null);
+  }
+
   function disconnectAttributeFromEntity(entityId: string, attributeId: string) {
     const entity = conceptualModel?.entities.find((currentEntity) => currentEntity.id === entityId);
     const attribute = entity?.attributes.find((currentAttribute) => currentAttribute.id === attributeId);
@@ -159,12 +223,54 @@ export function useAttributeActions({
     setLogicalModel(null);
   }
 
+  function disconnectAttributeFromAttribute(entityId: string | null, attributeId: string, parentAttributeId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) return currentModel;
+
+      return {
+        ...currentModel,
+        standaloneAttributes: (currentModel.standaloneAttributes ?? []).map((attribute) =>
+          entityId === null && attribute.id === attributeId && attribute.parentAttributeId === parentAttributeId
+            ? {
+                ...attribute,
+                parentAttributeId: undefined,
+                parentHandle: undefined,
+                parentAttributeHandle: undefined,
+                kind: 'simple',
+              }
+            : attribute,
+        ),
+        entities: currentModel.entities.map((entity) => ({
+          ...entity,
+          attributes: entity.attributes.map((attribute) =>
+            entity.id === entityId && attribute.id === attributeId && attribute.parentAttributeId === parentAttributeId
+              ? {
+                  ...attribute,
+                  parentAttributeId: undefined,
+                  parentHandle: undefined,
+                  parentAttributeHandle: undefined,
+                  kind: 'simple',
+                }
+              : attribute,
+          ),
+        })),
+      };
+    });
+    setLogicalModel(null);
+  }
+
   return {
     addAttribute,
     selectAttribute,
     updateAttribute,
     removeAttribute,
     connectAttributeToEntity,
+    connectAttributeToAttribute,
     disconnectAttributeFromEntity,
+    disconnectAttributeFromAttribute,
   };
+}
+
+function isSimpleAttribute(attribute: Attribute) {
+  return !attribute.composite && !attribute.derived && !attribute.multivalued;
 }

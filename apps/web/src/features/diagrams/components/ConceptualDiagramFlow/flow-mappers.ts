@@ -168,6 +168,44 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
     }),
   );
 
+  const allAttributes = [
+    ...model.entities.flatMap((entity) => entity.attributes.map((attribute) => ({ entityId: entity.id, attribute }))),
+    ...(model.standaloneAttributes ?? []).map((attribute) => ({ entityId: null, attribute })),
+  ];
+  const attributeHierarchyEdges = allAttributes.flatMap(({ entityId, attribute }) => {
+    if (!attribute.parentAttributeId) return [];
+
+    const parent = allAttributes.find((item) => item.attribute.id === attribute.parentAttributeId);
+    if (!parent?.attribute.composite) return [];
+
+    const source = entityId === null ? `standalone:${attribute.id}` : `${entityId}:${attribute.id}`;
+    const target =
+      parent.entityId === null ? `standalone:${parent.attribute.id}` : `${parent.entityId}:${parent.attribute.id}`;
+    const sourcePosition = state.elementPositions?.[source] ?? { x: 0, y: 0 };
+    const targetPosition = state.elementPositions?.[target] ?? { x: 0, y: 0 };
+    const handles = getClosestConnectionHandles(
+      sourcePosition,
+      NODE_SIZES.attribute,
+      targetPosition,
+      NODE_SIZES.attribute,
+      'attribute',
+      'attribute',
+    );
+
+    return [
+      {
+        id: `attribute-parent:${entityId ?? 'standalone'}:${attribute.id}:${parent.entityId ?? 'standalone'}:${parent.attribute.id}`,
+        source,
+        sourceHandle: attribute.parentHandle ?? handles.sourceHandle,
+        target,
+        targetHandle: attribute.parentAttributeHandle ?? handles.targetHandle,
+        type: 'attribute',
+        selectable: true,
+        interactionWidth: 20,
+      },
+    ];
+  });
+
   const relationshipEdges = model.relationships.flatMap((relationship) =>
     relationship.participants.map((participant, index) => {
       // Modelos criados antes dos handles direcionais usam o primeiro participante
@@ -196,5 +234,5 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
     }),
   );
 
-  return [...attributeEdges, ...relationshipEdges];
+  return [...attributeEdges, ...attributeHierarchyEdges, ...relationshipEdges];
 }

@@ -56,6 +56,8 @@ export type Attribute = {
   parentAttributeId?: string;
   connectionHandle?: string;
   entityHandle?: string;
+  parentHandle?: string;
+  parentAttributeHandle?: string;
 };
 
 export type Entity = {
