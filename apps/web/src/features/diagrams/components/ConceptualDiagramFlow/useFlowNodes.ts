@@ -129,7 +129,32 @@ export function useFlowNodes({
     setNodes((currentNodes) =>
       mappedNodes.map((nextNode) => {
         const currentNode = currentNodes.find((node) => node.id === nextNode.id);
-        return currentNode ? { ...nextNode, position: currentNode.position, selected: currentNode.selected } : nextNode;
+        if (!currentNode) return nextNode;
+
+        const hasCurrentDimensions =
+          Number.isFinite(currentNode.width) &&
+          Number.isFinite(currentNode.height) &&
+          (currentNode.width ?? 0) > 0 &&
+          (currentNode.height ?? 0) > 0;
+
+        return {
+          ...nextNode,
+          ...(hasCurrentDimensions
+            ? {
+                width: currentNode.width,
+                height: currentNode.height,
+                initialWidth: currentNode.initialWidth ?? currentNode.width,
+                initialHeight: currentNode.initialHeight ?? currentNode.height,
+                style: {
+                  ...nextNode.style,
+                  width: currentNode.width,
+                  height: currentNode.height,
+                },
+              }
+            : {}),
+          position: currentNode.position,
+          selected: currentNode.selected,
+        };
       }),
     );
   }, [layoutVersion, mappedNodes]);

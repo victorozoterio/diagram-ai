@@ -43,6 +43,7 @@ export function useDiagramEditor() {
     setConceptualModel,
     setLogicalModel,
     setElementPositions,
+    setNodeSizes,
     setSelectedAttribute,
     setSelectedEntityIds,
   });

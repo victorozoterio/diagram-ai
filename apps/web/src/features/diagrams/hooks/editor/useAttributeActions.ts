@@ -1,5 +1,5 @@
 import type { Attribute, ConceptualModel, ElementKind, LogicalModel } from '../../types';
-import type { AttributeSelection, DiagramPosition, StateSetter } from './editor.types';
+import type { AttributeSelection, DiagramPosition, DiagramSize, StateSetter } from './editor.types';
 import { attributePositionKey, createEmptyConceptualModel, createManualAttribute } from './model-factories';
 import {
   addAttributeToModel,
@@ -13,6 +13,7 @@ type AttributeActionDependencies = {
   setConceptualModel: StateSetter<ConceptualModel | null>;
   setLogicalModel: StateSetter<LogicalModel | null>;
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
+  setNodeSizes: StateSetter<Record<string, DiagramSize>>;
   setSelectedAttribute: StateSetter<AttributeSelection>;
   setSelectedEntityIds: StateSetter<string[]>;
 };
@@ -22,6 +23,7 @@ export function useAttributeActions({
   setConceptualModel,
   setLogicalModel,
   setElementPositions,
+  setNodeSizes,
   setSelectedAttribute,
   setSelectedEntityIds,
 }: AttributeActionDependencies) {
@@ -129,6 +131,7 @@ export function useAttributeActions({
 
       return position ? { ...remaining, [attributePositionKey(targetEntityId, attributeId)]: position } : remaining;
     });
+    transferNodeSize(sourceEntityId, targetEntityId, attributeId, setNodeSizes);
     setSelectedAttribute({ entityId: targetEntityId, attributeId });
     setLogicalModel(null);
   }
@@ -219,6 +222,7 @@ export function useAttributeActions({
       const { [attributePositionKey(entityId, attributeId)]: _removed, ...remaining } = currentPositions;
       return position ? { ...remaining, [attributePositionKey(null, attributeId)]: position } : remaining;
     });
+    transferNodeSize(entityId, null, attributeId, setNodeSizes);
     setSelectedAttribute({ entityId: null, attributeId });
     setLogicalModel(null);
   }
@@ -343,6 +347,29 @@ export function useAttributeActions({
     disconnectAttributeFromAttribute,
     disconnectAttributeFromRelationship,
   };
+}
+
+function transferNodeSize(
+  sourceEntityId: string | null,
+  targetEntityId: string | null,
+  attributeId: string,
+  setNodeSizes?: StateSetter<Record<string, DiagramSize>>,
+) {
+  if (!setNodeSizes) return;
+
+  setNodeSizes((currentSizes) => {
+    const sourceKey = attributeNodeSizeKey(sourceEntityId, attributeId);
+    const targetKey = attributeNodeSizeKey(targetEntityId, attributeId);
+    const size = currentSizes[sourceKey];
+    if (!size || sourceKey === targetKey) return currentSizes;
+
+    const { [sourceKey]: _removed, ...remaining } = currentSizes;
+    return { ...remaining, [targetKey]: size };
+  });
+}
+
+function attributeNodeSizeKey(entityId: string | null, attributeId: string) {
+  return entityId === null ? `standalone:${attributeId}` : `${entityId}:${attributeId}`;
 }
 
 function isSimpleAttribute(attribute: Attribute) {
