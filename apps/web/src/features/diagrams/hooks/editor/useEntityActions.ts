@@ -23,7 +23,7 @@ export function useEntityActions({
   setSelectedEntityIds,
 }: EntityActionDependencies) {
   function addEntity(kind: EntityKind = 'regular', position?: DiagramPosition) {
-    const entity = createManualEntity(kind, conceptualModel?.entities.length ?? 0);
+    const entity = createManualEntity(kind, conceptualModel?.entities ?? []);
 
     setConceptualModel((currentModel) => ({
       ...(currentModel ?? createEmptyConceptualModel()),

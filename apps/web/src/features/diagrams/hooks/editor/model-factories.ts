@@ -28,9 +28,20 @@ export function createSlug(value: string) {
     .toLowerCase();
 }
 
-export function createManualEntity(kind: EntityKind, entityCount: number): Entity {
+export function createManualEntity(kind: EntityKind, entities: Entity[]): Entity {
   const label = kind === 'weak' ? 'Entidade Fraca' : kind === 'associative' ? 'Entidade Associativa' : 'Entidade';
-  const name = `${label} ${entityCount + 1}`;
+  const existingAutomaticNumbers = new Set(
+    entities
+      .filter((entity) => (entity.kind ?? 'regular') === kind)
+      .map((entity) => entity.name.match(new RegExp(`^${label} (\\d+)$`))?.[1])
+      .filter((number): number is string => Boolean(number))
+      .map(Number),
+  );
+  let nextNumber = 1;
+  while (existingAutomaticNumbers.has(nextNumber)) {
+    nextNumber += 1;
+  }
+  const name = `${label} ${nextNumber}`;
 
   return {
     id: createSlug(name),
