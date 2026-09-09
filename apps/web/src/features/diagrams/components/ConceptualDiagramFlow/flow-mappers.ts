@@ -1,4 +1,5 @@
 import type { Edge, Node } from '@xyflow/react';
+import type { EdgeControlPoints } from '../../hooks/editor/editor.types';
 import type { Attribute, ConceptualModel } from '../../types';
 import type {
   AttributeNodeData,
@@ -19,12 +20,15 @@ type FlowMapperCallbacks = {
   onResizeStart?: (nodeId: string) => void;
   onResize?: (nodeId: string, size: NodeSize) => void;
   onResizeEnd?: (nodeId: string, size: NodeSize) => void;
+  onControlPointsChange?: (edgeId: string, controlPoints: EdgeControlPoints) => void;
+  onControlPointsCommit?: (edgeId: string, controlPoints: EdgeControlPoints) => void;
 };
 
 type FlowMapperState = {
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
   nodeSizes?: Record<string, NodeSize>;
+  edgeControlPoints?: Record<string, EdgeControlPoints>;
   selectedEntityIds?: string[];
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;
 };
@@ -281,6 +285,13 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
         type: 'attribute',
         selectable: true,
         interactionWidth: 20,
+        data: edgeVisualData(
+          `attribute:${entity.id}:${attribute.id}`,
+          state,
+          callbacks,
+          attribute.entityHandle ?? handles.sourceHandle,
+          attribute.connectionHandle ?? handles.targetHandle,
+        ),
       };
     }),
   );
@@ -319,6 +330,13 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
         type: 'attribute',
         selectable: true,
         interactionWidth: 20,
+        data: edgeVisualData(
+          `attribute-parent:${entityId ?? 'standalone'}:${attribute.id}:${parent.entityId ?? 'standalone'}:${parent.attribute.id}`,
+          state,
+          callbacks,
+          attribute.parentHandle ?? handles.sourceHandle,
+          attribute.parentAttributeHandle ?? handles.targetHandle,
+        ),
       },
     ];
   });
@@ -351,6 +369,13 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
           type: 'attribute',
           selectable: true,
           interactionWidth: 20,
+          data: edgeVisualData(
+            `attribute-component:${entity.id}:${parentAttribute.id}:${component.id}`,
+            state,
+            callbacks,
+            handles.sourceHandle,
+            handles.targetHandle,
+          ),
         };
       });
     }),
@@ -376,6 +401,13 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
         selectable: true,
         interactionWidth: 20,
         data: {
+          ...edgeVisualData(
+            `${relationship.id}:${participant.entityId}`,
+            state,
+            callbacks,
+            startsAtRelationship ? relationshipHandle : (participant.entityHandle ?? 'entity-right'),
+            startsAtRelationship ? (participant.entityHandle ?? 'entity-left') : relationshipHandle,
+          ),
           relationship,
           entityId: participant.entityId,
           onCycleRelationshipCardinality: callbacks.onCycleRelationshipCardinality ?? (() => undefined),
@@ -403,6 +435,13 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
         type: 'attribute',
         selectable: true,
         interactionWidth: 20,
+        data: edgeVisualData(
+          `attribute-relationship:${attribute.relationshipId}:${entityId ?? 'standalone'}:${attribute.id}`,
+          state,
+          callbacks,
+          attribute.relationshipAttributeHandle ?? 'attribute-right',
+          attribute.relationshipHandle ?? 'target-left',
+        ),
       },
     ];
   });
@@ -433,6 +472,13 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
         type: 'attribute',
         selectable: true,
         interactionWidth: 20,
+        data: edgeVisualData(
+          `relationship-attribute-edge:${relationship.id}:${attribute.id}`,
+          state,
+          callbacks,
+          handles.sourceHandle,
+          relationshipHandleForSide(handles.targetHandle.replace('relationship-', '') as ConnectionSide),
+        ),
       };
     }),
   );
@@ -445,6 +491,35 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
     ...generatedRelationshipAttributeEdges,
     ...relationshipEdges,
   ];
+}
+
+function edgeVisualData(
+  edgeId: string,
+  state: FlowMapperState,
+  callbacks: FlowMapperCallbacks,
+  sourceHandleId: string,
+  targetHandleId: string,
+) {
+  return {
+    sourceHandleId,
+    targetHandleId,
+    sourceAnchor: anchorFromHandleId(sourceHandleId),
+    targetAnchor: anchorFromHandleId(targetHandleId),
+    controlPoints: state.edgeControlPoints?.[edgeId],
+    onControlPointsChange: callbacks.onControlPointsChange,
+    onControlPointsCommit: callbacks.onControlPointsCommit,
+  };
+}
+
+function anchorFromHandleId(handleId: string) {
+  const side = handleId.match(/(?:^|-)(left|right|top|bottom)(?:-|$)/)?.[1];
+  const offsetMatch = handleId.match(/(?:^|-)((?:25|50|75))(?:$)/);
+  const offset = offsetMatch ? Number(offsetMatch[1]) / 100 : 0.5;
+
+  if (side === 'left') return { xRatio: 0, yRatio: offset };
+  if (side === 'right') return { xRatio: 1, yRatio: offset };
+  if (side === 'top') return { xRatio: offset, yRatio: 0 };
+  return { xRatio: offset, yRatio: 1 };
 }
 
 function relationshipHandleForSide(side: ConnectionSide): string {

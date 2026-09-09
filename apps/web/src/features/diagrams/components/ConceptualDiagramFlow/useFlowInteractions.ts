@@ -1,11 +1,12 @@
 import type { Connection, Edge, Node, ReactFlowInstance } from '@xyflow/react';
 import type { DragEvent } from 'react';
 import { useCallback, useRef, useState } from 'react';
-import type { ElementKind } from '../../types';
+import type { Attribute, ConceptualModel, ElementKind } from '../../types';
 import type { ConceptualDiagramFlowProps } from './flow.types';
 
 type FlowInteractionDependencies = Pick<
   ConceptualDiagramFlowProps,
+  | 'model'
   | 'onRemoveEntity'
   | 'onRemoveAttribute'
   | 'onRemoveRelationship'
@@ -19,10 +20,12 @@ type FlowInteractionDependencies = Pick<
   | 'onDisconnectEntityFromRelationship'
   | 'onConnectEntities'
   | 'onConnectEntityToRelationship'
+  | 'onRemoveEdgeControlPoints'
 >;
 
 /** Encapsula gestos do board e os encaminha às ações do editor. */
 export function useFlowInteractions({
+  model,
   onRemoveEntity,
   onRemoveAttribute,
   onRemoveRelationship,
@@ -36,6 +39,7 @@ export function useFlowInteractions({
   onDisconnectEntityFromRelationship,
   onConnectEntities,
   onConnectEntityToRelationship,
+  onRemoveEdgeControlPoints,
 }: FlowInteractionDependencies) {
   const [flowInstance, setFlowInstance] = useState<ReactFlowInstance | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement>(null);
@@ -73,8 +77,12 @@ export function useFlowInteractions({
   );
 
   const handleEdgesDelete = useCallback(
-    (deletedEdges: Edge[]) => {
+    (deletedEdges: Edge[], preserveGeometry = false) => {
       const disconnectedEdges = deletedEdges.filter((edge) => !edgesRemovedWithNodesRef.current.has(edge.id));
+
+      if (!preserveGeometry) {
+        onRemoveEdgeControlPoints?.(deletedEdges.map((edge) => edge.id));
+      }
 
       disconnectedEdges
         .filter((edge) => edge.type === 'attribute')
@@ -126,6 +134,7 @@ export function useFlowInteractions({
       onDisconnectAttributeFromEntity,
       onDisconnectAttributeFromRelationship,
       onDisconnectEntityFromRelationship,
+      onRemoveEdgeControlPoints,
     ],
   );
 
@@ -233,6 +242,26 @@ export function useFlowInteractions({
     ],
   );
 
+  const handleReconnect = useCallback(
+    (edge: Edge, connection: Connection) => {
+      if (!connection.source || !connection.target) return false;
+
+      if (!isReconnectable(connection, model)) return false;
+
+      // A troca de ponto no mesmo par de nodes não altera a semântica: atualiza
+      // somente os handles persistidos, sem desconectar a edge antes.
+      if (edge.source === connection.source && edge.target === connection.target) {
+        handleConnect(connection);
+        return true;
+      }
+
+      handleEdgesDelete([edge], true);
+      handleConnect(connection);
+      return true;
+    },
+    [handleConnect, handleEdgesDelete, model],
+  );
+
   const handleDrop = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
@@ -265,8 +294,44 @@ export function useFlowInteractions({
     handleNodesDelete,
     handleEdgesDelete,
     handleConnect,
+    handleReconnect,
     handleDrop,
   };
+}
+
+function isReconnectable(connection: Connection, model: ConceptualModel | null) {
+  if (!connection.source || !connection.target || connection.source === connection.target) return false;
+
+  const sourceIsRelationship = connection.source.startsWith('relationship:');
+  const targetIsRelationship = connection.target.startsWith('relationship:');
+  if (sourceIsRelationship && targetIsRelationship) return false;
+
+  const sourceAttribute = parseAttributeNodeId(connection.source);
+  const targetAttribute = parseAttributeNodeId(connection.target);
+  if (!sourceAttribute || !targetAttribute) return true;
+
+  const source = findAttribute(model, sourceAttribute);
+  const target = findAttribute(model, targetAttribute);
+  if (!source || !target || source.id === target.id) return false;
+
+  return (isSimpleAttribute(source) && target.composite) || (isSimpleAttribute(target) && source.composite);
+}
+
+function findAttribute(
+  model: ConceptualModel | null,
+  selection: { entityId: string | null; attributeId: string },
+): Attribute | undefined {
+  if (!model) return undefined;
+
+  return selection.entityId === null
+    ? model.standaloneAttributes?.find((attribute) => attribute.id === selection.attributeId)
+    : model.entities
+        .find((entity) => entity.id === selection.entityId)
+        ?.attributes.find((attribute) => attribute.id === selection.attributeId);
+}
+
+function isSimpleAttribute(attribute: Attribute) {
+  return !attribute.composite && !attribute.derived && !attribute.multivalued;
 }
 
 function parseAttributeNodeId(nodeId: string): { entityId: string | null; attributeId: string } | null {

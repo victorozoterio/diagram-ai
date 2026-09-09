@@ -26,7 +26,6 @@ const edgeTypes = {
 /** Camada visual do editor: adapta o modelo conceitual para o React Flow. */
 export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
   const { nodes, handleNodesChange, selectAllNodes } = useFlowNodes(props);
-  const { edges, handleEdgesChange, selectAllEdges } = useFlowEdges(props);
   const {
     flowWrapperRef,
     setFlowInstance,
@@ -34,8 +33,10 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
     handleNodesDelete,
     handleEdgesDelete,
     handleConnect,
+    handleReconnect,
     handleDrop,
   } = useFlowInteractions(props);
+  const { edges, handleEdgesChange, selectAllEdges } = useFlowEdges(props, handleReconnect);
 
   useEffect(() => {
     function handleGlobalKeyDown(event: globalThis.KeyboardEvent) {

@@ -32,6 +32,7 @@ export function DiagramGeneratorPage() {
     entityPositions,
     elementPositions,
     nodeSizes,
+    edgeControlPoints,
     setDescription,
     generateConceptualDiagram,
     convertConceptualToLogicalDiagram,
@@ -42,6 +43,8 @@ export function DiagramGeneratorPage() {
     updateEntityPosition,
     updateElementPosition,
     updateNodeSize,
+    updateEdgeControlPoints,
+    removeEdgeControlPoints,
     clearCanvasSelection,
     addElementAtPosition,
     createRelationshipFromConnection,
@@ -96,9 +99,12 @@ export function DiagramGeneratorPage() {
               entityPositions={entityPositions}
               elementPositions={elementPositions}
               nodeSizes={nodeSizes}
+              edgeControlPoints={edgeControlPoints}
               onUpdateEntityPosition={updateEntityPosition}
               onUpdateElementPosition={updateElementPosition}
               onUpdateNodeSize={updateNodeSize}
+              onUpdateEdgeControlPoints={updateEdgeControlPoints}
+              onRemoveEdgeControlPoints={removeEdgeControlPoints}
               onAddElementAtPosition={addElementAtPosition}
               selectedAttribute={selectedAttribute}
               onSelectAttribute={selectAttribute}

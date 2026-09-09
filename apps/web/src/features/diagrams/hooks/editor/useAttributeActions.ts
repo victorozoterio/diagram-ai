@@ -87,6 +87,26 @@ export function useAttributeActions({
     attributeHandle?: string,
   ) {
     if (sourceEntityId === targetEntityId) {
+      setConceptualModel((currentModel) =>
+        currentModel
+          ? {
+              ...currentModel,
+              entities: currentModel.entities.map((entity) =>
+                entity.id === targetEntityId
+                  ? {
+                      ...entity,
+                      attributes: entity.attributes.map((attribute) =>
+                        attribute.id === attributeId
+                          ? { ...attribute, entityHandle, connectionHandle: attributeHandle }
+                          : attribute,
+                      ),
+                    }
+                  : entity,
+              ),
+            }
+          : currentModel,
+      );
+      setLogicalModel(null);
       return;
     }
 

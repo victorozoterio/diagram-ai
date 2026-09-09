@@ -1,5 +1,6 @@
-import { BaseEdge, type Edge, EdgeLabelRenderer, type EdgeProps, getSmoothStepPath } from '@xyflow/react';
+import { BaseEdge, type Edge, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react';
 import type { RelationshipEdgeData } from '../flow.types';
+import { EdgeControlPointsEditor, useEditableEdgePath } from './editable-edge';
 import styles from './RelationshipEdge.module.css';
 
 type RelationshipEdgeDefinition = Edge<RelationshipEdgeData>;
@@ -7,6 +8,7 @@ type RelationshipEdgeDefinition = Edge<RelationshipEdgeData>;
 export function RelationshipEdge({
   id,
   source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -16,13 +18,18 @@ export function RelationshipEdge({
   data,
   selected,
 }: EdgeProps<RelationshipEdgeDefinition>) {
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const { path: edgePath, labelPosition } = useEditableEdgePath({
+    edgeId: id,
+    selected,
+    source,
+    target,
     sourceX,
     sourceY,
-    sourcePosition,
     targetX,
     targetY,
+    sourcePosition,
     targetPosition,
+    ...data,
   });
   const participant = data?.relationship.participants.find((item) => item.entityId === data.entityId);
 
@@ -45,7 +52,7 @@ export function RelationshipEdge({
         <button
           className={`${styles.cardinality} nodrag nopan`}
           style={{
-            transform: `translate(-50%, -50%) translate(${entityX + (labelX - entityX) * 0.38}px, ${entityY + (labelY - entityY) * 0.38}px)`,
+            transform: `translate(-50%, -50%) translate(${entityX + (labelPosition.x - entityX) * 0.38}px, ${entityY + (labelPosition.y - entityY) * 0.38}px)`,
           }}
           type='button'
           onClick={() => data.onCycleRelationshipCardinality(data.relationship.id, data.entityId)}
@@ -54,6 +61,19 @@ export function RelationshipEdge({
           {participant.cardinality}
         </button>
       </EdgeLabelRenderer>
+      <EdgeControlPointsEditor
+        edgeId={id}
+        selected={selected}
+        source={source}
+        target={target}
+        sourceX={sourceX}
+        sourceY={sourceY}
+        targetX={targetX}
+        targetY={targetY}
+        sourcePosition={sourcePosition}
+        targetPosition={targetPosition}
+        {...data}
+      />
     </>
   );
 }

@@ -119,13 +119,25 @@ export function useRelationshipCreationActions({
       return {
         ...currentModel,
         relationships: currentModel.relationships.map((relationship) => {
-          if (
-            relationship.id !== relationshipId ||
-            relationship.participants.some((participant) => participant.entityId === entityId) ||
-            relationship.participants.length >= 2
-          ) {
+          if (relationship.id !== relationshipId) {
             return relationship;
           }
+
+          const existingParticipant = relationship.participants.find(
+            (participant) => participant.entityId === entityId,
+          );
+          if (existingParticipant) {
+            return {
+              ...relationship,
+              participants: relationship.participants.map((participant) =>
+                participant.entityId === entityId
+                  ? { ...participant, connectionHandle, entityHandle, connectionDirection }
+                  : participant,
+              ),
+            };
+          }
+
+          if (relationship.participants.length >= 2) return relationship;
 
           const participants = [
             ...relationship.participants,

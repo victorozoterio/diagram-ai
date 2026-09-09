@@ -1,23 +1,85 @@
-import { applyEdgeChanges, type Edge, type EdgeChange } from '@xyflow/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { ConceptualDiagramFlowProps } from './flow.types';
+import { applyEdgeChanges, type Edge, type EdgeChange, reconnectEdge } from '@xyflow/react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { EdgeControlPoints } from '../../hooks/editor/editor.types';
+import type { ConceptualDiagramFlowProps, EdgeReconnectConnection } from './flow.types';
 import { buildFlowEdges } from './flow-mappers';
 
 type FlowEdgeDependencies = Pick<
   ConceptualDiagramFlowProps,
-  'model' | 'entityPositions' | 'elementPositions' | 'onCycleRelationshipCardinality'
+  | 'model'
+  | 'entityPositions'
+  | 'elementPositions'
+  | 'edgeControlPoints'
+  | 'onCycleRelationshipCardinality'
+  | 'onUpdateEdgeControlPoints'
 >;
 
 /** Mantém seleção e remoção das edges sincronizadas com o estado controlado do React Flow. */
-export function useFlowEdges({
-  model,
-  entityPositions,
-  elementPositions,
-  onCycleRelationshipCardinality,
-}: FlowEdgeDependencies) {
+export function useFlowEdges(
+  {
+    model,
+    entityPositions,
+    elementPositions,
+    edgeControlPoints,
+    onCycleRelationshipCardinality,
+    onUpdateEdgeControlPoints,
+  }: FlowEdgeDependencies,
+  onReconnectEdge?: (edge: Edge, connection: EdgeReconnectConnection) => boolean,
+) {
+  const draftEdgeIds = useRef(new Set<string>());
+
+  const handleControlPointsChange = useCallback((edgeId: string, controlPoints: EdgeControlPoints) => {
+    draftEdgeIds.current.add(edgeId);
+    setEdges((currentEdges) =>
+      currentEdges.map((edge) => (edge.id === edgeId ? { ...edge, data: { ...edge.data, controlPoints } } : edge)),
+    );
+  }, []);
+
+  const handleControlPointsCommit = useCallback(
+    (edgeId: string, controlPoints: EdgeControlPoints) => {
+      draftEdgeIds.current.delete(edgeId);
+      onUpdateEdgeControlPoints?.(edgeId, controlPoints);
+    },
+    [onUpdateEdgeControlPoints],
+  );
+
+  const withReconnectHandler = useCallback(
+    (edge: Edge) => ({
+      ...edge,
+      data: {
+        ...edge.data,
+        onReconnect: (connection: EdgeReconnectConnection) => {
+          if (!onReconnectEdge?.(edge, connection)) return false;
+
+          setEdges((currentEdges) => reconnectEdge(edge, connection, currentEdges, { shouldReplaceId: false }));
+          return true;
+        },
+      },
+    }),
+    [onReconnectEdge],
+  );
+
   const mappedEdges = useMemo(
-    () => buildFlowEdges(model, { entityPositions, elementPositions }, { onCycleRelationshipCardinality }),
-    [elementPositions, entityPositions, model, onCycleRelationshipCardinality],
+    () =>
+      buildFlowEdges(
+        model,
+        { entityPositions, elementPositions, edgeControlPoints },
+        {
+          onCycleRelationshipCardinality,
+          onControlPointsChange: handleControlPointsChange,
+          onControlPointsCommit: handleControlPointsCommit,
+        },
+      ).map(withReconnectHandler),
+    [
+      edgeControlPoints,
+      elementPositions,
+      entityPositions,
+      handleControlPointsChange,
+      handleControlPointsCommit,
+      model,
+      onCycleRelationshipCardinality,
+      withReconnectHandler,
+    ],
   );
   const [edges, setEdges] = useState<Edge[]>(mappedEdges);
 
@@ -25,7 +87,18 @@ export function useFlowEdges({
     setEdges((currentEdges) =>
       mappedEdges.map((nextEdge) => {
         const currentEdge = currentEdges.find((edge) => edge.id === nextEdge.id);
-        return currentEdge ? { ...nextEdge, selected: currentEdge.selected } : nextEdge;
+        return currentEdge
+          ? {
+              ...nextEdge,
+              selected: currentEdge.selected,
+              data: {
+                ...nextEdge.data,
+                controlPoints: draftEdgeIds.current.has(nextEdge.id)
+                  ? (currentEdge.data as { controlPoints?: EdgeControlPoints } | undefined)?.controlPoints
+                  : (nextEdge.data as { controlPoints?: EdgeControlPoints } | undefined)?.controlPoints,
+              },
+            }
+          : nextEdge;
       }),
     );
   }, [mappedEdges]);

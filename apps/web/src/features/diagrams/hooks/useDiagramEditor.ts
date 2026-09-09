@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ConceptualModel, LogicalModel } from '../types';
-import type { AttributeSelection, DiagramPosition, DiagramSize } from './editor/editor.types';
+import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoints } from './editor/editor.types';
 import { DEFAULT_DESCRIPTION } from './editor/model-factories';
 import { useAttributeActions } from './editor/useAttributeActions';
 import { useDiagramLifecycle } from './editor/useDiagramLifecycle';
@@ -24,6 +24,7 @@ export function useDiagramEditor() {
   const [entityPositions, setEntityPositions] = useState<Record<string, DiagramPosition>>({});
   const [elementPositions, setElementPositions] = useState<Record<string, DiagramPosition>>({});
   const [nodeSizes, setNodeSizes] = useState<Record<string, DiagramSize>>({});
+  const [edgeControlPoints, setEdgeControlPoints] = useState<Record<string, EdgeControlPoints>>({});
   const [selectedAttribute, setSelectedAttribute] = useState<AttributeSelection>(null);
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -37,8 +38,9 @@ export function useDiagramEditor() {
       entityPositions,
       elementPositions,
       nodeSizes,
+      edgeControlPoints,
     }),
-    [conceptualModel, elementPositions, entityPositions, nodeSizes],
+    [conceptualModel, edgeControlPoints, elementPositions, entityPositions, nodeSizes],
   );
 
   useEffect(() => {
@@ -69,6 +71,7 @@ export function useDiagramEditor() {
     setEntityPositions(snapshot.entityPositions);
     setElementPositions(snapshot.elementPositions);
     setNodeSizes(snapshot.nodeSizes);
+    setEdgeControlPoints(snapshot.edgeControlPoints);
   }, []);
 
   const undo = useCallback(() => {
@@ -158,6 +161,7 @@ export function useDiagramEditor() {
     setEntityPositions,
     setElementPositions,
     setNodeSizes,
+    setEdgeControlPoints,
     setSelectedAttribute,
     setSelectedEntityIds,
     setLayoutVersion,
@@ -169,6 +173,19 @@ export function useDiagramEditor() {
 
   function updateNodeSize(nodeId: string, size: DiagramSize) {
     setNodeSizes((currentSizes) => ({ ...currentSizes, [nodeId]: size }));
+  }
+
+  function updateEdgeControlPoints(edgeId: string, controlPoints: EdgeControlPoints) {
+    setEdgeControlPoints((currentPoints) => ({ ...currentPoints, [edgeId]: controlPoints }));
+  }
+
+  function removeEdgeControlPoints(edgeIds: string[]) {
+    if (edgeIds.length === 0) return;
+
+    setEdgeControlPoints((currentPoints) => {
+      const removedIds = new Set(edgeIds);
+      return Object.fromEntries(Object.entries(currentPoints).filter(([edgeId]) => !removedIds.has(edgeId)));
+    });
   }
 
   function clearCanvasSelection() {
@@ -189,6 +206,7 @@ export function useDiagramEditor() {
     entityPositions,
     elementPositions,
     nodeSizes,
+    edgeControlPoints,
     layoutVersion,
     setDescription,
     setConceptualModel,
@@ -197,6 +215,8 @@ export function useDiagramEditor() {
     ...entityActions,
     updateElementPosition,
     updateNodeSize,
+    updateEdgeControlPoints,
+    removeEdgeControlPoints,
     clearCanvasSelection,
     undo,
     redo,
@@ -213,6 +233,7 @@ type DiagramSnapshot = {
   entityPositions: Record<string, DiagramPosition>;
   elementPositions: Record<string, DiagramPosition>;
   nodeSizes: Record<string, DiagramSize>;
+  edgeControlPoints: Record<string, EdgeControlPoints>;
 };
 
 type DiagramHistory = {
