@@ -3,18 +3,29 @@ import type { RelationshipNodeData } from '../flow.types';
 import { ConnectionHandles } from './ConnectionHandles';
 import { EditableNodeName } from './EditableNodeName';
 import styles from './RelationshipNode.module.css';
+import { ResizableNodeControls } from './ResizableNodeControls';
 
 export function RelationshipNode({ data, selected }: { data: RelationshipNodeData; selected?: boolean }) {
   const nodeRef = useRef<HTMLDivElement>(null);
   const isGeneralization = data.relationship.kind === 'generalization' || data.relationship.kind === 'specialization';
+  const isSelected = Boolean(selected);
 
   return (
     <div
       ref={nodeRef}
-      className={`${styles.node} ${isGeneralization ? styles.generalization : ''} ${selected ? styles.selected : ''}`}
+      className={`${styles.node} ${isGeneralization ? styles.generalization : ''} ${isSelected ? styles.selected : ''}`}
     >
+      <ResizableNodeControls
+        nodeId={`relationship:${data.relationship.id}`}
+        selected={isSelected}
+        minSize={data.minSize}
+        color={isGeneralization ? '#7c3aed' : '#c2410c'}
+        onResizeStart={data.onResizeStart}
+        onResize={data.onResize}
+        onResizeEnd={data.onResizeEnd}
+      />
       {isGeneralization && (
-        <svg className={styles.generalizationShape} viewBox='0 0 102 86' aria-hidden='true'>
+        <svg className={styles.generalizationShape} viewBox='0 0 102 86' preserveAspectRatio='none' aria-hidden='true'>
           <path d='M 51 3 L 99 83 L 3 83 Z' fill='#fff' stroke='#7c3aed' strokeWidth='4' />
         </svg>
       )}
@@ -27,17 +38,17 @@ export function RelationshipNode({ data, selected }: { data: RelationshipNodeDat
         textSafeArea={
           isGeneralization
             ? {
-                maxWidth: 34,
-                maxHeight: 28,
-                baseFontSize: 11,
+                maxWidth: Math.max(28, data.size.width * 0.34),
+                maxHeight: Math.max(24, data.size.height * 0.34),
+                baseFontSize: Math.min(16, Math.max(9, data.size.height * 0.14)),
                 minFontSize: 7,
                 horizontalPadding: 4,
                 verticalPadding: 6,
               }
             : {
-                maxWidth: 48,
-                maxHeight: 30,
-                baseFontSize: 11,
+                maxWidth: Math.max(34, Math.min(data.size.width, data.size.height) * 0.55),
+                maxHeight: Math.max(24, Math.min(data.size.width, data.size.height) * 0.34),
+                baseFontSize: Math.min(16, Math.max(9, Math.min(data.size.width, data.size.height) * 0.12)),
                 minFontSize: 7,
                 horizontalPadding: 6,
                 verticalPadding: 6,

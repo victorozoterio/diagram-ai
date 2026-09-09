@@ -7,6 +7,7 @@ import type {
   RelationshipEdgeData,
   RelationshipNodeData,
 } from './flow.types';
+import { DEFAULT_NODE_SIZES, MIN_NODE_SIZES, type NodeSize } from './node-resize';
 
 type FlowMapperCallbacks = {
   onSelectEntity?: EntityNodeData['onSelectEntity'];
@@ -15,20 +16,20 @@ type FlowMapperCallbacks = {
   onUpdateAttribute?: AttributeNodeData['onUpdateAttribute'];
   onUpdateRelationship?: RelationshipNodeData['onUpdateRelationship'];
   onCycleRelationshipCardinality?: RelationshipEdgeData['onCycleRelationshipCardinality'];
+  onResizeStart?: (nodeId: string) => void;
+  onResize?: (nodeId: string, size: NodeSize) => void;
+  onResizeEnd?: (nodeId: string, size: NodeSize) => void;
 };
 
 type FlowMapperState = {
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
+  nodeSizes?: Record<string, NodeSize>;
   selectedEntityIds?: string[];
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;
 };
 
-const NODE_SIZES = {
-  entity: { width: 170, height: 64 },
-  attribute: { width: 132, height: 68 },
-  relationship: { width: 112, height: 112 },
-};
+const NODE_SIZES = DEFAULT_NODE_SIZES;
 
 type ConnectionSide = 'left' | 'right' | 'top' | 'bottom';
 
@@ -74,14 +75,20 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
   const entityNodes = model.entities.map((entity, index) => ({
     id: entity.id,
     type: 'entity',
+    ...nodeDimensions(state.nodeSizes?.[entity.id], NODE_SIZES.entity),
     position: state.entityPositions?.[entity.id] ?? fallbackEntityPosition(index),
     data: {
       id: entity.id,
       name: entity.name,
       kind: entity.kind,
+      size: nodeSize(state.nodeSizes?.[entity.id], NODE_SIZES.entity),
+      minSize: MIN_NODE_SIZES.entity,
       isSelected: state.selectedEntityIds?.at(-1) === entity.id && !state.selectedAttribute,
       onSelectEntity: callbacks.onSelectEntity,
       onUpdateEntity: callbacks.onUpdateEntity,
+      onResizeStart: callbacks.onResizeStart,
+      onResize: callbacks.onResize,
+      onResizeEnd: callbacks.onResizeEnd,
     } satisfies EntityNodeData,
   }));
 
@@ -90,17 +97,24 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
       id: `${entity.id}:${attribute.id}`,
       type: 'attribute',
       selectable: true,
+      ...nodeDimensions(state.nodeSizes?.[`${entity.id}:${attribute.id}`], NODE_SIZES.attribute),
       position: state.elementPositions?.[`${entity.id}:${attribute.id}`] ?? {
         x: (state.entityPositions?.[entity.id]?.x ?? 80) + 250,
         y: (state.entityPositions?.[entity.id]?.y ?? 80) + index * 100,
       },
       data: {
+        nodeId: `${entity.id}:${attribute.id}`,
         attribute,
         entityId: entity.id,
+        size: nodeSize(state.nodeSizes?.[`${entity.id}:${attribute.id}`], NODE_SIZES.attribute),
+        minSize: MIN_NODE_SIZES.attribute,
         selected:
           state.selectedAttribute?.entityId === entity.id && state.selectedAttribute.attributeId === attribute.id,
         onSelectAttribute: callbacks.onSelectAttribute,
         onUpdateAttribute: callbacks.onUpdateAttribute,
+        onResizeStart: callbacks.onResizeStart,
+        onResize: callbacks.onResize,
+        onResizeEnd: callbacks.onResizeEnd,
       } satisfies AttributeNodeData,
     })),
   );
@@ -120,17 +134,24 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
           id,
           type: 'attribute',
           selectable: true,
+          ...nodeDimensions(state.nodeSizes?.[id], NODE_SIZES.attribute),
           position: state.elementPositions?.[id] ?? {
             x: parentPosition.x + (index - (parentAttribute.components.length - 1) / 2) * 150,
             y: parentPosition.y - 100,
           },
           data: {
+            nodeId: id,
             attribute,
             entityId: entity.id,
+            size: nodeSize(state.nodeSizes?.[id], NODE_SIZES.attribute),
+            minSize: MIN_NODE_SIZES.attribute,
             selected:
               state.selectedAttribute?.entityId === entity.id && state.selectedAttribute.attributeId === component.id,
             onSelectAttribute: callbacks.onSelectAttribute,
             onUpdateAttribute: callbacks.onUpdateAttribute,
+            onResizeStart: callbacks.onResizeStart,
+            onResize: callbacks.onResize,
+            onResizeEnd: callbacks.onResizeEnd,
           } satisfies AttributeNodeData,
         };
       }),
@@ -139,13 +160,20 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
   const standaloneAttributeNodes = (model.standaloneAttributes ?? []).map((attribute) => ({
     id: `standalone:${attribute.id}`,
     type: 'attribute',
+    ...nodeDimensions(state.nodeSizes?.[`standalone:${attribute.id}`], NODE_SIZES.attribute),
     position: state.elementPositions?.[`standalone:${attribute.id}`] ?? { x: 120, y: 120 },
     data: {
+      nodeId: `standalone:${attribute.id}`,
       attribute,
       entityId: null,
+      size: nodeSize(state.nodeSizes?.[`standalone:${attribute.id}`], NODE_SIZES.attribute),
+      minSize: MIN_NODE_SIZES.attribute,
       selected: state.selectedAttribute?.entityId === null && state.selectedAttribute.attributeId === attribute.id,
       onSelectAttribute: callbacks.onSelectAttribute,
       onUpdateAttribute: callbacks.onUpdateAttribute,
+      onResizeStart: callbacks.onResizeStart,
+      onResize: callbacks.onResize,
+      onResizeEnd: callbacks.onResizeEnd,
     } satisfies AttributeNodeData,
   }));
 
@@ -159,11 +187,25 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
         ? { x: (positions[0].x + positions[1].x) / 2 + 100, y: (positions[0].y + positions[1].y) / 2 }
         : { x: fallback.x + 180, y: fallback.y + 30 };
 
+    const id = `relationship:${relationship.id}`;
+    const isGeneralization = relationship.kind === 'generalization' || relationship.kind === 'specialization';
+    const defaultSize = isGeneralization ? DEFAULT_NODE_SIZES.generalization : NODE_SIZES.relationship;
+    const minSize = isGeneralization ? MIN_NODE_SIZES.generalization : MIN_NODE_SIZES.relationship;
+
     return {
-      id: `relationship:${relationship.id}`,
+      id,
       type: 'relationship',
+      ...nodeDimensions(state.nodeSizes?.[id], defaultSize),
       position: state.elementPositions?.[`relationship:${relationship.id}`] ?? position,
-      data: { relationship, onUpdateRelationship: callbacks.onUpdateRelationship } satisfies RelationshipNodeData,
+      data: {
+        relationship,
+        size: nodeSize(state.nodeSizes?.[id], defaultSize),
+        minSize,
+        onUpdateRelationship: callbacks.onUpdateRelationship,
+        onResizeStart: callbacks.onResizeStart,
+        onResize: callbacks.onResize,
+        onResizeEnd: callbacks.onResizeEnd,
+      } satisfies RelationshipNodeData,
     };
   });
 
@@ -175,16 +217,29 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
       id: `relationship-attribute:${relationship.id}:${attribute.id}`,
       type: 'attribute',
       selectable: true,
+      ...nodeDimensions(
+        state.nodeSizes?.[`relationship-attribute:${relationship.id}:${attribute.id}`],
+        NODE_SIZES.attribute,
+      ),
       position: state.elementPositions?.[`relationship-attribute:${relationship.id}:${attribute.id}`] ?? {
         x: relationshipPosition.x + index * 150,
         y: relationshipPosition.y + NODE_SIZES.attribute.height + 70,
       },
       data: {
+        nodeId: `relationship-attribute:${relationship.id}:${attribute.id}`,
         attribute,
         entityId: null,
+        size: nodeSize(
+          state.nodeSizes?.[`relationship-attribute:${relationship.id}:${attribute.id}`],
+          NODE_SIZES.attribute,
+        ),
+        minSize: MIN_NODE_SIZES.attribute,
         selected: state.selectedAttribute?.entityId === null && state.selectedAttribute.attributeId === attribute.id,
         onSelectAttribute: callbacks.onSelectAttribute,
         onUpdateAttribute: callbacks.onUpdateAttribute,
+        onResizeStart: callbacks.onResizeStart,
+        onResize: callbacks.onResize,
+        onResizeEnd: callbacks.onResizeEnd,
       } satisfies AttributeNodeData,
     }));
   });
@@ -419,5 +474,22 @@ function componentAttribute(
     components: [],
     kind: 'subattribute',
     parentAttributeId,
+  };
+}
+
+function nodeSize(size: NodeSize | undefined, fallback: NodeSize): NodeSize {
+  return size && Number.isFinite(size.width) && Number.isFinite(size.height) && size.width > 0 && size.height > 0
+    ? size
+    : fallback;
+}
+
+function nodeDimensions(size: NodeSize | undefined, fallback: NodeSize) {
+  const dimensions = nodeSize(size, fallback);
+  return {
+    width: dimensions.width,
+    height: dimensions.height,
+    initialWidth: dimensions.width,
+    initialHeight: dimensions.height,
+    style: { width: dimensions.width, height: dimensions.height },
   };
 }

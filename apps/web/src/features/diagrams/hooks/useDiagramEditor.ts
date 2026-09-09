@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ConceptualModel, LogicalModel } from '../types';
-import type { AttributeSelection, DiagramPosition } from './editor/editor.types';
+import type { AttributeSelection, DiagramPosition, DiagramSize } from './editor/editor.types';
 import { DEFAULT_DESCRIPTION } from './editor/model-factories';
 import { useAttributeActions } from './editor/useAttributeActions';
 import { useDiagramLifecycle } from './editor/useDiagramLifecycle';
@@ -23,6 +23,7 @@ export function useDiagramEditor() {
   const [error, setError] = useState<string | null>(null);
   const [entityPositions, setEntityPositions] = useState<Record<string, DiagramPosition>>({});
   const [elementPositions, setElementPositions] = useState<Record<string, DiagramPosition>>({});
+  const [nodeSizes, setNodeSizes] = useState<Record<string, DiagramSize>>({});
   const [selectedAttribute, setSelectedAttribute] = useState<AttributeSelection>(null);
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
   const [layoutVersion, setLayoutVersion] = useState(0);
@@ -71,6 +72,7 @@ export function useDiagramEditor() {
     setError,
     setEntityPositions,
     setElementPositions,
+    setNodeSizes,
     setSelectedAttribute,
     setSelectedEntityIds,
     setLayoutVersion,
@@ -78,6 +80,10 @@ export function useDiagramEditor() {
 
   function updateElementPosition(elementId: string, position: DiagramPosition) {
     setElementPositions((currentPositions) => ({ ...currentPositions, [elementId]: position }));
+  }
+
+  function updateNodeSize(nodeId: string, size: DiagramSize) {
+    setNodeSizes((currentSizes) => ({ ...currentSizes, [nodeId]: size }));
   }
 
   function clearCanvasSelection() {
@@ -97,6 +103,7 @@ export function useDiagramEditor() {
     selectedEntityIds,
     entityPositions,
     elementPositions,
+    nodeSizes,
     layoutVersion,
     setDescription,
     setConceptualModel,
@@ -104,6 +111,7 @@ export function useDiagramEditor() {
     ...lifecycleActions,
     ...entityActions,
     updateElementPosition,
+    updateNodeSize,
     clearCanvasSelection,
     ...relationshipActions,
     ...attributeActions,

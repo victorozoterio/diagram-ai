@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { ConceptualModel, LogicalModel } from '../../types';
 
 export type DiagramPosition = { x: number; y: number };
+export type DiagramSize = { width: number; height: number };
 
 export type AttributeSelection = {
   entityId: string | null;

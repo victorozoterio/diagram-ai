@@ -1,16 +1,25 @@
+import type { DiagramSize } from '../../hooks/editor/editor.types';
 import type { AttributeType, ConceptualModel, ElementKind, Entity, Relationship } from '../../types';
 
 export type DiagramPosition = { x: number; y: number };
 
 export type EntityNodeData = Pick<Entity, 'id' | 'name' | 'kind'> & {
+  size: DiagramSize;
+  minSize: DiagramSize;
   isSelected?: boolean;
   onSelectEntity?: (entityId: string) => void;
   onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
+  onResizeStart?: (nodeId: string) => void;
+  onResize?: (nodeId: string, size: DiagramSize) => void;
+  onResizeEnd?: (nodeId: string, size: DiagramSize) => void;
 };
 
 export type AttributeNodeData = {
+  nodeId: string;
   attribute: Entity['attributes'][number];
   entityId: string | null;
+  size: DiagramSize;
+  minSize: DiagramSize;
   selected?: boolean;
   onSelectAttribute?: (entityId: string | null, attributeId: string) => void;
   onUpdateAttribute?: (
@@ -18,11 +27,19 @@ export type AttributeNodeData = {
     attributeId: string,
     changes: { name?: string; type?: AttributeType },
   ) => void;
+  onResizeStart?: (nodeId: string) => void;
+  onResize?: (nodeId: string, size: DiagramSize) => void;
+  onResizeEnd?: (nodeId: string, size: DiagramSize) => void;
 };
 
 export type RelationshipNodeData = {
   relationship: Relationship;
+  size: DiagramSize;
+  minSize: DiagramSize;
   onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
+  onResizeStart?: (nodeId: string) => void;
+  onResize?: (nodeId: string, size: DiagramSize) => void;
+  onResizeEnd?: (nodeId: string, size: DiagramSize) => void;
 };
 
 export type RelationshipEdgeData = {
@@ -41,9 +58,11 @@ export type ConceptualDiagramFlowProps = {
   layoutVersion?: number;
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
+  nodeSizes?: Record<string, DiagramSize>;
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;
   onUpdateEntityPosition?: (entityId: string, position: DiagramPosition) => void;
   onUpdateElementPosition?: (elementId: string, position: DiagramPosition) => void;
+  onUpdateNodeSize?: (nodeId: string, size: DiagramSize) => void;
   onSelectAttribute?: (entityId: string | null, attributeId: string) => void;
   onUpdateAttribute?: (
     entityId: string | null,

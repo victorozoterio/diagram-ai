@@ -1,7 +1,7 @@
 import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
 import type { ConceptualModel, LogicalModel } from '../../types';
 import { calculateInitialConceptualLayout } from './auto-layout';
-import type { AttributeSelection, DiagramPosition, StateSetter } from './editor.types';
+import type { AttributeSelection, DiagramPosition, DiagramSize, StateSetter } from './editor.types';
 
 type LifecycleDependencies = {
   description: string;
@@ -13,6 +13,7 @@ type LifecycleDependencies = {
   setError: StateSetter<string | null>;
   setEntityPositions: StateSetter<Record<string, DiagramPosition>>;
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
+  setNodeSizes: StateSetter<Record<string, DiagramSize>>;
   setSelectedAttribute: StateSetter<AttributeSelection>;
   setSelectedEntityIds: StateSetter<string[]>;
   setLayoutVersion: StateSetter<number>;
@@ -28,6 +29,7 @@ export function useDiagramLifecycle({
   setError,
   setEntityPositions,
   setElementPositions,
+  setNodeSizes,
   setSelectedAttribute,
   setSelectedEntityIds,
   setLayoutVersion,
@@ -50,6 +52,7 @@ export function useDiagramLifecycle({
       setSelectedEntityIds([]);
       setEntityPositions(layout.entityPositions);
       setElementPositions(layout.elementPositions);
+      setNodeSizes({});
       setLayoutVersion((currentVersion) => currentVersion + 1);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
@@ -82,6 +85,7 @@ export function useDiagramLifecycle({
     setSelectedEntityIds([]);
     setEntityPositions({});
     setElementPositions({});
+    setNodeSizes({});
   }
 
   return {

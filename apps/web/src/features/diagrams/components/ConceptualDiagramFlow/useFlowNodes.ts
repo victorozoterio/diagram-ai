@@ -8,6 +8,7 @@ type FlowNodeDependencies = Pick<
   | 'model'
   | 'entityPositions'
   | 'elementPositions'
+  | 'nodeSizes'
   | 'selectedAttribute'
   | 'selectedEntityIds'
   | 'layoutVersion'
@@ -18,6 +19,7 @@ type FlowNodeDependencies = Pick<
   | 'onUpdateRelationship'
   | 'onCycleRelationshipCardinality'
   | 'onUpdateElementPosition'
+  | 'onUpdateNodeSize'
 >;
 
 /** Mantém a projeção do modelo sincronizada com as posições transitórias do React Flow. */
@@ -25,6 +27,7 @@ export function useFlowNodes({
   model,
   entityPositions,
   elementPositions,
+  nodeSizes,
   selectedAttribute,
   selectedEntityIds,
   layoutVersion = 0,
@@ -35,12 +38,56 @@ export function useFlowNodes({
   onUpdateRelationship,
   onCycleRelationshipCardinality,
   onUpdateElementPosition,
+  onUpdateNodeSize,
 }: FlowNodeDependencies) {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const previousLayoutVersion = useRef(layoutVersion);
+
+  const updateResizingNode = useCallback(
+    (nodeId: string, size: { width: number; height: number }, resizing: boolean) => {
+      setNodes((currentNodes) =>
+        currentNodes.map((node) =>
+          node.id !== nodeId
+            ? node
+            : {
+                ...node,
+                width: size.width,
+                height: size.height,
+                style: { ...node.style, width: size.width, height: size.height },
+                data: { ...node.data, size },
+                draggable: !resizing,
+                resizing,
+              },
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleResizeStart = useCallback((nodeId: string) => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => (node.id === nodeId ? { ...node, draggable: false, resizing: true } : node)),
+    );
+  }, []);
+
+  const handleResize = useCallback(
+    (nodeId: string, size: { width: number; height: number }) => updateResizingNode(nodeId, size, true),
+    [updateResizingNode],
+  );
+
+  const handleResizeEnd = useCallback(
+    (nodeId: string, size: { width: number; height: number }) => {
+      updateResizingNode(nodeId, size, false);
+      onUpdateNodeSize?.(nodeId, size);
+    },
+    [onUpdateNodeSize, updateResizingNode],
+  );
+
   const mappedNodes = useMemo(
     () =>
       buildFlowNodes(
         model,
-        { entityPositions, elementPositions, selectedAttribute, selectedEntityIds },
+        { entityPositions, elementPositions, nodeSizes, selectedAttribute, selectedEntityIds },
         {
           onSelectEntity,
           onUpdateEntity,
@@ -48,11 +95,15 @@ export function useFlowNodes({
           onUpdateAttribute,
           onUpdateRelationship,
           onCycleRelationshipCardinality,
+          onResizeStart: handleResizeStart,
+          onResize: handleResize,
+          onResizeEnd: handleResizeEnd,
         },
       ),
     [
       elementPositions,
       entityPositions,
+      nodeSizes,
       model,
       onCycleRelationshipCardinality,
       onSelectAttribute,
@@ -60,13 +111,13 @@ export function useFlowNodes({
       onUpdateAttribute,
       onUpdateEntity,
       onUpdateRelationship,
+      handleResize,
+      handleResizeEnd,
+      handleResizeStart,
       selectedAttribute,
       selectedEntityIds,
     ],
   );
-
-  const [nodes, setNodes] = useState<Node[]>(mappedNodes);
-  const previousLayoutVersion = useRef(layoutVersion);
 
   useEffect(() => {
     if (previousLayoutVersion.current !== layoutVersion) {
@@ -86,9 +137,15 @@ export function useFlowNodes({
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
       setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
+      const resizingNodeIds = new Set<string>();
+      changes.forEach((change) => {
+        if (change.type === 'dimensions' && change.resizing) {
+          resizingNodeIds.add(change.id);
+        }
+      });
 
       changes.forEach((change) => {
-        if (change.type === 'position' && change.position && !change.dragging) {
+        if (change.type === 'position' && change.position && !change.dragging && !resizingNodeIds.has(change.id)) {
           onUpdateElementPosition?.(change.id, change.position);
         }
       });
