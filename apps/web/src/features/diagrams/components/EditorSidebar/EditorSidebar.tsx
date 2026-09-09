@@ -7,12 +7,6 @@ type EditorSidebarProps = {
   onAddEntity: () => void;
 };
 
-type ElementCategoryProps = {
-  icon: string;
-  title: string;
-  items: Array<{ kind: ElementKind; label: string }>;
-};
-
 function ElementPreview({ kind }: { kind: ElementKind }) {
   const isEntity = kind === 'entity' || kind === 'weak-entity' || kind === 'associative-entity';
   const isAttribute = kind.includes('attribute');
@@ -24,9 +18,8 @@ function ElementPreview({ kind }: { kind: ElementKind }) {
       {isEntity && (
         <>
           <rect x='2' y='3' width='20' height='12' className={styles.previewShape} />
-          {(kind === 'weak-entity' || kind === 'associative-entity') && (
-            <rect x='4' y='5' width='16' height='8' className={styles.previewShape} />
-          )}
+          {kind === 'weak-entity' && <rect x='4' y='5' width='16' height='8' className={styles.previewShape} />}
+          {kind === 'associative-entity' && <polygon points='12,4 20,9 12,14 4,9' className={styles.previewShape} />}
         </>
       )}
       {isAttribute && (
@@ -43,39 +36,20 @@ function ElementPreview({ kind }: { kind: ElementKind }) {
   );
 }
 
-function ElementCategory({ icon, title, items }: ElementCategoryProps) {
-  return (
-    <section className={styles.category}>
-      <h3>
-        <span>{icon}</span>
-        {title}
-      </h3>
-      <div className={styles.elementList}>
-        {items.map((item) => (
-          <button
-            className={styles.elementItem}
-            key={item.kind}
-            type='button'
-            draggable
-            onDragStart={(event) => {
-              event.dataTransfer.effectAllowed = 'copy';
-              event.dataTransfer.setData('application/diagram-element', item.kind);
-            }}
-          >
-            <span className={styles.elementGrip} aria-hidden='true'>
-              ⋮⋮
-            </span>
-            <ElementPreview kind={item.kind} />
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function EditorSidebar({ model, onAddEntity }: EditorSidebarProps) {
   const [search, setSearch] = useState('');
+  const libraryItems: Array<{ kind: ElementKind; label: string }> = [
+    { kind: 'entity', label: 'Entidade' },
+    { kind: 'weak-entity', label: 'Entidade fraca' },
+    { kind: 'associative-entity', label: 'Entidade associativa' },
+    { kind: 'simple-attribute', label: 'Atributo simples' },
+    { kind: 'multivalued-attribute', label: 'Atributo multivalorado' },
+    { kind: 'composite-attribute', label: 'Atributo composto' },
+    { kind: 'derived-attribute', label: 'Atributo derivado' },
+    { kind: 'identifier-attribute', label: 'Atributo identificador' },
+    { kind: 'relationship', label: 'Relacionamento' },
+    { kind: 'generalization-specialization', label: 'Generalização / Especialização' },
+  ];
   const filterItems = useMemo(
     () => (items: Array<{ kind: ElementKind; label: string }>) =>
       items.filter((item) => item.label.toLocaleLowerCase().includes(search.toLocaleLowerCase())),
@@ -86,7 +60,6 @@ export function EditorSidebar({ model, onAddEntity }: EditorSidebarProps) {
       <div className={styles.sidebarHeader}>
         <div className={styles.sectionHeading}>
           <span>Biblioteca</span>
-          <span className={styles.libraryBadge}>4</span>
         </div>
 
         <label className={styles.search}>
@@ -102,36 +75,25 @@ export function EditorSidebar({ model, onAddEntity }: EditorSidebarProps) {
       </div>
 
       <div className={styles.libraryContent}>
-        <ElementCategory
-          icon='▦'
-          title='Entidades'
-          items={filterItems([
-            { kind: 'entity', label: 'Entidade' },
-            { kind: 'weak-entity', label: 'Entidade fraca' },
-            { kind: 'associative-entity', label: 'Entidade associativa' },
-          ])}
-        />
-        <ElementCategory
-          icon='◈'
-          title='Atributos'
-          items={filterItems([
-            { kind: 'simple-attribute', label: 'Atributo simples' },
-            { kind: 'multivalued-attribute', label: 'Atributo multivalorado' },
-            { kind: 'composite-attribute', label: 'Atributo composto' },
-            { kind: 'derived-attribute', label: 'Atributo derivado' },
-            { kind: 'identifier-attribute', label: 'Atributo identificador' },
-          ])}
-        />
-        <ElementCategory
-          icon='◇'
-          title='Relacionamentos'
-          items={filterItems([{ kind: 'relationship', label: 'Relacionamento' }])}
-        />
-        <ElementCategory
-          icon='⑂'
-          title='Generalização / Especialização'
-          items={filterItems([{ kind: 'generalization-specialization', label: 'Generalização / Especialização' }])}
-        />
+        <section className={styles.category}>
+          <div className={styles.elementList}>
+            {filterItems(libraryItems).map((item) => (
+              <button
+                className={styles.elementItem}
+                key={item.kind}
+                type='button'
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = 'copy';
+                  event.dataTransfer.setData('application/diagram-element', item.kind);
+                }}
+              >
+                <ElementPreview kind={item.kind} />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
 
         <section className={styles.category}>
           <div className={styles.categoryTitleRow}>
