@@ -18,6 +18,7 @@ type FlowNodeDependencies = Pick<
   | 'onUpdateAttribute'
   | 'onUpdateRelationship'
   | 'onCycleRelationshipCardinality'
+  | 'onUpdateEntityPosition'
   | 'onUpdateElementPosition'
   | 'onUpdateNodeSize'
 >;
@@ -37,6 +38,7 @@ export function useFlowNodes({
   onUpdateAttribute,
   onUpdateRelationship,
   onCycleRelationshipCardinality,
+  onUpdateEntityPosition,
   onUpdateElementPosition,
   onUpdateNodeSize,
 }: FlowNodeDependencies) {
@@ -152,7 +154,7 @@ export function useFlowNodes({
                 },
               }
             : {}),
-          position: currentNode.position,
+          position: currentNode.dragging ? currentNode.position : nextNode.position,
           selected: currentNode.selected,
         };
       }),
@@ -171,11 +173,15 @@ export function useFlowNodes({
 
       changes.forEach((change) => {
         if (change.type === 'position' && change.position && !change.dragging && !resizingNodeIds.has(change.id)) {
-          onUpdateElementPosition?.(change.id, change.position);
+          if (model.entities.some((entity) => entity.id === change.id)) {
+            onUpdateEntityPosition?.(change.id, change.position);
+          } else {
+            onUpdateElementPosition?.(change.id, change.position);
+          }
         }
       });
     },
-    [onUpdateElementPosition],
+    [model.entities, onUpdateElementPosition, onUpdateEntityPosition],
   );
 
   const selectAllNodes = useCallback(() => {

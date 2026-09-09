@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ConceptualModel, LogicalModel } from '../types';
 import type { AttributeSelection, DiagramPosition, DiagramSize } from './editor/editor.types';
 import { DEFAULT_DESCRIPTION } from './editor/model-factories';
@@ -27,6 +27,90 @@ export function useDiagramEditor() {
   const [selectedAttribute, setSelectedAttribute] = useState<AttributeSelection>(null);
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
   const [layoutVersion, setLayoutVersion] = useState(0);
+  const history = useRef<DiagramHistory>({ present: null, undo: [], redo: [] });
+  const skipHistoryRef = useRef(false);
+  const [, setHistoryVersion] = useState(0);
+
+  const currentSnapshot = useCallback(
+    (): DiagramSnapshot => ({
+      conceptualModel,
+      entityPositions,
+      elementPositions,
+      nodeSizes,
+    }),
+    [conceptualModel, elementPositions, entityPositions, nodeSizes],
+  );
+
+  useEffect(() => {
+    const snapshot = currentSnapshot();
+    if (!history.current.present) {
+      history.current.present = snapshot;
+      return;
+    }
+
+    if (skipHistoryRef.current) {
+      history.current.present = snapshot;
+      skipHistoryRef.current = false;
+      return;
+    }
+
+    if (snapshotSignature(history.current.present) === snapshotSignature(snapshot)) {
+      return;
+    }
+
+    history.current.undo.push(history.current.present);
+    history.current.present = snapshot;
+    history.current.redo = [];
+    setHistoryVersion((version) => version + 1);
+  }, [currentSnapshot]);
+
+  const restoreSnapshot = useCallback((snapshot: DiagramSnapshot) => {
+    setConceptualModel(snapshot.conceptualModel);
+    setEntityPositions(snapshot.entityPositions);
+    setElementPositions(snapshot.elementPositions);
+    setNodeSizes(snapshot.nodeSizes);
+  }, []);
+
+  const undo = useCallback(() => {
+    const previous = history.current.undo.pop();
+    if (!previous || !history.current.present) return;
+
+    history.current.redo.push(history.current.present);
+    history.current.present = previous;
+    skipHistoryRef.current = true;
+    restoreSnapshot(previous);
+    setHistoryVersion((version) => version + 1);
+  }, [restoreSnapshot]);
+
+  const redo = useCallback(() => {
+    const next = history.current.redo.pop();
+    if (!next || !history.current.present) return;
+
+    history.current.undo.push(history.current.present);
+    history.current.present = next;
+    skipHistoryRef.current = true;
+    restoreSnapshot(next);
+    setHistoryVersion((version) => version + 1);
+  }, [restoreSnapshot]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || isEditableTarget(event.target)) return;
+
+      const key = event.key.toLowerCase();
+      if (key !== 'z') return;
+
+      event.preventDefault();
+      if (event.shiftKey) {
+        redo();
+      } else {
+        undo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [redo, undo]);
 
   const entityActions = useEntityActions({
     conceptualModel,
@@ -114,8 +198,44 @@ export function useDiagramEditor() {
     updateElementPosition,
     updateNodeSize,
     clearCanvasSelection,
+    undo,
+    redo,
+    canUndo: history.current.undo.length > 0,
+    canRedo: history.current.redo.length > 0,
     ...relationshipActions,
     ...attributeActions,
     ...paletteActions,
   };
+}
+
+type DiagramSnapshot = {
+  conceptualModel: ConceptualModel | null;
+  entityPositions: Record<string, DiagramPosition>;
+  elementPositions: Record<string, DiagramPosition>;
+  nodeSizes: Record<string, DiagramSize>;
+};
+
+type DiagramHistory = {
+  present: DiagramSnapshot | null;
+  undo: DiagramSnapshot[];
+  redo: DiagramSnapshot[];
+};
+
+function snapshotSignature(snapshot: DiagramSnapshot) {
+  return JSON.stringify(snapshot);
+}
+
+function isEditableTarget(target: EventTarget | null) {
+  const elements = [target instanceof Element ? target : null, document.activeElement];
+  return elements.some((element) => {
+    if (!(element instanceof HTMLElement)) return false;
+
+    return Boolean(
+      element.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]') ||
+        element instanceof HTMLInputElement ||
+        element instanceof HTMLTextAreaElement ||
+        element instanceof HTMLSelectElement ||
+        element.isContentEditable,
+    );
+  });
 }
