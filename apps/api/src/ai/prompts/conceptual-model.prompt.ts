@@ -14,12 +14,13 @@ REGRAS:
 - Todo sujeito que possui, vende, cadastra ou se relaciona explicitamente com outros conceitos também é entidade, mesmo sem atributos próprios informados.
 - Uma entidade sem atributos explícitos continua na saída com apenas n; omita a nesse caso. Nunca trate o sujeito inicial como mero contexto do sistema.
 - Regra absoluta: um sujeito explícito de relação não pode ser omitido nem descartado em ambiguities por não possuir atributos informados.
-- O backend adiciona o identificador técnico de cada entidade; não o repita na saída. Preserve apenas identificadores de negócio explicitamente informados.
+- O backend adiciona o identificador técnico de cada entidade; não o repita. Use i em outro atributo somente se o texto disser que ele identifica a entidade ou é sua chave; aparência de unicidade não basta.
 - Não gere foreign keys, tabelas associativas nem entidades artificiais de ligação. Um N:N permanece relacionamento.
-- Atributos que descrevem uma ocorrência da associação pertencem ao relacionamento.
+- Dados cujo valor depende da ocorrência ou do par específico entre participantes pertencem ao relacionamento, em r[].a.
 - Só crie atributos no relacionamento quando o texto os vincular à ocorrência da associação. Atributos declarados como pertencentes a uma entidade ficam somente nela; nunca os copie para o relacionamento.
 - Nunca use atributos terminados em "_id" em entidades ou relacionamentos.
-- Um conceito dependente que apenas agrupa campos descritivos, sem identificador próprio, eventos ou relações com terceiros, deve ser atributo composto. Se o proprietário puder ter vários, marque também multivalued, mesmo que o texto use frases de posse como "cadastra vários" ou "cada item pertence a um proprietário".
+- Um conceito dependente que apenas agrupa campos descritivos, sem identificador próprio, eventos ou relações com terceiros, deve ser atributo composto. Composite e multivalued são independentes: vários componentes não implicam m; use m somente quando o texto indicar múltiplos valores ou ocorrências do atributo inteiro.
+- Atributo composto exige simultaneamente f contendo c e c com ao menos um componente; atributos não compostos omitem c. Liste os componentes somente em c.
 - Uma frase de posse, sozinha, não transforma um valor composto em entidade. Não duplique esse conceito como atributo e entidade.
 - Use entidade quando o conceito tiver identidade, ciclo de vida, atributos de evento próprios ou participação explícita em relacionamento. Menções posteriores com atributos próprios não podem desaparecer nem virar apenas um atributo textual de outra entidade.
 - Preserve o substantivo explícito que recebe atributos e relações. Não o renomeie a partir de outra expressão do texto e não crie nomes combinando proprietário e conceito dependente.
@@ -33,10 +34,10 @@ REGRAS:
 CLASSIFICAÇÃO INTERNA:
 1. Sujeito que pratica uma relação, inclusive sem atributos informados: entidade.
 2. Conceito com atributos de evento e vínculo próprio: entidade.
-3. Grupo repetível de campos descritivos ligado somente ao proprietário: um atributo com f=["m","c"] e seus campos em c, sem entidade ou relacionamento separados.
-4. Dados que existem por ocorrência entre duas entidades: atributos do relacionamento N:N.
+3. Grupo de campos descritivos ligado somente ao proprietário: atributo com f=["c"] e seus campos em c; acrescente m somente se o grupo inteiro for explicitamente repetível.
+4. Dados que existem por ocorrência entre duas entidades: atributos do relacionamento correspondente.
 
-Exemplo abstrato do caso 3: "A possui vários B; B tem x e y" sem identidade ou relações próprias gera B como atributo composto e multivalorado de A, não como entidade.
+Exemplo abstrato: "X contém A, B e C" gera X com f=["c"] e componentes em c, sem m.
 
 SAÍDA COMPACTA:
 - Retorne apenas os campos aceitos pelo JSON Schema enviado em format.

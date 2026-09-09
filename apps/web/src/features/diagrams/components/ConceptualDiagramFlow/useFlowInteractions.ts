@@ -91,6 +91,14 @@ export function useFlowInteractions({
             return;
           }
 
+          if (edge.id.startsWith('relationship-attribute-edge:')) {
+            const [, relationshipId, attributeId] = edge.id.split(':');
+            if (relationshipId && attributeId) {
+              onDisconnectAttributeFromRelationship?.(relationshipId, null, attributeId);
+            }
+            return;
+          }
+
           if (edge.id.startsWith('attribute-parent:')) {
             const [, entityId, attributeId, _parentEntityId, parentAttributeId] = edge.id.split(':');
             onDisconnectAttributeFromAttribute?.(

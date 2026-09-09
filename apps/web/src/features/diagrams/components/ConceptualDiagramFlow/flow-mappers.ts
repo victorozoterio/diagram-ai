@@ -1,5 +1,5 @@
 import type { Edge, Node } from '@xyflow/react';
-import type { ConceptualModel } from '../../types';
+import type { Attribute, ConceptualModel } from '../../types';
 import type {
   AttributeNodeData,
   DiagramPosition,
@@ -27,6 +27,7 @@ type FlowMapperState = {
 const NODE_SIZES = {
   entity: { width: 170, height: 64 },
   attribute: { width: 132, height: 68 },
+  relationship: { width: 112, height: 112 },
 };
 
 type ConnectionSide = 'left' | 'right' | 'top' | 'bottom';
@@ -103,6 +104,38 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
       } satisfies AttributeNodeData,
     })),
   );
+  const componentNodes = model.entities.flatMap((entity) =>
+    entity.attributes.flatMap((parentAttribute) =>
+      parentAttribute.components.map((component, index) => {
+        const id = `${entity.id}:${component.id}`;
+        const parentId = `${entity.id}:${parentAttribute.id}`;
+        const parentPosition = state.elementPositions?.[parentId] ??
+          state.elementPositions?.[`${entity.id}:${parentAttribute.id}`] ?? {
+            x: (state.entityPositions?.[entity.id]?.x ?? 80) + 250,
+            y: state.entityPositions?.[entity.id]?.y ?? 80,
+          };
+        const attribute = componentAttribute(component, parentAttribute.id);
+
+        return {
+          id,
+          type: 'attribute',
+          selectable: true,
+          position: state.elementPositions?.[id] ?? {
+            x: parentPosition.x + (index - (parentAttribute.components.length - 1) / 2) * 150,
+            y: parentPosition.y - 100,
+          },
+          data: {
+            attribute,
+            entityId: entity.id,
+            selected:
+              state.selectedAttribute?.entityId === entity.id && state.selectedAttribute.attributeId === component.id,
+            onSelectAttribute: callbacks.onSelectAttribute,
+            onUpdateAttribute: callbacks.onUpdateAttribute,
+          } satisfies AttributeNodeData,
+        };
+      }),
+    ),
+  );
   const standaloneAttributeNodes = (model.standaloneAttributes ?? []).map((attribute) => ({
     id: `standalone:${attribute.id}`,
     type: 'attribute',
@@ -134,7 +167,36 @@ export function buildFlowNodes(model: ConceptualModel, state: FlowMapperState, c
     };
   });
 
-  return [...entityNodes, ...attributeNodes, ...standaloneAttributeNodes, ...relationshipNodes];
+  const relationshipAttributeNodes = model.relationships.flatMap((relationship) => {
+    const relationshipNodeId = `relationship:${relationship.id}`;
+    const relationshipPosition = state.elementPositions?.[relationshipNodeId] ?? { x: 520, y: 180 };
+
+    return relationship.attributes.map((attribute, index) => ({
+      id: `relationship-attribute:${relationship.id}:${attribute.id}`,
+      type: 'attribute',
+      selectable: true,
+      position: state.elementPositions?.[`relationship-attribute:${relationship.id}:${attribute.id}`] ?? {
+        x: relationshipPosition.x + index * 150,
+        y: relationshipPosition.y + NODE_SIZES.attribute.height + 70,
+      },
+      data: {
+        attribute,
+        entityId: null,
+        selected: state.selectedAttribute?.entityId === null && state.selectedAttribute.attributeId === attribute.id,
+        onSelectAttribute: callbacks.onSelectAttribute,
+        onUpdateAttribute: callbacks.onUpdateAttribute,
+      } satisfies AttributeNodeData,
+    }));
+  });
+
+  return [
+    ...entityNodes,
+    ...attributeNodes,
+    ...componentNodes,
+    ...standaloneAttributeNodes,
+    ...relationshipNodes,
+    ...relationshipAttributeNodes,
+  ];
 }
 
 export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, callbacks: FlowMapperCallbacks): Edge[] {
@@ -205,6 +267,39 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
       },
     ];
   });
+  const componentEdges = model.entities.flatMap((entity) =>
+    entity.attributes.flatMap((parentAttribute) => {
+      const target = `${entity.id}:${parentAttribute.id}`;
+      const targetPosition = state.elementPositions?.[target] ?? { x: 0, y: 0 };
+
+      return parentAttribute.components.map((component, index) => {
+        const source = `${entity.id}:${component.id}`;
+        const sourcePosition = state.elementPositions?.[source] ?? {
+          x: targetPosition.x + index * 150,
+          y: targetPosition.y - 100,
+        };
+        const handles = getClosestConnectionHandles(
+          sourcePosition,
+          NODE_SIZES.attribute,
+          targetPosition,
+          NODE_SIZES.attribute,
+          'attribute',
+          'attribute',
+        );
+
+        return {
+          id: `attribute-component:${entity.id}:${parentAttribute.id}:${component.id}`,
+          source,
+          sourceHandle: handles.sourceHandle,
+          target,
+          targetHandle: handles.targetHandle,
+          type: 'attribute',
+          selectable: true,
+          interactionWidth: 20,
+        };
+      });
+    }),
+  );
 
   const relationshipEdges = model.relationships.flatMap((relationship) =>
     relationship.participants.map((participant, index) => {
@@ -256,6 +351,73 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
       },
     ];
   });
+  const generatedRelationshipAttributeEdges = model.relationships.flatMap((relationship) =>
+    relationship.attributes.map((attribute, index) => {
+      const attributeNodeId = `relationship-attribute:${relationship.id}:${attribute.id}`;
+      const relationshipNodeId = `relationship:${relationship.id}`;
+      const relationshipPosition = state.elementPositions?.[relationshipNodeId] ?? { x: 0, y: 0 };
+      const attributePosition = state.elementPositions?.[attributeNodeId] ?? {
+        x: relationshipPosition.x + index * 150,
+        y: relationshipPosition.y + NODE_SIZES.attribute.height + 70,
+      };
+      const handles = getClosestConnectionHandles(
+        attributePosition,
+        NODE_SIZES.attribute,
+        relationshipPosition,
+        NODE_SIZES.relationship,
+        'attribute',
+        'relationship',
+      );
 
-  return [...attributeEdges, ...attributeHierarchyEdges, ...attributeRelationshipEdges, ...relationshipEdges];
+      return {
+        id: `relationship-attribute-edge:${relationship.id}:${attribute.id}`,
+        source: attributeNodeId,
+        sourceHandle: handles.sourceHandle,
+        target: relationshipNodeId,
+        targetHandle: relationshipHandleForSide(handles.targetHandle.replace('relationship-', '') as ConnectionSide),
+        type: 'attribute',
+        selectable: true,
+        interactionWidth: 20,
+      };
+    }),
+  );
+
+  return [
+    ...attributeEdges,
+    ...attributeHierarchyEdges,
+    ...componentEdges,
+    ...attributeRelationshipEdges,
+    ...generatedRelationshipAttributeEdges,
+    ...relationshipEdges,
+  ];
+}
+
+function relationshipHandleForSide(side: ConnectionSide): string {
+  const handles: Record<ConnectionSide, string> = {
+    left: 'target-left',
+    right: 'source-right',
+    top: 'source-top',
+    bottom: 'source-bottom',
+  };
+  return handles[side];
+}
+
+function componentAttribute(
+  component: { id: string; name: string; type: Attribute['type'] },
+  parentAttributeId: string,
+): Attribute {
+  return {
+    id: component.id,
+    name: component.name,
+    type: component.type,
+    identifier: false,
+    required: false,
+    unique: false,
+    multivalued: false,
+    composite: false,
+    derived: false,
+    components: [],
+    kind: 'subattribute',
+    parentAttributeId,
+  };
 }

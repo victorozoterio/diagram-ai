@@ -257,6 +257,10 @@ export function useAttributeActions({
     setConceptualModel((currentModel) => {
       if (!currentModel) return currentModel;
 
+      const relationshipAttribute = currentModel.relationships
+        .find((relationship) => relationship.id === relationshipId)
+        ?.attributes.find((attribute) => attribute.id === attributeId);
+
       const clearRelationship = (attribute: Attribute) =>
         attribute.relationshipId === relationshipId && attribute.id === attributeId
           ? {
@@ -269,9 +273,20 @@ export function useAttributeActions({
 
       return {
         ...currentModel,
-        standaloneAttributes: (currentModel.standaloneAttributes ?? []).map((attribute) =>
-          entityId === null ? clearRelationship(attribute) : attribute,
+        relationships: currentModel.relationships.map((relationship) =>
+          relationship.id !== relationshipId || !relationshipAttribute
+            ? relationship
+            : {
+                ...relationship,
+                attributes: relationship.attributes.filter((attribute) => attribute.id !== attributeId),
+              },
         ),
+        standaloneAttributes: [
+          ...(currentModel.standaloneAttributes ?? []).map((attribute) =>
+            entityId === null ? clearRelationship(attribute) : attribute,
+          ),
+          ...(relationshipAttribute && entityId === null ? [relationshipAttribute] : []),
+        ],
         entities: currentModel.entities.map((entity) =>
           entity.id === entityId ? { ...entity, attributes: entity.attributes.map(clearRelationship) } : entity,
         ),

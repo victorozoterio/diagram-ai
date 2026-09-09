@@ -10,7 +10,7 @@ import {
 import { OllamaError } from './ollama.errors';
 
 /** Converte a resposta compacta da IA no modelo completo usado pelo domínio. */
-export function parseConceptualModelResponse(content: string): ConceptualModel {
+export function parseConceptualModelResponse(content: string, sourceText?: string): ConceptualModel {
   const cleanedContent = content.replaceAll('```json', '').replaceAll('```', '').trim();
 
   let parsed: unknown;
@@ -32,7 +32,7 @@ export function parseConceptualModelResponse(content: string): ConceptualModel {
         return {
           id: entityId,
           name: entity.n,
-          attributes: withTechnicalIdentifier(entityId, mapAttributes(entity.a ?? [])),
+          attributes: withTechnicalIdentifier(entityId, mapAttributes(entity.a ?? [], sourceText)),
         };
       }),
       standaloneAttributes: [],
@@ -44,7 +44,7 @@ export function parseConceptualModelResponse(content: string): ConceptualModel {
           entityId: entityIds.get(normalizeName(participant.e)) ?? toIdentifier(participant.e),
           cardinality: participant.c,
         })),
-        attributes: mapAttributes(relationship.a ?? []),
+        attributes: mapAttributes(relationship.a ?? [], sourceText, false),
       })),
       ambiguities: (generatedModel.q ?? []).map((message, index) => ({
         id: `ambiguidade_${index + 1}`,
@@ -106,31 +106,53 @@ export function compactConceptualModelForRepair(model: unknown): unknown {
   };
 }
 
-function mapAttributes(attributes: GeneratedAttribute[]): Attribute[] {
+function mapAttributes(attributes: GeneratedAttribute[], sourceText?: string, allowIdentifiers = true): Attribute[] {
   const usedIds = new Set<string>();
-  return attributes.map((attribute) => mapAttribute(attribute, usedIds));
+  return attributes.map((attribute) => mapAttribute(attribute, usedIds, sourceText, allowIdentifiers));
 }
 
-function mapAttribute(attribute: GeneratedAttribute, usedIds: Set<string>): Attribute {
+function mapAttribute(
+  attribute: GeneratedAttribute,
+  usedIds: Set<string>,
+  sourceText?: string,
+  allowIdentifiers = true,
+): Attribute {
   const flags = new Set(attribute.f ?? []);
   const id = uniqueId(toIdentifier(attribute.n), usedIds);
+  const components = (attribute.c ?? []).map((component, index) => ({
+    id: `${id}_${toIdentifier(component.n) || index + 1}`,
+    name: component.n,
+    type: expandAttributeType(component.t),
+  }));
 
   return {
     id,
     name: attribute.n,
     type: expandAttributeType(attribute.t),
-    identifier: flags.has('i'),
+    identifier: allowIdentifiers && flags.has('i') && hasExplicitIdentifierSemantics(attribute.n, sourceText),
     required: flags.has('r'),
     unique: flags.has('u'),
     multivalued: flags.has('m'),
-    composite: flags.has('c'),
+    composite: flags.has('c') || components.length > 0,
     derived: flags.has('d'),
-    components: (attribute.c ?? []).map((component, index) => ({
-      id: `${id}_${toIdentifier(component.n) || index + 1}`,
-      name: component.n,
-      type: expandAttributeType(component.t),
-    })),
+    components,
   };
+}
+
+function hasExplicitIdentifierSemantics(attributeName: string, sourceText?: string): boolean {
+  if (!sourceText) return true;
+
+  const normalizedAttributeName = normalizeName(attributeName).replaceAll('_', ' ');
+  const identifierEvidence = /\b(identificad\w*|chave(?:\s+prim(?:á|a)ria)?|primary\s+key)\b/i;
+  return sourceText
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/[.!?;\n]+/)
+    .some((sentence) => {
+      const normalizedSentence = sentence.replaceAll('_', ' ');
+      return normalizedSentence.includes(normalizedAttributeName) && identifierEvidence.test(normalizedSentence);
+    });
 }
 
 function withTechnicalIdentifier(entityId: string, attributes: Attribute[]): Attribute[] {
@@ -168,7 +190,7 @@ function compactAttribute(attribute: Attribute): GeneratedAttribute {
   if (attribute.required) flags.push('r');
   if (attribute.unique) flags.push('u');
   if (attribute.multivalued) flags.push('m');
-  if (attribute.composite) flags.push('c');
+  if (attribute.composite || attribute.components.length > 0) flags.push('c');
   if (attribute.derived) flags.push('d');
 
   return {

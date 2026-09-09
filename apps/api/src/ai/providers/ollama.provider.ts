@@ -40,7 +40,7 @@ export class OllamaProvider {
         },
       ]);
 
-      return this.withGenerationMetadata(parseConceptualModelResponse(content), description);
+      return this.withGenerationMetadata(parseConceptualModelResponse(content, description), description);
     } catch (error) {
       throw this.providerException('Erro ao gerar modelo conceitual com Ollama.', error);
     }
@@ -66,7 +66,7 @@ export class OllamaProvider {
         },
       ]);
 
-      return this.withGenerationMetadata(parseConceptualModelResponse(content), params.description);
+      return this.withGenerationMetadata(parseConceptualModelResponse(content, params.description), params.description);
     } catch (error) {
       throw this.providerException('Erro ao corrigir modelo conceitual com Ollama.', error);
     }

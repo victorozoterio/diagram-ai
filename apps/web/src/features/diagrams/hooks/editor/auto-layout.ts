@@ -32,7 +32,7 @@ export async function calculateInitialConceptualLayout(model: ConceptualModel): 
       'elk.edgeRouting': 'ORTHOGONAL',
       'elk.padding': '[top=60,left=60,bottom=60,right=60]',
       'elk.spacing.nodeNode': '80',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '120',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '155',
       'elk.layered.spacing.edgeNodeBetweenLayers': '50',
       'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
       'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
@@ -119,5 +119,87 @@ export async function calculateInitialConceptualLayout(model: ConceptualModel): 
     });
   }
 
+  const occupiedBoxes = [
+    ...model.entities.map((entity) => ({
+      ...entityPositions[entity.id],
+      ...NODE_SIZES.entity,
+    })),
+    ...model.relationships.map((relationship) => ({
+      ...elementPositions[`relationship:${relationship.id}`],
+      ...(relationship.kind === 'generalization' || relationship.kind === 'specialization'
+        ? NODE_SIZES.generalization
+        : NODE_SIZES.relationship),
+    })),
+    ...model.entities.flatMap((entity) =>
+      entity.attributes.map((attribute) => ({
+        ...elementPositions[`${entity.id}:${attribute.id}`],
+        ...NODE_SIZES.attribute,
+      })),
+    ),
+  ];
+  const componentBoxes: Array<{ x: number; y: number; width: number; height: number }> = [];
+
+  for (const entity of model.entities) {
+    for (const attribute of entity.attributes.filter((item) => item.components.length > 0)) {
+      const parentPosition = elementPositions[`${entity.id}:${attribute.id}`];
+      const entityPosition = entityPositions[entity.id];
+      const parentIsOnRight =
+        parentPosition.x + NODE_SIZES.attribute.width / 2 >= entityPosition.x + NODE_SIZES.entity.width / 2;
+      const direction = parentIsOnRight ? 1 : -1;
+      const centerY = parentPosition.y + NODE_SIZES.attribute.height / 2;
+
+      const getPositions = (distance: number) =>
+        attribute.components.map((_component, componentIndex) => {
+          const offset = componentIndex - (attribute.components.length - 1) / 2;
+          return {
+            x: parentPosition.x + direction * (NODE_SIZES.attribute.width + 28 + distance + Math.abs(offset) * 34),
+            y: centerY - NODE_SIZES.attribute.height / 2 + offset * 76,
+            width: NODE_SIZES.attribute.width,
+            height: NODE_SIZES.attribute.height,
+          };
+        });
+
+      const localVerticalOffsets = [0, -96, 96, -192, 192, -288, 288];
+      const candidates = localVerticalOffsets.map((verticalOffset) =>
+        getPositions(0).map((box) => ({ ...box, y: box.y + verticalOffset })),
+      );
+      const positions =
+        candidates.find((candidate) =>
+          candidate.every((box) => ![...occupiedBoxes, ...componentBoxes].some((other) => boxesOverlap(box, other))),
+        ) ?? candidates[0];
+
+      positions.forEach((box, componentIndex) => {
+        const component = attribute.components[componentIndex];
+        elementPositions[`${entity.id}:${component.id}`] = { x: box.x, y: box.y };
+        componentBoxes.push(box);
+      });
+    }
+  }
+
+  for (const relationship of model.relationships) {
+    const relationshipPosition = elementPositions[`relationship:${relationship.id}`];
+    if (!relationshipPosition) continue;
+
+    relationship.attributes.forEach((attribute, index) => {
+      elementPositions[`relationship-attribute:${relationship.id}:${attribute.id}`] = {
+        x: relationshipPosition.x + index * 150,
+        y: relationshipPosition.y + NODE_SIZES.relationship.height + 70,
+      };
+    });
+  }
+
   return { entityPositions, elementPositions };
+}
+
+function boxesOverlap(
+  first: { x: number; y: number; width: number; height: number },
+  second: { x: number; y: number; width: number; height: number },
+) {
+  const gap = 18;
+  return !(
+    first.x + first.width + gap <= second.x ||
+    second.x + second.width + gap <= first.x ||
+    first.y + first.height + gap <= second.y ||
+    second.y + second.height + gap <= first.y
+  );
 }

@@ -11,8 +11,11 @@ const GeneratedComponentSchema = z.object({
 const GeneratedAttributeSchema = z.object({
   n: z.string().min(1),
   t: GeneratedAttributeTypeSchema,
-  f: z.array(GeneratedAttributeFlagSchema).optional(),
-  c: z.array(GeneratedComponentSchema).optional(),
+  f: z
+    .array(GeneratedAttributeFlagSchema)
+    .optional()
+    .describe('c e m são independentes; m exige multiplicidade explícita; i exige chave explícita.'),
+  c: z.array(GeneratedComponentSchema).min(1).optional().describe('Sua presença exige a flag c no atributo pai.'),
 });
 
 const GeneratedEntitySchema = z.object({
@@ -28,7 +31,7 @@ const GeneratedParticipantSchema = z.object({
 const GeneratedRelationshipSchema = z.object({
   n: z.string().min(1),
   p: z.array(GeneratedParticipantSchema).length(2),
-  a: z.array(GeneratedAttributeSchema).optional(),
+  a: z.array(GeneratedAttributeSchema).optional().describe('Atributos que dependem da associação.'),
 });
 
 export const GeneratedConceptualModelSchema = z.object({
