@@ -114,6 +114,8 @@ export function EditableNodeName({
     maxWidth: `${textSafeArea.maxWidth}px`,
     maxHeight: `${textSafeArea.maxHeight}px`,
     fontSize: `${normalFontSize}px`,
+    whiteSpace: 'nowrap',
+    overflowWrap: 'normal',
   };
 
   return isEditing ? (
@@ -143,16 +145,12 @@ export function EditableNodeName({
 
 export function getResponsiveNameFontSize(name: string, safeArea: TextSafeArea) {
   const textLength = Math.max(name.trim().length, 1);
-  const lineHeight = 1.05;
   const horizontalPadding = safeArea.horizontalPadding ?? 8;
-  const verticalPadding = safeArea.verticalPadding ?? 6;
   const contentWidth = Math.max(12, safeArea.maxWidth - horizontalPadding);
-  const contentHeight = Math.max(12, safeArea.maxHeight - verticalPadding);
 
   for (let size = safeArea.baseFontSize ?? 16; size >= safeArea.minFontSize; size -= 0.5) {
-    const charactersPerLine = Math.max(1, Math.floor(contentWidth / (size * 0.56)));
-    const lines = Math.ceil(textLength / charactersPerLine);
-    if (lines * size * lineHeight <= contentHeight) return size;
+    const estimatedWidth = textLength * size * 0.56;
+    if (estimatedWidth <= contentWidth) return size;
   }
 
   return safeArea.minFontSize;
