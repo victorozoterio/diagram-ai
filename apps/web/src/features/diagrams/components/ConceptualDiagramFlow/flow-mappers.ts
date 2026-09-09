@@ -234,5 +234,28 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
     }),
   );
 
-  return [...attributeEdges, ...attributeHierarchyEdges, ...relationshipEdges];
+  const attributeRelationshipEdges = allAttributes.flatMap(({ entityId, attribute }) => {
+    if (
+      !attribute.relationshipId ||
+      !model.relationships.some((relationship) => relationship.id === attribute.relationshipId)
+    ) {
+      return [];
+    }
+
+    const attributeNodeId = entityId === null ? `standalone:${attribute.id}` : `${entityId}:${attribute.id}`;
+    return [
+      {
+        id: `attribute-relationship:${attribute.relationshipId}:${entityId ?? 'standalone'}:${attribute.id}`,
+        source: attributeNodeId,
+        sourceHandle: attribute.relationshipAttributeHandle ?? 'attribute-right',
+        target: `relationship:${attribute.relationshipId}`,
+        targetHandle: attribute.relationshipHandle ?? 'target-left',
+        type: 'attribute',
+        selectable: true,
+        interactionWidth: 20,
+      },
+    ];
+  });
+
+  return [...attributeEdges, ...attributeHierarchyEdges, ...attributeRelationshipEdges, ...relationshipEdges];
 }

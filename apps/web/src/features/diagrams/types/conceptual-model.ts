@@ -58,6 +58,9 @@ export type Attribute = {
   entityHandle?: string;
   parentHandle?: string;
   parentAttributeHandle?: string;
+  relationshipId?: string;
+  relationshipHandle?: string;
+  relationshipAttributeHandle?: string;
 };
 
 export type Entity = {

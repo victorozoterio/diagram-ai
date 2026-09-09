@@ -223,6 +223,63 @@ export function useAttributeActions({
     setLogicalModel(null);
   }
 
+  function connectAttributeToRelationship(
+    sourceEntityId: string | null,
+    attributeId: string,
+    relationshipId: string,
+    relationshipHandle?: string,
+    attributeHandle?: string,
+  ) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel?.relationships.some((relationship) => relationship.id === relationshipId)) {
+        return currentModel;
+      }
+
+      const updateAttribute = (attribute: Attribute) =>
+        attribute.id === attributeId
+          ? { ...attribute, relationshipId, relationshipHandle, relationshipAttributeHandle: attributeHandle }
+          : attribute;
+
+      return {
+        ...currentModel,
+        standaloneAttributes: (currentModel.standaloneAttributes ?? []).map((attribute) =>
+          sourceEntityId === null ? updateAttribute(attribute) : attribute,
+        ),
+        entities: currentModel.entities.map((entity) =>
+          entity.id === sourceEntityId ? { ...entity, attributes: entity.attributes.map(updateAttribute) } : entity,
+        ),
+      };
+    });
+    setLogicalModel(null);
+  }
+
+  function disconnectAttributeFromRelationship(relationshipId: string, entityId: string | null, attributeId: string) {
+    setConceptualModel((currentModel) => {
+      if (!currentModel) return currentModel;
+
+      const clearRelationship = (attribute: Attribute) =>
+        attribute.relationshipId === relationshipId && attribute.id === attributeId
+          ? {
+              ...attribute,
+              relationshipId: undefined,
+              relationshipHandle: undefined,
+              relationshipAttributeHandle: undefined,
+            }
+          : attribute;
+
+      return {
+        ...currentModel,
+        standaloneAttributes: (currentModel.standaloneAttributes ?? []).map((attribute) =>
+          entityId === null ? clearRelationship(attribute) : attribute,
+        ),
+        entities: currentModel.entities.map((entity) =>
+          entity.id === entityId ? { ...entity, attributes: entity.attributes.map(clearRelationship) } : entity,
+        ),
+      };
+    });
+    setLogicalModel(null);
+  }
+
   function disconnectAttributeFromAttribute(entityId: string | null, attributeId: string, parentAttributeId: string) {
     setConceptualModel((currentModel) => {
       if (!currentModel) return currentModel;
@@ -266,8 +323,10 @@ export function useAttributeActions({
     removeAttribute,
     connectAttributeToEntity,
     connectAttributeToAttribute,
+    connectAttributeToRelationship,
     disconnectAttributeFromEntity,
     disconnectAttributeFromAttribute,
+    disconnectAttributeFromRelationship,
   };
 }
 

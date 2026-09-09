@@ -72,6 +72,18 @@ export type ConceptualDiagramFlowProps = {
     attributeId: string,
     parentAttributeId: string,
   ) => void;
+  onConnectAttributeToRelationship?: (
+    sourceEntityId: string | null,
+    attributeId: string,
+    relationshipId: string,
+    relationshipHandle?: string,
+    attributeHandle?: string,
+  ) => void;
+  onDisconnectAttributeFromRelationship?: (
+    relationshipId: string,
+    entityId: string | null,
+    attributeId: string,
+  ) => void;
   onDisconnectEntityFromRelationship?: (relationshipId: string, entityId: string) => void;
   onConnectEntities?: (
     sourceEntityId: string,

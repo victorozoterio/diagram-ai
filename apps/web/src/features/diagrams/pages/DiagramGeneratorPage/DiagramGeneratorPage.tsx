@@ -53,8 +53,10 @@ export function DiagramGeneratorPage() {
     removeAttribute,
     connectAttributeToEntity,
     connectAttributeToAttribute,
+    connectAttributeToRelationship,
     disconnectAttributeFromEntity,
     disconnectAttributeFromAttribute,
+    disconnectAttributeFromRelationship,
   } = useDiagramEditor();
   const activeConceptualModel = conceptualModel ?? emptyConceptualModel;
 
@@ -100,8 +102,10 @@ export function DiagramGeneratorPage() {
               onRemoveAttribute={removeAttribute}
               onConnectAttributeToEntity={connectAttributeToEntity}
               onConnectAttributeToAttribute={connectAttributeToAttribute}
+              onConnectAttributeToRelationship={connectAttributeToRelationship}
               onDisconnectAttributeFromEntity={disconnectAttributeFromEntity}
               onDisconnectAttributeFromAttribute={disconnectAttributeFromAttribute}
+              onDisconnectAttributeFromRelationship={disconnectAttributeFromRelationship}
               onConnectEntities={createRelationshipFromConnection}
               onConnectEntityToRelationship={connectEntityToRelationship}
               onUpdateRelationship={updateRelationship}

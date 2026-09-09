@@ -12,8 +12,10 @@ type FlowInteractionDependencies = Pick<
   | 'onAddElementAtPosition'
   | 'onConnectAttributeToEntity'
   | 'onConnectAttributeToAttribute'
+  | 'onConnectAttributeToRelationship'
   | 'onDisconnectAttributeFromEntity'
   | 'onDisconnectAttributeFromAttribute'
+  | 'onDisconnectAttributeFromRelationship'
   | 'onDisconnectEntityFromRelationship'
   | 'onConnectEntities'
   | 'onConnectEntityToRelationship'
@@ -27,8 +29,10 @@ export function useFlowInteractions({
   onAddElementAtPosition,
   onConnectAttributeToEntity,
   onConnectAttributeToAttribute,
+  onConnectAttributeToRelationship,
   onDisconnectAttributeFromEntity,
   onDisconnectAttributeFromAttribute,
+  onDisconnectAttributeFromRelationship,
   onDisconnectEntityFromRelationship,
   onConnectEntities,
   onConnectEntityToRelationship,
@@ -75,6 +79,18 @@ export function useFlowInteractions({
       disconnectedEdges
         .filter((edge) => edge.type === 'attribute')
         .forEach((edge) => {
+          if (edge.id.startsWith('attribute-relationship:')) {
+            const [, relationshipId, entityId, attributeId] = edge.id.split(':');
+            if (relationshipId && attributeId) {
+              onDisconnectAttributeFromRelationship?.(
+                relationshipId,
+                entityId === 'standalone' ? null : entityId,
+                attributeId,
+              );
+            }
+            return;
+          }
+
           if (edge.id.startsWith('attribute-parent:')) {
             const [, entityId, attributeId, _parentEntityId, parentAttributeId] = edge.id.split(':');
             onDisconnectAttributeFromAttribute?.(
@@ -97,7 +113,12 @@ export function useFlowInteractions({
           if (relationshipId && entityId) onDisconnectEntityFromRelationship?.(relationshipId, entityId);
         });
     },
-    [onDisconnectAttributeFromAttribute, onDisconnectAttributeFromEntity, onDisconnectEntityFromRelationship],
+    [
+      onDisconnectAttributeFromAttribute,
+      onDisconnectAttributeFromEntity,
+      onDisconnectAttributeFromRelationship,
+      onDisconnectEntityFromRelationship,
+    ],
   );
 
   const handleConnect = useCallback(
@@ -117,6 +138,28 @@ export function useFlowInteractions({
           sourceAttribute.attributeId,
           targetAttribute.entityId,
           targetAttribute.attributeId,
+          connection.sourceHandle ?? undefined,
+          connection.targetHandle ?? undefined,
+        );
+        return;
+      }
+
+      if (sourceAttribute && targetIsRelationship) {
+        onConnectAttributeToRelationship?.(
+          sourceAttribute.entityId,
+          sourceAttribute.attributeId,
+          connection.target.replace('relationship:', ''),
+          connection.targetHandle ?? undefined,
+          connection.sourceHandle ?? undefined,
+        );
+        return;
+      }
+
+      if (targetAttribute && sourceIsRelationship) {
+        onConnectAttributeToRelationship?.(
+          targetAttribute.entityId,
+          targetAttribute.attributeId,
+          connection.source.replace('relationship:', ''),
           connection.sourceHandle ?? undefined,
           connection.targetHandle ?? undefined,
         );
@@ -173,7 +216,13 @@ export function useFlowInteractions({
         sourceIsRelationship ? 'relationship-to-entity' : 'entity-to-relationship',
       );
     },
-    [onConnectAttributeToAttribute, onConnectAttributeToEntity, onConnectEntities, onConnectEntityToRelationship],
+    [
+      onConnectAttributeToAttribute,
+      onConnectAttributeToEntity,
+      onConnectAttributeToRelationship,
+      onConnectEntities,
+      onConnectEntityToRelationship,
+    ],
   );
 
   const handleDrop = useCallback(
