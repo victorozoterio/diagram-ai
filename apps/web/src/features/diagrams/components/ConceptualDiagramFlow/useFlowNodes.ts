@@ -96,5 +96,14 @@ export function useFlowNodes({
     [onUpdateElementPosition],
   );
 
-  return { nodes, handleNodesChange };
+  const selectAllNodes = useCallback(() => {
+    setNodes((currentNodes) =>
+      applyNodeChanges(
+        currentNodes.map((node) => ({ id: node.id, type: 'select' as const, selected: true })),
+        currentNodes,
+      ),
+    );
+  }, []);
+
+  return { nodes, handleNodesChange, selectAllNodes };
 }

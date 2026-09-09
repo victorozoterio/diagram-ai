@@ -1,4 +1,5 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
+import { useEffect } from 'react';
 import styles from './ConceptualDiagramFlow.module.css';
 import { AttributeEdge } from './edges/AttributeEdge';
 import { RelationshipEdge } from './edges/RelationshipEdge';
@@ -24,8 +25,8 @@ const edgeTypes = {
 
 /** Camada visual do editor: adapta o modelo conceitual para o React Flow. */
 export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
-  const { nodes, handleNodesChange } = useFlowNodes(props);
-  const { edges, handleEdgesChange } = useFlowEdges(props);
+  const { nodes, handleNodesChange, selectAllNodes } = useFlowNodes(props);
+  const { edges, handleEdgesChange, selectAllEdges } = useFlowEdges(props);
   const {
     flowWrapperRef,
     setFlowInstance,
@@ -35,6 +36,26 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
     handleConnect,
     handleDrop,
   } = useFlowInteractions(props);
+
+  useEffect(() => {
+    function handleGlobalKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key.toLowerCase() !== 'a' || (!event.ctrlKey && !event.metaKey)) {
+        return;
+      }
+
+      if (isEditableTarget(document.activeElement) || isEditableTarget(event.target)) {
+        return;
+      }
+
+      event.preventDefault();
+      selectAllNodes();
+      selectAllEdges();
+    }
+
+    window.addEventListener('keydown', handleGlobalKeyDown, true);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
+  }, [selectAllEdges, selectAllNodes]);
+
   return (
     <div
       ref={flowWrapperRef}
@@ -84,5 +105,19 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         <FitViewOnNodeChange key={props.layoutVersion} nodeCount={nodes.length} />
       </ReactFlow>
     </div>
+  );
+}
+
+function isEditableTarget(target: EventTarget | Element | null) {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    (target instanceof HTMLElement && target.isContentEditable) ||
+    Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
   );
 }

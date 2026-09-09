@@ -34,5 +34,14 @@ export function useFlowEdges({
     setEdges((currentEdges) => applyEdgeChanges(changes, currentEdges));
   }, []);
 
-  return { edges, handleEdgesChange };
+  const selectAllEdges = useCallback(() => {
+    setEdges((currentEdges) =>
+      applyEdgeChanges(
+        currentEdges.map((edge) => ({ id: edge.id, type: 'select' as const, selected: true })),
+        currentEdges,
+      ),
+    );
+  }, []);
+
+  return { edges, handleEdgesChange, selectAllEdges };
 }
