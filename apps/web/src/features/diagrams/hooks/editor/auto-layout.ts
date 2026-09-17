@@ -115,17 +115,25 @@ export async function calculateInitialConceptualLayout(model: ConceptualModel): 
 
     // Duas colunas compactas acima da entidade formam um leque triangular
     // sem ocupar a faixa lateral normalmente usada pelos relacionamentos.
+    // A coluna externa começa pelos atributos compostos, deixando espaço para
+    // que seus componentes se expandam para fora do grupo.
     const firstColumnCount = Math.ceil(entity.attributes.length / 2);
-    const secondColumnCount = entity.attributes.length - firstColumnCount;
+    const compositeAttributes = entity.attributes.filter((attribute) => attribute.components.length > 0);
+    const regularAttributes = entity.attributes.filter((attribute) => attribute.components.length === 0);
+    const firstColumnAttributes = regularAttributes.slice(0, firstColumnCount);
+    const secondColumnAttributes = [...compositeAttributes, ...regularAttributes.slice(firstColumnAttributes.length)];
+    const secondColumnCount = secondColumnAttributes.length;
     const fanWidth =
       secondColumnCount > 0 ? NODE_SIZES.attribute.width + ATTRIBUTE_FAN.columnGap : NODE_SIZES.attribute.width;
     const fanStartX = entityPosition.x + (NODE_SIZES.entity.width - fanWidth) / 2;
     const baseY = entityPosition.y - ATTRIBUTE_FAN.entityGap - NODE_SIZES.attribute.height;
 
-    entity.attributes.forEach((attribute, index) => {
-      const isFirstColumn = index < firstColumnCount;
+    [...firstColumnAttributes, ...secondColumnAttributes].forEach((attribute) => {
+      const firstColumnIndex = firstColumnAttributes.indexOf(attribute);
+      const secondColumnIndex = secondColumnAttributes.indexOf(attribute);
+      const isFirstColumn = firstColumnIndex >= 0;
       const columnIndex = isFirstColumn ? 0 : 1;
-      const rowIndex = isFirstColumn ? index : index - firstColumnCount;
+      const rowIndex = isFirstColumn ? firstColumnIndex : secondColumnIndex;
       const columnCount = isFirstColumn ? firstColumnCount : secondColumnCount;
       const columnOffset = columnCount === 1 && entity.attributes.length > 1 ? -ATTRIBUTE_FAN.diagonalOffset : 0;
 
