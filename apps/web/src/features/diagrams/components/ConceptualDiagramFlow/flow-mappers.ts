@@ -389,7 +389,7 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
       if (relationship.supertypeId) {
         const edgeId = `generalization:${relationship.id}:supertype:${relationship.supertypeId}`;
         const sourceHandle = relationship.supertypeHandles?.entityHandle ?? 'entity-bottom';
-        const targetHandle = relationship.supertypeHandles?.connectionHandle ?? 'target-top';
+        const targetHandle = relationship.supertypeHandles?.connectionHandle ?? 'source-top';
         edges.push({
           id: edgeId,
           source: relationship.supertypeId,

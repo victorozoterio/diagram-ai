@@ -9,6 +9,9 @@ import {
 } from './conceptual-model-generation.schema';
 import { OllamaError } from './ollama.errors';
 
+type GeneratedGeneralization = Extract<GeneratedRelationship, { k: 'generalization' | 'specialization' }>;
+type GeneratedRegularRelationship = Exclude<GeneratedRelationship, GeneratedGeneralization>;
+
 /** Converte a resposta compacta da IA no modelo completo usado pelo domínio. */
 export function parseConceptualModelResponse(content: string, sourceText?: string): ConceptualModel {
   const cleanedContent = content.replaceAll('```json', '').replaceAll('```', '').trim();
@@ -22,7 +25,8 @@ export function parseConceptualModelResponse(content: string, sourceText?: strin
 
   try {
     const generatedModel = GeneratedConceptualModelSchema.parse(parsed);
-    const generatedEntities = includeRelationshipParticipants(generatedModel.e, generatedModel.r);
+    const generatedRelationships = groupGeneratedGeneralizations(generatedModel.r);
+    const generatedEntities = includeRelationshipParticipants(generatedModel.e, generatedRelationships);
     const entityIds = createEntityIdRegistry(generatedEntities.map((entity) => entity.n));
 
     return {
@@ -36,33 +40,31 @@ export function parseConceptualModelResponse(content: string, sourceText?: strin
         };
       }),
       standaloneAttributes: [],
-      relationships: generatedModel.r.map((relationship, index) => {
+      relationships: generatedRelationships.map((relationship, index) => {
+        const generalization = isGeneratedGeneralization(relationship);
         const kind = relationship.k ?? 'relationship';
-        const isGeneralization = kind === 'generalization' || kind === 'specialization';
 
         return {
           id: uniqueRelationshipId(relationship, index),
-          name: isGeneralization ? 'Gen' : relationship.n,
-          type: isGeneralization ? '1:N' : relationshipType(relationship),
+          name: generalization ? 'Gen' : relationship.n,
+          type: generalization ? '1:N' : relationshipType(relationship),
           kind,
-          participants: isGeneralization
+          participants: generalization
             ? []
             : relationship.p.map((participant) => ({
                 entityId: entityIds.get(normalizeName(participant.e)) ?? toIdentifier(participant.e),
                 cardinality: participant.c,
               })),
-          ...(isGeneralization
+          ...(generalization
             ? {
-                supertypeId: relationship.s
-                  ? (entityIds.get(normalizeName(relationship.s)) ?? toIdentifier(relationship.s))
-                  : undefined,
+                supertypeId: entityIds.get(normalizeName(relationship.s)) ?? toIdentifier(relationship.s),
               }
             : {}),
-          subtypeIds: isGeneralization
-            ? (relationship.d ?? []).map((subtype) => entityIds.get(normalizeName(subtype)) ?? toIdentifier(subtype))
+          subtypeIds: generalization
+            ? relationship.d.map((subtype) => entityIds.get(normalizeName(subtype)) ?? toIdentifier(subtype))
             : [],
           subtypeHandles: {},
-          attributes: mapAttributes(relationship.a ?? [], sourceText, false),
+          attributes: mapAttributes(generalization ? [] : (relationship.a ?? []), sourceText, false),
         };
       }),
       ambiguities: (generatedModel.q ?? []).map((message, index) => ({
@@ -81,6 +83,58 @@ export function parseConceptualModelResponse(content: string, sourceText?: strin
   }
 }
 
+/** Agrupa subtipos da mesma hierarquia semântica em um único componente Gen. */
+function groupGeneratedGeneralizations(relationships: GeneratedConceptualModel['r']): GeneratedConceptualModel['r'] {
+  const groupedRelationships: GeneratedConceptualModel['r'] = [];
+  const generalizationIndexes = new Map<string, number>();
+
+  for (const relationship of relationships) {
+    if (!isGeneratedGeneralization(relationship) || !relationship.s) {
+      groupedRelationships.push(relationship);
+      continue;
+    }
+
+    const key = normalizeName(relationship.s);
+    const existingIndex = generalizationIndexes.get(key);
+
+    if (existingIndex === undefined) {
+      generalizationIndexes.set(key, groupedRelationships.length);
+      groupedRelationships.push({
+        ...relationship,
+        d: uniqueEntityNames(relationship.d ?? []),
+      });
+      continue;
+    }
+
+    const existingRelationship = groupedRelationships[existingIndex];
+    if (!isGeneratedGeneralization(existingRelationship)) {
+      groupedRelationships.push(relationship);
+      continue;
+    }
+
+    groupedRelationships[existingIndex] = {
+      ...existingRelationship,
+      d: uniqueEntityNames([...(existingRelationship.d ?? []), ...(relationship.d ?? [])]),
+    };
+  }
+
+  return groupedRelationships;
+}
+
+function isGeneratedGeneralization(relationship: GeneratedRelationship): relationship is GeneratedGeneralization {
+  return relationship.k === 'generalization' || relationship.k === 'specialization';
+}
+
+function uniqueEntityNames(names: string[]): string[] {
+  const seenNames = new Set<string>();
+  return names.filter((name) => {
+    const normalizedName = normalizeName(name);
+    if (seenNames.has(normalizedName)) return false;
+    seenNames.add(normalizedName);
+    return true;
+  });
+}
+
 function includeRelationshipParticipants(
   entities: GeneratedConceptualModel['e'],
   relationships: GeneratedConceptualModel['r'],
@@ -88,7 +142,7 @@ function includeRelationshipParticipants(
   const completedEntities = [...entities];
   const knownNames = new Set(entities.map((entity) => normalizeName(entity.n)));
 
-  for (const participant of relationships.flatMap((relationship) => relationship.p)) {
+  for (const participant of relationships.flatMap((relationship) => ('p' in relationship ? relationship.p : []))) {
     const normalizedName = normalizeName(participant.e);
     if (!knownNames.has(normalizedName)) {
       completedEntities.push({ n: participant.e });
@@ -97,7 +151,9 @@ function includeRelationshipParticipants(
   }
 
   for (const relationship of relationships) {
-    for (const entityName of [relationship.s, ...(relationship.d ?? [])]) {
+    if (!isGeneratedGeneralization(relationship)) continue;
+
+    for (const entityName of [relationship.s, ...relationship.d]) {
       if (!entityName) continue;
       const normalizedName = normalizeName(entityName);
       if (!knownNames.has(normalizedName)) {
@@ -256,7 +312,7 @@ function createEntityIdRegistry(entityNames: string[]): Map<string, string> {
   return registry;
 }
 
-function relationshipType(relationship: GeneratedRelationship): Cardinality {
+function relationshipType(relationship: GeneratedRegularRelationship): Cardinality {
   return relationship.p
     .map((participant) => participant.c)
     .sort()

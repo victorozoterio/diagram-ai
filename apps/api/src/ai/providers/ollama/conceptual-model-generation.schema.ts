@@ -25,17 +25,30 @@ const GeneratedEntitySchema = z.object({
 
 const GeneratedParticipantSchema = z.object({
   e: z.string().min(1),
-  c: z.enum(['1', 'N']),
+  c: z.enum(['1', 'N']).describe('Use N para cada lado explicitamente múltiplo.'),
 });
 
-const GeneratedRelationshipSchema = z.object({
+const GeneratedRegularRelationshipSchema = z.object({
   n: z.string().min(1),
-  k: z.enum(['relationship', 'identifying-relationship', 'generalization', 'specialization']).optional(),
-  s: z.string().min(1).optional().describe('Nome da entidade supertipo para generalização/especialização.'),
-  d: z.array(z.string().min(1)).min(1).optional().describe('Nomes das entidades subtipos.'),
-  p: z.array(GeneratedParticipantSchema).default([]),
-  a: z.array(GeneratedAttributeSchema).optional().describe('Atributos que dependem da associação.'),
+  k: z
+    .enum(['relationship', 'identifying-relationship'])
+    .optional()
+    .describe('Relacionamento comum ou identificador entre entidades participantes.'),
+  p: z.array(GeneratedParticipantSchema).min(2),
+  a: z
+    .array(GeneratedAttributeSchema)
+    .optional()
+    .describe('Dados que dependem da associação; nomes de entidades participantes não são atributos.'),
 });
+
+const GeneratedGeneralizationSchema = z.object({
+  n: z.string().min(1),
+  k: z.enum(['generalization', 'specialization']),
+  s: z.string().min(1).describe('Nome da única entidade supertipo.'),
+  d: z.array(z.string().min(1)).min(1).describe('Nomes de uma ou mais entidades subtipos.'),
+});
+
+const GeneratedRelationshipSchema = z.union([GeneratedRegularRelationshipSchema, GeneratedGeneralizationSchema]);
 
 export const GeneratedConceptualModelSchema = z.object({
   e: z.array(GeneratedEntitySchema).min(1),

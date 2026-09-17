@@ -65,8 +65,14 @@ export function usePaletteActions({
       return;
     }
 
-    const entityIds =
-      selectedEntityIds.length >= 2 ? selectedEntityIds.slice(0, 2) : [selectedEntityIds[0], targetEntityId];
+    const isGeneralization = relationshipKind === 'generalization' || relationshipKind === 'specialization';
+    const entityIds = isGeneralization
+      ? [...selectedEntityIds, targetEntityId].filter(
+          (entityId, index, ids): entityId is string => Boolean(entityId) && ids.indexOf(entityId) === index,
+        )
+      : selectedEntityIds.length >= 2
+        ? selectedEntityIds.slice(0, 2)
+        : [selectedEntityIds[0], targetEntityId];
 
     if (entityIds[0] !== entityIds[1]) {
       const cardinality: Cardinality = kind === 'one-to-one' ? '1:1' : kind === 'many-to-many' ? 'N:N' : '1:N';

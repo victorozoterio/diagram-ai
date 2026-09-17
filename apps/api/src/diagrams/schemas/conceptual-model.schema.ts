@@ -99,6 +99,7 @@ export const ConceptualModelStructureSchema = z.object({
 
 export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine((model, context) => {
   const entityIds = new Set(model.entities.map((entity) => entity.id));
+  const entityConceptNames = new Set(model.entities.map((entity) => normalizeSchemaName(entity.name)));
 
   model.entities.forEach((entity, entityIndex) => {
     if (isArtificialRelationshipIdentifier(entity.id) || isArtificialRelationshipIdentifier(entity.name)) {
@@ -199,9 +200,27 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
           message: 'O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento.',
         });
       }
+
+      if (matchesEntityConcept(attribute.name, entityConceptNames)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['relationships', relationshipIndex, 'attributes', attributeIndex],
+          message: 'Uma entidade existente deve participar do relacionamento, não ser representada como atributo.',
+        });
+      }
     });
   });
 });
+
+function matchesEntityConcept(attributeName: string, entityConceptNames: Set<string>): boolean {
+  const normalizedAttributeName = normalizeSchemaName(attributeName);
+  return [...entityConceptNames].some(
+    (entityName) =>
+      normalizedAttributeName === entityName ||
+      normalizedAttributeName === `${entityName}s` ||
+      entityName === `${normalizedAttributeName}s`,
+  );
+}
 
 function isGeneralization(relationship: z.infer<typeof RelationshipSchema>): boolean {
   return relationship.kind === 'generalization' || relationship.kind === 'specialization';
