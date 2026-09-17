@@ -35,7 +35,7 @@ export function parseConceptualModelResponse(content: string, sourceText?: strin
         const entityId = entityIds.get(normalizeName(entity.n)) ?? toIdentifier(entity.n);
         return {
           id: entityId,
-          name: entity.n,
+          name: entity.n.toLowerCase(),
           attributes: withTechnicalIdentifier(entityId, mapAttributes(entity.a ?? [], sourceText)),
         };
       }),
