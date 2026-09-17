@@ -36,16 +36,35 @@ export function parseConceptualModelResponse(content: string, sourceText?: strin
         };
       }),
       standaloneAttributes: [],
-      relationships: generatedModel.r.map((relationship, index) => ({
-        id: uniqueRelationshipId(relationship, index),
-        name: relationship.n,
-        type: relationshipType(relationship),
-        participants: relationship.p.map((participant) => ({
-          entityId: entityIds.get(normalizeName(participant.e)) ?? toIdentifier(participant.e),
-          cardinality: participant.c,
-        })),
-        attributes: mapAttributes(relationship.a ?? [], sourceText, false),
-      })),
+      relationships: generatedModel.r.map((relationship, index) => {
+        const kind = relationship.k ?? 'relationship';
+        const isGeneralization = kind === 'generalization' || kind === 'specialization';
+
+        return {
+          id: uniqueRelationshipId(relationship, index),
+          name: isGeneralization ? 'Gen' : relationship.n,
+          type: isGeneralization ? '1:N' : relationshipType(relationship),
+          kind,
+          participants: isGeneralization
+            ? []
+            : relationship.p.map((participant) => ({
+                entityId: entityIds.get(normalizeName(participant.e)) ?? toIdentifier(participant.e),
+                cardinality: participant.c,
+              })),
+          ...(isGeneralization
+            ? {
+                supertypeId: relationship.s
+                  ? (entityIds.get(normalizeName(relationship.s)) ?? toIdentifier(relationship.s))
+                  : undefined,
+              }
+            : {}),
+          subtypeIds: isGeneralization
+            ? (relationship.d ?? []).map((subtype) => entityIds.get(normalizeName(subtype)) ?? toIdentifier(subtype))
+            : [],
+          subtypeHandles: {},
+          attributes: mapAttributes(relationship.a ?? [], sourceText, false),
+        };
+      }),
       ambiguities: (generatedModel.q ?? []).map((message, index) => ({
         id: `ambiguidade_${index + 1}`,
         message,
@@ -77,6 +96,17 @@ function includeRelationshipParticipants(
     }
   }
 
+  for (const relationship of relationships) {
+    for (const entityName of [relationship.s, ...(relationship.d ?? [])]) {
+      if (!entityName) continue;
+      const normalizedName = normalizeName(entityName);
+      if (!knownNames.has(normalizedName)) {
+        completedEntities.push({ n: entityName });
+        knownNames.add(normalizedName);
+      }
+    }
+  }
+
   return completedEntities;
 }
 
@@ -96,10 +126,19 @@ export function compactConceptualModelForRepair(model: unknown): unknown {
     })),
     r: parsed.data.relationships.map((relationship) => ({
       n: relationship.name,
-      p: relationship.participants.map((participant) => ({
-        e: entityNames.get(participant.entityId) ?? participant.entityId,
-        c: participant.cardinality,
-      })),
+      ...(relationship.kind !== 'relationship' ? { k: relationship.kind } : {}),
+      ...(relationship.supertypeId ? { s: entityNames.get(relationship.supertypeId) ?? relationship.supertypeId } : {}),
+      ...(relationship.subtypeIds.length > 0
+        ? { d: relationship.subtypeIds.map((subtypeId) => entityNames.get(subtypeId) ?? subtypeId) }
+        : {}),
+      ...(relationship.kind === 'relationship'
+        ? {
+            p: relationship.participants.map((participant) => ({
+              e: entityNames.get(participant.entityId) ?? participant.entityId,
+              c: participant.cardinality,
+            })),
+          }
+        : {}),
       ...(relationship.attributes.length > 0 ? { a: relationship.attributes.map(compactAttribute) } : {}),
     })),
     ...(parsed.data.ambiguities.length > 0 ? { q: parsed.data.ambiguities.map((ambiguity) => ambiguity.message) } : {}),

@@ -86,13 +86,16 @@ export function createManualAttribute(
 }
 
 export function createStandaloneRelationship(kind: Relationship['kind']): Relationship {
+  const isGeneralization = kind === 'generalization' || kind === 'specialization';
+
   return {
     id: `relationship_${Date.now().toString(36)}`,
-    name: 'Rel',
+    name: isGeneralization ? 'Gen' : 'Rel',
     type: '1:N',
     kind,
     participants: [],
     attributes: [],
+    ...(isGeneralization ? { subtypeIds: [], subtypeHandles: {} } : {}),
   };
 }
 

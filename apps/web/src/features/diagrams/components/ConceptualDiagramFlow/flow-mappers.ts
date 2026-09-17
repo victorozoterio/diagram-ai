@@ -1,6 +1,6 @@
 import type { Edge, Node } from '@xyflow/react';
 import type { EdgeControlPoints } from '../../hooks/editor/editor.types';
-import type { Attribute, ConceptualModel } from '../../types';
+import type { Attribute, ConceptualModel, Relationship } from '../../types';
 import type {
   AttributeNodeData,
   DiagramPosition,
@@ -381,8 +381,68 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
     }),
   );
 
-  const relationshipEdges = model.relationships.flatMap((relationship) =>
-    relationship.participants.map((participant, index) => {
+  const relationshipEdges = model.relationships.flatMap((relationship) => {
+    if (isGeneralization(relationship)) {
+      const edges: Edge[] = [];
+      const relationshipNodeId = `relationship:${relationship.id}`;
+
+      if (relationship.supertypeId) {
+        const edgeId = `generalization:${relationship.id}:supertype:${relationship.supertypeId}`;
+        const sourceHandle = relationship.supertypeHandles?.entityHandle ?? 'entity-bottom';
+        const targetHandle = relationship.supertypeHandles?.connectionHandle ?? 'target-top';
+        edges.push({
+          id: edgeId,
+          source: relationship.supertypeId,
+          sourceHandle,
+          target: relationshipNodeId,
+          targetHandle,
+          type: 'relationship',
+          selectable: true,
+          interactionWidth: 20,
+          data: generalizationEdgeData(
+            relationship,
+            relationship.supertypeId,
+            'supertype',
+            edgeId,
+            state,
+            callbacks,
+            sourceHandle,
+            targetHandle,
+          ),
+        });
+      }
+
+      for (const subtypeId of relationship.subtypeIds ?? []) {
+        const edgeId = `generalization:${relationship.id}:subtype:${subtypeId}`;
+        const handles = relationship.subtypeHandles?.[subtypeId];
+        const sourceHandle = handles?.connectionHandle ?? 'source-bottom';
+        const targetHandle = handles?.entityHandle ?? 'entity-top';
+        edges.push({
+          id: edgeId,
+          source: relationshipNodeId,
+          sourceHandle,
+          target: subtypeId,
+          targetHandle,
+          type: 'relationship',
+          selectable: true,
+          interactionWidth: 20,
+          data: generalizationEdgeData(
+            relationship,
+            subtypeId,
+            'subtype',
+            edgeId,
+            state,
+            callbacks,
+            sourceHandle,
+            targetHandle,
+          ),
+        });
+      }
+
+      return edges;
+    }
+
+    return relationship.participants.map((participant, index) => {
       // Modelos criados antes dos handles direcionais usam o primeiro participante
       // entrando pelo lado esquerdo e o segundo saindo pelo lado direito.
       const startsAtRelationship =
@@ -413,8 +473,8 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
           onCycleRelationshipCardinality: callbacks.onCycleRelationshipCardinality ?? (() => undefined),
         } satisfies RelationshipEdgeData,
       };
-    }),
-  );
+    });
+  });
 
   const attributeRelationshipEdges = allAttributes.flatMap(({ entityId, attribute }) => {
     if (
@@ -509,6 +569,30 @@ function edgeVisualData(
     onControlPointsChange: callbacks.onControlPointsChange,
     onControlPointsCommit: callbacks.onControlPointsCommit,
   };
+}
+
+function generalizationEdgeData(
+  relationship: Relationship,
+  entityId: string,
+  role: 'supertype' | 'subtype',
+  edgeId: string,
+  state: FlowMapperState,
+  callbacks: FlowMapperCallbacks,
+  sourceHandleId: string,
+  targetHandleId: string,
+): RelationshipEdgeData {
+  return {
+    ...edgeVisualData(edgeId, state, callbacks, sourceHandleId, targetHandleId),
+    relationship,
+    entityId,
+    isGeneralization: true,
+    generalizationRole: role,
+    onCycleRelationshipCardinality: callbacks.onCycleRelationshipCardinality ?? (() => undefined),
+  };
+}
+
+function isGeneralization(relationship: Relationship) {
+  return relationship.kind === 'generalization' || relationship.kind === 'specialization';
 }
 
 function anchorFromHandleId(handleId: string) {

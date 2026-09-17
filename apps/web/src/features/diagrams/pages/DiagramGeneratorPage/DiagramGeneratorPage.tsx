@@ -49,9 +49,11 @@ export function DiagramGeneratorPage() {
     addElementAtPosition,
     createRelationshipFromConnection,
     connectEntityToRelationship,
+    connectEntityToGeneralization,
     updateRelationship,
     removeRelationship,
     disconnectEntityFromRelationship,
+    disconnectEntityFromGeneralization,
     cycleRelationshipCardinality,
     selectAttribute,
     updateAttribute,
@@ -118,9 +120,11 @@ export function DiagramGeneratorPage() {
               onDisconnectAttributeFromRelationship={disconnectAttributeFromRelationship}
               onConnectEntities={createRelationshipFromConnection}
               onConnectEntityToRelationship={connectEntityToRelationship}
+              onConnectEntityToGeneralization={connectEntityToGeneralization}
               onUpdateRelationship={updateRelationship}
               onRemoveRelationship={removeRelationship}
               onDisconnectEntityFromRelationship={disconnectEntityFromRelationship}
+              onDisconnectEntityFromGeneralization={disconnectEntityFromGeneralization}
               onCycleRelationshipCardinality={cycleRelationshipCardinality}
             />
             {!conceptualModel && (

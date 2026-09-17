@@ -68,11 +68,28 @@ export async function calculateInitialConceptualLayout(model: ConceptualModel): 
         })),
       ),
       ...model.relationships.flatMap((relationship) =>
-        relationship.participants.map((participant, index) => ({
-          id: `${relationship.id}:${participant.entityId}`,
-          sources: [index === 0 ? participant.entityId : `relationship:${relationship.id}`],
-          targets: [index === 0 ? `relationship:${relationship.id}` : participant.entityId],
-        })),
+        isGeneralization(relationship)
+          ? [
+              ...(relationship.supertypeId
+                ? [
+                    {
+                      id: `generalization:${relationship.id}:supertype:${relationship.supertypeId}`,
+                      sources: [relationship.supertypeId],
+                      targets: [`relationship:${relationship.id}`],
+                    },
+                  ]
+                : []),
+              ...(relationship.subtypeIds ?? []).map((subtypeId) => ({
+                id: `generalization:${relationship.id}:subtype:${subtypeId}`,
+                sources: [`relationship:${relationship.id}`],
+                targets: [subtypeId],
+              })),
+            ]
+          : relationship.participants.map((participant, index) => ({
+              id: `${relationship.id}:${participant.entityId}`,
+              sources: [index === 0 ? participant.entityId : `relationship:${relationship.id}`],
+              targets: [index === 0 ? `relationship:${relationship.id}` : participant.entityId],
+            })),
       ),
     ],
   };
@@ -202,4 +219,8 @@ function boxesOverlap(
     first.y + first.height + gap <= second.y ||
     second.y + second.height + gap <= first.y
   );
+}
+
+function isGeneralization(relationship: ConceptualModel['relationships'][number]) {
+  return relationship.kind === 'generalization' || relationship.kind === 'specialization';
 }

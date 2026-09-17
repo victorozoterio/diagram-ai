@@ -15,9 +15,25 @@ export function removeEntityFromModel(model: ConceptualModel, entityId: string):
   return {
     ...model,
     entities: model.entities.filter((entity) => entity.id !== entityId),
-    relationships: model.relationships.filter((relationship) =>
-      relationship.participants.every((participant) => participant.entityId !== entityId),
-    ),
+    relationships: model.relationships.flatMap((relationship) => {
+      if (relationship.kind !== 'generalization' && relationship.kind !== 'specialization') {
+        return relationship.participants.some((participant) => participant.entityId === entityId) ? [] : [relationship];
+      }
+
+      const { [entityId]: _removed, ...remainingSubtypeHandles } = relationship.subtypeHandles ?? {};
+      const subtypeIds = (relationship.subtypeIds ?? []).filter((subtypeId) => subtypeId !== entityId);
+      const isRemovedSupertype = relationship.supertypeId === entityId;
+
+      return [
+        {
+          ...relationship,
+          supertypeId: isRemovedSupertype ? undefined : relationship.supertypeId,
+          supertypeHandles: isRemovedSupertype ? undefined : relationship.supertypeHandles,
+          subtypeIds,
+          subtypeHandles: remainingSubtypeHandles,
+        },
+      ];
+    }),
   };
 }
 

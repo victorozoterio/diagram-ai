@@ -29,6 +29,7 @@ REGRAS:
 - Frases inversas sobre o mesmo fato representam um único relacionamento; não gere um losango para cada direção da frase.
 - Infira atributos de domínio somente quando forem plausíveis e úteis; não use listas fixas nem substitua fatos explícitos.
 - Cardinalidades dos participantes: 1:1 = 1 e 1; 1:N = um 1 e um N; N:N = N e N.
+- Generalização/especialização não é relacionamento binário: use k="generalization" ou k="specialization", s para o nome do único supertipo e d para a lista de um ou mais subtipos; nesse caso omita p e não use cardinalidades.
 - Uma entidade relacionada no texto não pode ficar isolada. Registre incertezas reais em ambiguities.
 
 CLASSIFICAÇÃO INTERNA:
@@ -41,7 +42,7 @@ Exemplo abstrato: "X contém A, B e C" gera X com f=["c"] e componentes em c, se
 
 SAÍDA COMPACTA:
 - Retorne apenas os campos aceitos pelo JSON Schema enviado em format.
-- Chaves: raiz e=entidades, r=relacionamentos, q=ambiguidades; entidade n=nome e a=atributos; atributo n=nome, t=tipo, f=flags e c=componentes; relacionamento n=nome, p=participantes e a=atributos; participante e=entidade e c=cardinalidade.
+- Chaves: raiz e=entidades, r=relacionamentos, q=ambiguidades; entidade n=nome e a=atributos; atributo n=nome, t=tipo, f=flags e c=componentes; relacionamento n=nome, k=tipo, p=participantes, a=atributos, s=supertipo e d=subtipos; participante e=entidade e c=cardinalidade.
 - Tipos: s=string, n=number, b=boolean, d=date, dt=datetime, t=text, dec=decimal, u=uuid, e=email, p=phone, x=unknown.
 - Flags: i=identifier, r=required, u=unique, m=multivalued, c=composite, d=derived.
 - Não gere ids internos de objetos, metadata ou descriptions; o backend os adiciona.

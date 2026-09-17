@@ -20,6 +20,8 @@ type FlowInteractionDependencies = Pick<
   | 'onDisconnectEntityFromRelationship'
   | 'onConnectEntities'
   | 'onConnectEntityToRelationship'
+  | 'onConnectEntityToGeneralization'
+  | 'onDisconnectEntityFromGeneralization'
   | 'onRemoveEdgeControlPoints'
 >;
 
@@ -39,6 +41,8 @@ export function useFlowInteractions({
   onDisconnectEntityFromRelationship,
   onConnectEntities,
   onConnectEntityToRelationship,
+  onConnectEntityToGeneralization,
+  onDisconnectEntityFromGeneralization,
   onRemoveEdgeControlPoints,
 }: FlowInteractionDependencies) {
   const [flowInstance, setFlowInstance] = useState<ReactFlowInstance | null>(null);
@@ -124,6 +128,14 @@ export function useFlowInteractions({
       disconnectedEdges
         .filter((edge) => edge.type === 'relationship')
         .forEach((edge) => {
+          if (edge.id.startsWith('generalization:')) {
+            const [, relationshipId, role, entityId] = edge.id.split(':');
+            if (relationshipId && entityId && (role === 'supertype' || role === 'subtype')) {
+              onDisconnectEntityFromGeneralization?.(relationshipId, entityId, role);
+            }
+            return;
+          }
+
           const relationshipId = edge.id.split(':')[0];
           const entityId = edge.data?.entityId as string | undefined;
           if (relationshipId && entityId) onDisconnectEntityFromRelationship?.(relationshipId, entityId);
@@ -133,6 +145,7 @@ export function useFlowInteractions({
       onDisconnectAttributeFromAttribute,
       onDisconnectAttributeFromEntity,
       onDisconnectAttributeFromRelationship,
+      onDisconnectEntityFromGeneralization,
       onDisconnectEntityFromRelationship,
       onRemoveEdgeControlPoints,
     ],
@@ -205,6 +218,26 @@ export function useFlowInteractions({
         return;
       }
 
+      if (sourceIsRelationship !== targetIsRelationship) {
+        const relationshipId = (sourceIsRelationship ? connection.source : connection.target).replace(
+          'relationship:',
+          '',
+        );
+        const relationship = model?.relationships.find((item) => item.id === relationshipId);
+
+        if (relationship?.kind === 'generalization' || relationship?.kind === 'specialization') {
+          const entityId = sourceIsRelationship ? connection.target : connection.source;
+          onConnectEntityToGeneralization?.(
+            relationshipId,
+            entityId,
+            sourceIsRelationship ? 'subtype' : 'supertype',
+            sourceIsRelationship ? (connection.sourceHandle ?? undefined) : (connection.targetHandle ?? undefined),
+            sourceIsRelationship ? (connection.targetHandle ?? undefined) : (connection.sourceHandle ?? undefined),
+          );
+          return;
+        }
+      }
+
       if (!sourceIsRelationship && !targetIsRelationship) {
         onConnectEntities?.(
           connection.source,
@@ -237,8 +270,10 @@ export function useFlowInteractions({
       onConnectAttributeToAttribute,
       onConnectAttributeToEntity,
       onConnectAttributeToRelationship,
+      onConnectEntityToGeneralization,
       onConnectEntities,
       onConnectEntityToRelationship,
+      model,
     ],
   );
 

@@ -29,34 +29,27 @@ export function RelationshipNode({ data, selected }: { data: RelationshipNodeDat
           <path d='M 51 3 L 99 83 L 3 83 Z' fill='#fff' stroke='#7c3aed' strokeWidth='4' />
         </svg>
       )}
-      <EditableNodeName
-        value={data.relationship.name}
-        ariaLabel={`Editar nome do relacionamento ${data.relationship.name}`}
-        containerRef={nodeRef}
-        normalClassName={`${styles.nameButton} nopan`}
-        editingClassName={`${styles.nameInput} nopan`}
-        textSafeArea={
-          isGeneralization
-            ? {
-                maxWidth: Math.max(28, data.size.width * 0.34),
-                maxHeight: Math.max(24, data.size.height * 0.34),
-                baseFontSize: Math.min(16, Math.max(9, data.size.height * 0.14)),
-                minFontSize: 7,
-                horizontalPadding: 4,
-                verticalPadding: 6,
-              }
-            : {
-                maxWidth: Math.max(34, Math.min(data.size.width, data.size.height) * 0.55),
-                maxHeight: Math.max(24, Math.min(data.size.width, data.size.height) * 0.34),
-                baseFontSize: Math.min(16, Math.max(9, Math.min(data.size.width, data.size.height) * 0.12)),
-                minFontSize: 7,
-                horizontalPadding: 6,
-                verticalPadding: 6,
-              }
-        }
-        onSave={(name) => data.onUpdateRelationship?.(data.relationship.id, { name })}
-        stopPropagationOnKeyDown
-      />
+      {isGeneralization ? (
+        <span className={`${styles.nameButton} nopan`}>Gen</span>
+      ) : (
+        <EditableNodeName
+          value={data.relationship.name}
+          ariaLabel={`Editar nome do relacionamento ${data.relationship.name}`}
+          containerRef={nodeRef}
+          normalClassName={`${styles.nameButton} nopan`}
+          editingClassName={`${styles.nameInput} nopan`}
+          textSafeArea={{
+            maxWidth: Math.max(34, Math.min(data.size.width, data.size.height) * 0.55),
+            maxHeight: Math.max(24, Math.min(data.size.width, data.size.height) * 0.34),
+            baseFontSize: Math.min(16, Math.max(9, Math.min(data.size.width, data.size.height) * 0.12)),
+            minFontSize: 7,
+            horizontalPadding: 6,
+            verticalPadding: 6,
+          }}
+          onSave={(name) => data.onUpdateRelationship?.(data.relationship.id, { name })}
+          stopPropagationOnKeyDown
+        />
+      )}
       <ConnectionHandles
         prefix='relationship'
         middleHandleIds={{

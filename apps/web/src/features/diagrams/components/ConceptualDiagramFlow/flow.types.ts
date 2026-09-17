@@ -45,6 +45,8 @@ export type RelationshipNodeData = {
 export type RelationshipEdgeData = {
   relationship: Relationship;
   entityId: string;
+  isGeneralization?: boolean;
+  generalizationRole?: 'supertype' | 'subtype';
   onCycleRelationshipCardinality: (relationshipId: string, entityId: string) => void;
 } & EditableEdgeData;
 
@@ -142,6 +144,18 @@ export type ConceptualDiagramFlowProps = {
     connectionHandle?: string,
     entityHandle?: string,
     connectionDirection?: 'entity-to-relationship' | 'relationship-to-entity',
+  ) => void;
+  onConnectEntityToGeneralization?: (
+    relationshipId: string,
+    entityId: string,
+    role: 'supertype' | 'subtype',
+    connectionHandle?: string,
+    entityHandle?: string,
+  ) => void;
+  onDisconnectEntityFromGeneralization?: (
+    relationshipId: string,
+    entityId: string,
+    role: 'supertype' | 'subtype',
   ) => void;
   onUpdateRelationship?: (relationshipId: string, changes: { name?: string }) => void;
   onRemoveRelationship?: (relationshipId: string) => void;

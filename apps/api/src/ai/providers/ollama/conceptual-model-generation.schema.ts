@@ -30,7 +30,10 @@ const GeneratedParticipantSchema = z.object({
 
 const GeneratedRelationshipSchema = z.object({
   n: z.string().min(1),
-  p: z.array(GeneratedParticipantSchema).length(2),
+  k: z.enum(['relationship', 'identifying-relationship', 'generalization', 'specialization']).optional(),
+  s: z.string().min(1).optional().describe('Nome da entidade supertipo para generalização/especialização.'),
+  d: z.array(z.string().min(1)).min(1).optional().describe('Nomes das entidades subtipos.'),
+  p: z.array(GeneratedParticipantSchema).default([]),
   a: z.array(GeneratedAttributeSchema).optional().describe('Atributos que dependem da associação.'),
 });
 

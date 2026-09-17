@@ -88,6 +88,13 @@ export type Relationship = {
   kind?: 'relationship' | 'identifying-relationship' | 'generalization' | 'specialization';
   participants: RelationshipParticipant[];
   attributes: Attribute[];
+  supertypeId?: string;
+  subtypeIds?: string[];
+  supertypeHandles?: {
+    entityHandle?: string;
+    connectionHandle?: string;
+  };
+  subtypeHandles?: Record<string, { entityHandle?: string; connectionHandle?: string }>;
 };
 
 export type Ambiguity = {

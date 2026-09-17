@@ -53,15 +53,25 @@ export const RelationshipParticipantSchema = z.object({
   cardinality: z.enum(['1', 'N']).describe('Cardinalidade da entidade dentro do relacionamento.'),
 });
 
+const RelationshipKindSchema = z.enum(['relationship', 'identifying-relationship', 'generalization', 'specialization']);
+
+const GeneralizationHandleSchema = z.object({
+  entityHandle: z.string().optional(),
+  connectionHandle: z.string().optional(),
+});
+
 export const RelationshipSchema = z.object({
   id: z.string().min(1, 'O relacionamento deve possuir um identificador único.'),
   name: z.string().min(1, 'O relacionamento deve possuir um nome.'),
   description: z.string().optional(),
-  type: CardinalitySchema,
-  participants: z
-    .array(RelationshipParticipantSchema)
-    .min(2, 'O relacionamento deve possuir pelo menos duas entidades.'),
+  type: CardinalitySchema.default('1:N'),
+  kind: RelationshipKindSchema.default('relationship'),
+  participants: z.array(RelationshipParticipantSchema).default([]),
   attributes: z.array(AttributeSchema).default([]),
+  supertypeId: z.string().min(1).optional(),
+  subtypeIds: z.array(z.string().min(1)).default([]),
+  supertypeHandles: GeneralizationHandleSchema.optional(),
+  subtypeHandles: z.record(z.string(), GeneralizationHandleSchema).default({}),
 });
 
 export const AmbiguitySchema = z.object({
@@ -138,6 +148,18 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
   });
 
   model.relationships.forEach((relationship, relationshipIndex) => {
+    if (isGeneralization(relationship)) {
+      validateGeneralization(relationship, relationshipIndex, entityIds, context);
+      return;
+    }
+
+    if (relationship.participants.length < 2) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['relationships', relationshipIndex, 'participants'],
+        message: 'O relacionamento deve possuir pelo menos duas entidades.',
+      });
+    }
     validateRelationshipCardinality(relationship, relationshipIndex, context);
 
     const participantAttributeNames = new Set(
@@ -180,6 +202,55 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
     });
   });
 });
+
+function isGeneralization(relationship: z.infer<typeof RelationshipSchema>): boolean {
+  return relationship.kind === 'generalization' || relationship.kind === 'specialization';
+}
+
+function validateGeneralization(
+  relationship: z.infer<typeof RelationshipSchema>,
+  relationshipIndex: number,
+  entityIds: Set<string>,
+  context: z.RefinementCtx,
+): void {
+  if (!relationship.supertypeId || !entityIds.has(relationship.supertypeId)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['relationships', relationshipIndex, 'supertypeId'],
+      message: 'A generalização deve possuir um supertipo válido.',
+    });
+  }
+
+  const uniqueSubtypes = new Set(relationship.subtypeIds);
+  if (relationship.subtypeIds.length === 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['relationships', relationshipIndex, 'subtypeIds'],
+      message: 'A generalização deve possuir pelo menos um subtipo.',
+    });
+  }
+
+  if (
+    uniqueSubtypes.size !== relationship.subtypeIds.length ||
+    relationship.subtypeIds.includes(relationship.supertypeId ?? '')
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['relationships', relationshipIndex, 'subtypeIds'],
+      message: 'Os subtipos devem ser entidades distintas do supertipo.',
+    });
+  }
+
+  relationship.subtypeIds.forEach((subtypeId, subtypeIndex) => {
+    if (!entityIds.has(subtypeId)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['relationships', relationshipIndex, 'subtypeIds', subtypeIndex],
+        message: 'O subtipo deve referenciar uma entidade existente.',
+      });
+    }
+  });
+}
 
 function isForeignKeyName(value: string): boolean {
   return value.toLowerCase().endsWith('_id');
