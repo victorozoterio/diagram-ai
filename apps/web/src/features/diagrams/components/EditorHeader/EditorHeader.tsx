@@ -6,6 +6,7 @@ type EditorHeaderProps = {
   canConvertToLogical: boolean;
   onGenerate: () => void;
   onConvert: () => void;
+  exportMenuTargetRef?: (element: HTMLDivElement | null) => void;
 };
 
 export function EditorHeader({
@@ -14,6 +15,7 @@ export function EditorHeader({
   canConvertToLogical,
   onGenerate,
   onConvert,
+  exportMenuTargetRef,
 }: EditorHeaderProps) {
   return (
     <header className={styles.header}>
@@ -26,6 +28,7 @@ export function EditorHeader({
       </div>
 
       <div className={styles.actions}>
+        <div ref={exportMenuTargetRef} className={styles.exportSlot} />
         <button
           className={styles.secondaryButton}
           type='button'

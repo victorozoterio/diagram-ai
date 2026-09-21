@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   ConceptualDiagramFlow,
   EditorAssistant,
@@ -18,6 +19,7 @@ const emptyConceptualModel: ConceptualModel = {
 };
 
 export function DiagramGeneratorPage() {
+  const [exportMenuTarget, setExportMenuTarget] = useState<HTMLDivElement | null>(null);
   const {
     description,
     conceptualModel,
@@ -75,6 +77,7 @@ export function DiagramGeneratorPage() {
         canConvertToLogical={canConvertToLogical}
         onGenerate={generateConceptualDiagram}
         onConvert={convertConceptualToLogicalDiagram}
+        exportMenuTargetRef={setExportMenuTarget}
       />
 
       <div className={styles.workspace}>
@@ -92,6 +95,7 @@ export function DiagramGeneratorPage() {
 
             <ConceptualDiagramFlow
               model={activeConceptualModel}
+              exportMenuTarget={exportMenuTarget}
               onRemoveEntity={removeEntity}
               onSelectEntity={selectEntity}
               onClearSelection={clearCanvasSelection}

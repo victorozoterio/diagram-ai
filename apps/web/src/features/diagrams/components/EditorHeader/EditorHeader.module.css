@@ -48,6 +48,10 @@
   gap: 8px;
 }
 
+.exportSlot {
+  display: contents;
+}
+
 .primaryButton,
 .secondaryButton {
   min-height: 36px;

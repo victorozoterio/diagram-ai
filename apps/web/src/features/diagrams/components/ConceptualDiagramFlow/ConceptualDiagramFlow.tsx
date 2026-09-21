@@ -1,6 +1,7 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
 import { useEffect } from 'react';
 import styles from './ConceptualDiagramFlow.module.css';
+import { DiagramExportMenu } from './DiagramExportMenu';
 import { AttributeEdge } from './edges/AttributeEdge';
 import { RelationshipEdge } from './edges/RelationshipEdge';
 import { FitViewOnNodeChange } from './FitViewOnNodeChange';
@@ -69,6 +70,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
       }}
       onDrop={handleDrop}
     >
+      <DiagramExportMenu flowWrapperRef={flowWrapperRef} nodes={nodes} portalTarget={props.exportMenuTarget} />
       <ReactFlow
         nodes={nodes}
         edges={edges}

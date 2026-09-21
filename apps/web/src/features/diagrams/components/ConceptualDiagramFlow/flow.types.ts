@@ -81,6 +81,7 @@ export type ConceptualDiagramFlowProps = {
   onUpdateEntity?: (entityId: string, changes: Partial<Pick<Entity, 'name' | 'description'>>) => void;
   selectedEntityIds?: string[];
   layoutVersion?: number;
+  exportMenuTarget?: Element | null;
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
   nodeSizes?: Record<string, DiagramSize>;
