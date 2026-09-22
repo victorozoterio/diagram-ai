@@ -36,6 +36,15 @@ export type LogicalTable = {
   };
 };
 
+export type LogicalTableRelationship = {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string;
+  targetHandle?: string;
+};
+
 export type LogicalModel = {
   tables: LogicalTable[];
+  relationships?: LogicalTableRelationship[];
 };

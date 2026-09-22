@@ -7,6 +7,13 @@
   box-shadow: 0 10px 24px rgb(15 23 42 / 10%);
 }
 
+.connectionHandle {
+  width: 10px;
+  height: 10px;
+  background: #6366f1;
+  border: 2px solid #ffffff;
+}
+
 .tableTitle {
   display: flex;
   align-items: center;

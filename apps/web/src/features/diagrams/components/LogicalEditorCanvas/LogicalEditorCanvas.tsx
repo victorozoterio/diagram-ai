@@ -6,9 +6,10 @@ type LogicalEditorCanvasProps = {
   model: LogicalModel;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
+  onUpdateModel: (model: LogicalModel) => void;
 };
 
-export function LogicalEditorCanvas({ model, onAddTable, onUpdateTable }: LogicalEditorCanvasProps) {
+export function LogicalEditorCanvas({ model, onAddTable, onUpdateTable, onUpdateModel }: LogicalEditorCanvasProps) {
   return (
     <section className={styles.section}>
       <div className={styles.heading}>
@@ -18,7 +19,12 @@ export function LogicalEditorCanvas({ model, onAddTable, onUpdateTable }: Logica
         </div>
         <span className={styles.hint}>Estrutura lógica do banco de dados</span>
       </div>
-      <LogicalModelFlow model={model} onAddTable={onAddTable} onUpdateTable={onUpdateTable} />
+      <LogicalModelFlow
+        model={model}
+        onAddTable={onAddTable}
+        onUpdateTable={onUpdateTable}
+        onUpdateModel={onUpdateModel}
+      />
     </section>
   );
 }

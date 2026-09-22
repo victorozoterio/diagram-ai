@@ -77,6 +77,7 @@ export function DiagramGeneratorPage() {
 
   function addLogicalTable(position: { x: number; y: number }) {
     setLogicalModel((currentModel) => ({
+      ...currentModel,
       tables: [
         ...(currentModel?.tables ?? []),
         {
@@ -87,6 +88,10 @@ export function DiagramGeneratorPage() {
         },
       ],
     }));
+  }
+
+  function updateLogicalModel(updatedModel: NonNullable<typeof logicalModel>) {
+    setLogicalModel(updatedModel);
   }
 
   function updateLogicalTable(updatedTable: LogicalTable) {
@@ -182,6 +187,7 @@ export function DiagramGeneratorPage() {
               model={logicalModel ?? emptyLogicalModel}
               onAddTable={addLogicalTable}
               onUpdateTable={updateLogicalTable}
+              onUpdateModel={updateLogicalModel}
             />
           )}
         </EditorCanvas>

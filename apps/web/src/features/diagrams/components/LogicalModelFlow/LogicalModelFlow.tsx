@@ -1,7 +1,10 @@
 import {
   Background,
+  type Connection,
+  ConnectionMode,
   Controls,
   type Edge,
+  type EdgeChange,
   Handle,
   MiniMap,
   type Node,
@@ -13,7 +16,7 @@ import {
 import { useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 
-import type { LogicalColumn, LogicalModel, LogicalTable } from '../../types';
+import type { LogicalColumn, LogicalModel, LogicalTable, LogicalTableRelationship } from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
 import styles from './LogicalModelFlow.module.css';
 
@@ -21,6 +24,7 @@ type LogicalModelFlowProps = {
   model: LogicalModel;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
+  onUpdateModel: (model: LogicalModel) => void;
 };
 
 type LogicalTableNodeData = {
@@ -242,8 +246,14 @@ function TableNode({ data }: NodeProps<Node<LogicalTableNodeData>>) {
         </button>
       )}
 
-      <Handle type='target' position={Position.Left} />
-      <Handle type='source' position={Position.Right} />
+      <Handle type='source' id='source-top' position={Position.Top} className={styles.connectionHandle} />
+      <Handle type='target' id='target-top' position={Position.Top} className={styles.connectionHandle} />
+      <Handle type='source' id='source-bottom' position={Position.Bottom} className={styles.connectionHandle} />
+      <Handle type='target' id='target-bottom' position={Position.Bottom} className={styles.connectionHandle} />
+      <Handle type='source' id='source-left' position={Position.Left} className={styles.connectionHandle} />
+      <Handle type='target' id='target-left' position={Position.Left} className={styles.connectionHandle} />
+      <Handle type='source' id='source-right' position={Position.Right} className={styles.connectionHandle} />
+      <Handle type='target' id='target-right' position={Position.Right} className={styles.connectionHandle} />
     </div>
   );
 }
@@ -256,9 +266,10 @@ function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function LogicalModelFlow({ model, onAddTable, onUpdateTable }: LogicalModelFlowProps) {
+export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateModel }: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const nodes: Node<LogicalTableNodeData>[] = model.tables.map((table, index) => ({
     id: table.id,
@@ -271,23 +282,68 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable }: LogicalMo
     data: { table, tables: model.tables, onUpdateTable, editingTableId },
   }));
 
-  const edges: Edge[] = model.tables.flatMap((table) =>
-    table.columns.flatMap((column) => {
-      if (!column.references) {
-        return [];
-      }
+  const manualEdges: Edge[] = (model.relationships ?? []).map((relationship) => ({
+    id: relationship.id,
+    source: relationship.source,
+    target: relationship.target,
+    sourceHandle: relationship.sourceHandle,
+    targetHandle: relationship.targetHandle,
+    type: 'smoothstep',
+    selected: relationship.id === selectedEdgeId,
+    style: edgeStyle(relationship.id === selectedEdgeId),
+  }));
 
+  const referenceEdges: Edge[] = model.tables.flatMap((table) =>
+    table.columns.flatMap((column) => {
+      if (!column.references) return [];
+
+      const id = `${table.id}_${column.id}_${column.references.tableId}_${column.references.columnId}`;
       return [
         {
-          id: `${table.id}_${column.id}_${column.references.tableId}_${column.references.columnId}`,
+          id,
           source: column.references.tableId,
           target: table.id,
           label: column.name,
           type: 'smoothstep',
+          selected: id === selectedEdgeId,
+          style: edgeStyle(id === selectedEdgeId),
         },
       ];
     }),
   );
+
+  const edges = [...referenceEdges, ...manualEdges];
+
+  function handleConnect(connection: Connection) {
+    if (!connection.source || !connection.target || connection.source === connection.target) return;
+
+    const relationship: LogicalTableRelationship = {
+      id: createId('table-connection'),
+      source: connection.source,
+      target: connection.target,
+      sourceHandle: connection.sourceHandle ?? undefined,
+      targetHandle: connection.targetHandle ?? undefined,
+    };
+
+    onUpdateModel({
+      ...model,
+      relationships: [...(model.relationships ?? []), relationship],
+    });
+  }
+
+  function handleEdgesChange(changes: EdgeChange[]) {
+    const removedIds = changes.filter((change) => change.type === 'remove').map((change) => change.id);
+    if (removedIds.length === 0) return;
+
+    const manualRelationshipIds = new Set((model.relationships ?? []).map((relationship) => relationship.id));
+    const removedManualIds = removedIds.filter((id) => manualRelationshipIds.has(id));
+    if (removedManualIds.length === 0) return;
+
+    onUpdateModel({
+      ...model,
+      relationships: (model.relationships ?? []).filter((relationship) => !removedManualIds.includes(relationship.id)),
+    });
+  }
 
   return (
     <div
@@ -320,6 +376,7 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable }: LogicalMo
         }}
         onNodeClick={(event, node) => {
           setSelectedTableId(node.id);
+          setSelectedEdgeId(null);
           if (!(event.target instanceof Element && event.target.closest('.nodrag'))) {
             setEditingTableId(null);
           }
@@ -330,8 +387,20 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable }: LogicalMo
         }}
         onPaneClick={() => {
           setSelectedTableId(null);
+          setSelectedEdgeId(null);
           setEditingTableId(null);
         }}
+        onConnect={handleConnect}
+        onEdgesChange={handleEdgesChange}
+        onEdgeClick={(_, edge) => {
+          setSelectedTableId(null);
+          setEditingTableId(null);
+          setSelectedEdgeId(edge.id);
+        }}
+        elementsSelectable
+        edgesFocusable
+        connectionMode={ConnectionMode.Loose}
+        deleteKeyCode={['Backspace', 'Delete']}
         fitView
       >
         <Background />
@@ -340,4 +409,11 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable }: LogicalMo
       </ReactFlow>
     </div>
   );
+}
+
+function edgeStyle(selected: boolean) {
+  return {
+    stroke: selected ? '#4f46e5' : '#94a3b8',
+    strokeWidth: selected ? 2.5 : 1.5,
+  };
 }
