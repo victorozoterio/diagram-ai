@@ -10,7 +10,7 @@ import {
   LogicalEditorSidebar,
 } from '../../components';
 import { useDiagramEditor } from '../../hooks';
-import type { ConceptualModel } from '../../types';
+import type { ConceptualModel, LogicalTable } from '../../types';
 import styles from './DiagramGeneratorPage.module.css';
 
 const emptyConceptualModel: ConceptualModel = {
@@ -87,6 +87,17 @@ export function DiagramGeneratorPage() {
         },
       ],
     }));
+  }
+
+  function updateLogicalTable(updatedTable: LogicalTable) {
+    setLogicalModel((currentModel) => {
+      if (!currentModel) return currentModel;
+
+      return {
+        ...currentModel,
+        tables: currentModel.tables.map((table) => (table.id === updatedTable.id ? updatedTable : table)),
+      };
+    });
   }
 
   return (
@@ -167,7 +178,11 @@ export function DiagramGeneratorPage() {
               )}
             </section>
           ) : (
-            <LogicalEditorCanvas model={logicalModel ?? emptyLogicalModel} onAddTable={addLogicalTable} />
+            <LogicalEditorCanvas
+              model={logicalModel ?? emptyLogicalModel}
+              onAddTable={addLogicalTable}
+              onUpdateTable={updateLogicalTable}
+            />
           )}
         </EditorCanvas>
 

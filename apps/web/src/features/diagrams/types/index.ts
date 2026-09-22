@@ -12,4 +12,4 @@ export type {
   RelationshipParticipant,
 } from './conceptual-model';
 
-export type { LogicalModel, LogicalTable } from './logical-model';
+export type { LogicalColumn, LogicalColumnType, LogicalModel, LogicalTable } from './logical-model';

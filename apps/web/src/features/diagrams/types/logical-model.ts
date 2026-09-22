@@ -2,9 +2,11 @@ export type LogicalColumnType =
   | 'varchar'
   | 'text'
   | 'integer'
+  | 'bigint'
   | 'decimal'
   | 'boolean'
   | 'date'
+  | 'datetime'
   | 'timestamp'
   | 'uuid'
   | 'unknown';
@@ -16,6 +18,7 @@ export type LogicalColumn = {
   primaryKey: boolean;
   foreignKey: boolean;
   required: boolean;
+  nullable?: boolean;
   unique: boolean;
   references?: {
     tableId: string;
