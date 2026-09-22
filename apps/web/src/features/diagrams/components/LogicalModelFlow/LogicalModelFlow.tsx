@@ -53,6 +53,7 @@ const columnTypes: LogicalColumn['type'][] = [
 
 const DEFAULT_TABLE_SIZE = { width: 430, height: 100 };
 const MIN_TABLE_SIZE = { width: 260, height: 80 };
+const EMPTY_TABLE_MIN_HEIGHT = 130;
 const EDITING_REQUIRED_WIDTH = 300;
 const EDITING_TABLE_HEADER_HEIGHT = 74;
 const EDITING_TABLE_ADD_BUTTON_HEIGHT = 36;
@@ -104,7 +105,9 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
         selected={Boolean(selected)}
         minSize={{
           ...MIN_TABLE_SIZE,
-          height: Math.max(MIN_TABLE_SIZE.height, 62 + table.columns.length * 34),
+          height: table.columns.length
+            ? Math.max(MIN_TABLE_SIZE.height, 62 + table.columns.length * 34)
+            : EMPTY_TABLE_MIN_HEIGHT,
         }}
         color='#4338ca'
         onResize={onResize}

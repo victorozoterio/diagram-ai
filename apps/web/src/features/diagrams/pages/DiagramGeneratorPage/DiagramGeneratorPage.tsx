@@ -84,6 +84,7 @@ export function DiagramGeneratorPage() {
           id: `logical-table-${Date.now()}`,
           name: 'Tabela',
           columns: [],
+          size: { width: 280, height: 130 },
           position,
         },
       ],
