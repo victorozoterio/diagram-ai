@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import type { EditorMode } from '../../components';
 import {
   ConceptualDiagramFlow,
   EditorAssistant,
   EditorCanvas,
   EditorHeader,
   EditorSidebar,
-  LogicalModelFlow,
+  LogicalEditorCanvas,
+  LogicalEditorSidebar,
 } from '../../components';
 import { useDiagramEditor } from '../../hooks';
 import type { ConceptualModel } from '../../types';
@@ -18,12 +20,16 @@ const emptyConceptualModel: ConceptualModel = {
   ambiguities: [],
 };
 
+const emptyLogicalModel = { tables: [] };
+
 export function DiagramGeneratorPage() {
+  const [mode, setMode] = useState<EditorMode>('conceptual');
   const [exportMenuTarget, setExportMenuTarget] = useState<HTMLDivElement | null>(null);
   const {
     description,
     conceptualModel,
     logicalModel,
+    setLogicalModel,
     isGenerating,
     isConverting,
     error,
@@ -69,6 +75,20 @@ export function DiagramGeneratorPage() {
   } = useDiagramEditor();
   const activeConceptualModel = conceptualModel ?? emptyConceptualModel;
 
+  function addLogicalTable(position: { x: number; y: number }) {
+    setLogicalModel((currentModel) => ({
+      tables: [
+        ...(currentModel?.tables ?? []),
+        {
+          id: `logical-table-${Date.now()}`,
+          name: 'Tabela',
+          columns: [],
+          position,
+        },
+      ],
+    }));
+  }
+
   return (
     <main className={styles.app}>
       <EditorHeader
@@ -78,78 +98,76 @@ export function DiagramGeneratorPage() {
         onGenerate={generateConceptualDiagram}
         onConvert={convertConceptualToLogicalDiagram}
         exportMenuTargetRef={setExportMenuTarget}
+        mode={mode}
+        onModeChange={setMode}
       />
 
       <div className={styles.workspace}>
-        <EditorSidebar model={conceptualModel} onAddEntity={addEntity} />
+        {mode === 'conceptual' ? (
+          <EditorSidebar model={conceptualModel} onAddEntity={addEntity} />
+        ) : (
+          <LogicalEditorSidebar />
+        )}
 
         <EditorCanvas>
-          <section className={styles.modelSection}>
-            <div className={styles.canvasHeading}>
-              <div>
-                <span className={styles.eyebrow}>CANVAS</span>
-                <h1>Modelo conceitual</h1>
-              </div>
-              <span className={styles.canvasHint}>Clique nos textos para editar · arraste para organizar</span>
-            </div>
-
-            <ConceptualDiagramFlow
-              model={activeConceptualModel}
-              exportMenuTarget={exportMenuTarget}
-              onRemoveEntity={removeEntity}
-              onSelectEntity={selectEntity}
-              onClearSelection={clearCanvasSelection}
-              onUpdateEntity={updateEntity}
-              selectedEntityIds={selectedEntityIds}
-              layoutVersion={layoutVersion}
-              entityPositions={entityPositions}
-              elementPositions={elementPositions}
-              nodeSizes={nodeSizes}
-              edgeControlPoints={edgeControlPoints}
-              onUpdateEntityPosition={updateEntityPosition}
-              onUpdateElementPosition={updateElementPosition}
-              onUpdateNodeSize={updateNodeSize}
-              onUpdateEdgeControlPoints={updateEdgeControlPoints}
-              onRemoveEdgeControlPoints={removeEdgeControlPoints}
-              onAddElementAtPosition={addElementAtPosition}
-              selectedAttribute={selectedAttribute}
-              onSelectAttribute={selectAttribute}
-              onUpdateAttribute={updateAttribute}
-              onRemoveAttribute={removeAttribute}
-              onConnectAttributeToEntity={connectAttributeToEntity}
-              onConnectAttributeToAttribute={connectAttributeToAttribute}
-              onConnectAttributeToRelationship={connectAttributeToRelationship}
-              onDisconnectAttributeFromEntity={disconnectAttributeFromEntity}
-              onDisconnectAttributeFromAttribute={disconnectAttributeFromAttribute}
-              onDisconnectAttributeFromRelationship={disconnectAttributeFromRelationship}
-              onConnectEntities={createRelationshipFromConnection}
-              onConnectEntityToRelationship={connectEntityToRelationship}
-              onConnectEntityToGeneralization={connectEntityToGeneralization}
-              onUpdateRelationship={updateRelationship}
-              onRemoveRelationship={removeRelationship}
-              onDisconnectEntityFromRelationship={disconnectEntityFromRelationship}
-              onDisconnectEntityFromGeneralization={disconnectEntityFromGeneralization}
-              onCycleRelationshipCardinality={cycleRelationshipCardinality}
-            />
-            {!conceptualModel && (
-              <div className={styles.emptyCanvas}>
-                <span className={styles.emptyIcon}>⌘</span>
-                <h1>Seu modelo começa aqui</h1>
-                <p>Gere um modelo ou arraste um elemento da biblioteca para começar.</p>
-              </div>
-            )}
-          </section>
-
-          {logicalModel && (
+          {mode === 'conceptual' ? (
             <section className={styles.modelSection}>
               <div className={styles.canvasHeading}>
                 <div>
-                  <span className={styles.eyebrow}>RESULTADO</span>
-                  <h2>Modelo lógico</h2>
+                  <span className={styles.eyebrow}>CANVAS</span>
+                  <h1>Modelo conceitual</h1>
                 </div>
+                <span className={styles.canvasHint}>Clique nos textos para editar · arraste para organizar</span>
               </div>
-              <LogicalModelFlow model={logicalModel} />
+
+              <ConceptualDiagramFlow
+                model={activeConceptualModel}
+                exportMenuTarget={exportMenuTarget}
+                onRemoveEntity={removeEntity}
+                onSelectEntity={selectEntity}
+                onClearSelection={clearCanvasSelection}
+                onUpdateEntity={updateEntity}
+                selectedEntityIds={selectedEntityIds}
+                layoutVersion={layoutVersion}
+                entityPositions={entityPositions}
+                elementPositions={elementPositions}
+                nodeSizes={nodeSizes}
+                edgeControlPoints={edgeControlPoints}
+                onUpdateEntityPosition={updateEntityPosition}
+                onUpdateElementPosition={updateElementPosition}
+                onUpdateNodeSize={updateNodeSize}
+                onUpdateEdgeControlPoints={updateEdgeControlPoints}
+                onRemoveEdgeControlPoints={removeEdgeControlPoints}
+                onAddElementAtPosition={addElementAtPosition}
+                selectedAttribute={selectedAttribute}
+                onSelectAttribute={selectAttribute}
+                onUpdateAttribute={updateAttribute}
+                onRemoveAttribute={removeAttribute}
+                onConnectAttributeToEntity={connectAttributeToEntity}
+                onConnectAttributeToAttribute={connectAttributeToAttribute}
+                onConnectAttributeToRelationship={connectAttributeToRelationship}
+                onDisconnectAttributeFromEntity={disconnectAttributeFromEntity}
+                onDisconnectAttributeFromAttribute={disconnectAttributeFromAttribute}
+                onDisconnectAttributeFromRelationship={disconnectAttributeFromRelationship}
+                onConnectEntities={createRelationshipFromConnection}
+                onConnectEntityToRelationship={connectEntityToRelationship}
+                onConnectEntityToGeneralization={connectEntityToGeneralization}
+                onUpdateRelationship={updateRelationship}
+                onRemoveRelationship={removeRelationship}
+                onDisconnectEntityFromRelationship={disconnectEntityFromRelationship}
+                onDisconnectEntityFromGeneralization={disconnectEntityFromGeneralization}
+                onCycleRelationshipCardinality={cycleRelationshipCardinality}
+              />
+              {!conceptualModel && (
+                <div className={styles.emptyCanvas}>
+                  <span className={styles.emptyIcon}>⌘</span>
+                  <h1>Seu modelo começa aqui</h1>
+                  <p>Gere um modelo ou arraste um elemento da biblioteca para começar.</p>
+                </div>
+              )}
             </section>
+          ) : (
+            <LogicalEditorCanvas model={logicalModel ?? emptyLogicalModel} onAddTable={addLogicalTable} />
           )}
         </EditorCanvas>
 

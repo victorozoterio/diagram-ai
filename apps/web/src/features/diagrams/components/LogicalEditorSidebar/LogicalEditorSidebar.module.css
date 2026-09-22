@@ -1,0 +1,11 @@
+.logicalPreviewShape {
+  fill: #ffffff;
+  stroke: #6366f1;
+  stroke-width: 1.5;
+}
+
+.logicalPreviewDivider {
+  fill: none;
+  stroke: #6366f1;
+  stroke-width: 1.5;
+}

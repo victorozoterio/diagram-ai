@@ -1,7 +1,7 @@
 .header {
-  display: flex;
+  display: grid;
   align-items: center;
-  justify-content: space-between;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   min-height: 72px;
   padding: 0 24px;
   border-bottom: 1px solid #e5e7eb;
@@ -9,13 +9,15 @@
 }
 
 .brand,
-.actions {
+.actions,
+.modeSwitcher {
   display: flex;
   align-items: center;
 }
 
 .brand {
   gap: 10px;
+  grid-column: 1;
 }
 
 .logoMark {
@@ -44,7 +46,44 @@
   font-size: 11px;
 }
 
+.modeSwitcher {
+  grid-column: 2;
+  justify-self: start;
+  gap: 2px;
+  padding: 3px;
+  margin-left: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  background: #f9fafb;
+}
+
+.modeButton {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.modeButton:hover,
+.modeButton:focus-visible {
+  color: #4338ca;
+  outline: none;
+}
+
+.modeButtonActive {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 10%);
+  color: #4338ca;
+}
+
 .actions {
+  grid-column: 3;
+  justify-self: end;
   gap: 8px;
 }
 
@@ -87,5 +126,13 @@
 
   .secondaryButton {
     display: none;
+  }
+
+  .modeSwitcher {
+    margin-left: 12px;
+  }
+
+  .modeButton {
+    padding: 0 8px;
   }
 }

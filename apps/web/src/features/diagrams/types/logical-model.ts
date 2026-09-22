@@ -27,6 +27,10 @@ export type LogicalTable = {
   id: string;
   name: string;
   columns: LogicalColumn[];
+  position?: {
+    x: number;
+    y: number;
+  };
 };
 
 export type LogicalModel = {

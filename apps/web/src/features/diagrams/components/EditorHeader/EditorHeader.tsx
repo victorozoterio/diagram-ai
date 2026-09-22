@@ -1,5 +1,7 @@
 import styles from './EditorHeader.module.css';
 
+export type EditorMode = 'conceptual' | 'logical';
+
 type EditorHeaderProps = {
   isGenerating: boolean;
   isConverting: boolean;
@@ -7,6 +9,8 @@ type EditorHeaderProps = {
   onGenerate: () => void;
   onConvert: () => void;
   exportMenuTargetRef?: (element: HTMLDivElement | null) => void;
+  mode: EditorMode;
+  onModeChange: (mode: EditorMode) => void;
 };
 
 export function EditorHeader({
@@ -16,6 +20,8 @@ export function EditorHeader({
   onGenerate,
   onConvert,
   exportMenuTargetRef,
+  mode,
+  onModeChange,
 }: EditorHeaderProps) {
   return (
     <header className={styles.header}>
@@ -25,6 +31,27 @@ export function EditorHeader({
           <strong>Diagram.AI</strong>
           <span>Editor de modelos</span>
         </div>
+      </div>
+
+      <div className={styles.modeSwitcher} role='tablist' aria-label='Modo do editor'>
+        <button
+          className={`${styles.modeButton} ${mode === 'conceptual' ? styles.modeButtonActive : ''}`}
+          type='button'
+          role='tab'
+          aria-selected={mode === 'conceptual'}
+          onClick={() => onModeChange('conceptual')}
+        >
+          Conceitual
+        </button>
+        <button
+          className={`${styles.modeButton} ${mode === 'logical' ? styles.modeButtonActive : ''}`}
+          type='button'
+          role='tab'
+          aria-selected={mode === 'logical'}
+          onClick={() => onModeChange('logical')}
+        >
+          Lógico
+        </button>
       </div>
 
       <div className={styles.actions}>
