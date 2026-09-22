@@ -54,6 +54,8 @@ const columnTypes: LogicalColumn['type'][] = [
 const DEFAULT_TABLE_SIZE = { width: 430, height: 100 };
 const MIN_TABLE_SIZE = { width: 260, height: 80 };
 const EMPTY_TABLE_MIN_HEIGHT = 130;
+const NORMAL_TABLE_HEADER_HEIGHT = 74;
+const NORMAL_COLUMN_HEIGHT = 34;
 const EDITING_REQUIRED_WIDTH = 300;
 const EDITING_TABLE_HEADER_HEIGHT = 74;
 const EDITING_TABLE_ADD_BUTTON_HEIGHT = 36;
@@ -70,6 +72,12 @@ function editingRequiredHeight(table: LogicalTable) {
     : EDITING_EMPTY_TABLE_HEIGHT;
 
   return EDITING_TABLE_HEADER_HEIGHT + columnsHeight + EDITING_TABLE_ADD_BUTTON_HEIGHT;
+}
+
+function normalRequiredHeight(table: LogicalTable) {
+  return table.columns.length
+    ? NORMAL_TABLE_HEADER_HEIGHT + table.columns.length * NORMAL_COLUMN_HEIGHT
+    : EMPTY_TABLE_MIN_HEIGHT;
 }
 
 function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeData>>) {
@@ -104,10 +112,8 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
         nodeId={table.id}
         selected={Boolean(selected)}
         minSize={{
-          ...MIN_TABLE_SIZE,
-          height: table.columns.length
-            ? Math.max(MIN_TABLE_SIZE.height, 62 + table.columns.length * 34)
-            : EMPTY_TABLE_MIN_HEIGHT,
+          width: isEditing ? Math.max(MIN_TABLE_SIZE.width, EDITING_REQUIRED_WIDTH) : MIN_TABLE_SIZE.width,
+          height: isEditing ? editingRequiredHeight(table) : normalRequiredHeight(table),
         }}
         color='#4338ca'
         onResize={onResize}
@@ -355,6 +361,7 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<LogicalTableNodeData>[]>([]);
+  const editingStartSizes = useRef<Record<string, { width: number; height: number }>>({});
   const handleResize = useCallback((nodeId: string, size: { width: number; height: number }) => {
     setNodes((currentNodes) =>
       currentNodes.map((node) =>
@@ -380,8 +387,8 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
         const isEditing = editingTableId === table.id;
         const baseWidth = size?.width ?? DEFAULT_TABLE_SIZE.width;
         const baseHeight = size?.height ?? DEFAULT_TABLE_SIZE.height;
-        const width = isEditing ? Math.max(baseWidth, EDITING_REQUIRED_WIDTH) : baseWidth;
-        const height = isEditing ? Math.max(baseHeight, editingRequiredHeight(table)) : baseHeight;
+        const width = Math.max(baseWidth, isEditing ? EDITING_REQUIRED_WIDTH : MIN_TABLE_SIZE.width);
+        const height = Math.max(baseHeight, isEditing ? editingRequiredHeight(table) : normalRequiredHeight(table));
 
         return {
           id: table.id,
@@ -413,7 +420,8 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
     setNodes((currentNodes) =>
       mappedNodes.map((nextNode) => {
         const currentNode = currentNodes.find((node) => node.id === nextNode.id);
-        const keepsEditing = currentNode?.data.editingTableId === nextNode.data.editingTableId;
+        const currentIsEditing = currentNode?.data.editingTableId === nextNode.id;
+        const nextIsEditing = nextNode.data.editingTableId === nextNode.id;
         const currentWidth = currentNode?.width;
         const currentHeight = currentNode?.height;
         const nextWidth = nextNode.width ?? DEFAULT_TABLE_SIZE.width;
@@ -423,14 +431,14 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
           ...nextNode,
           position: currentNode?.dragging ? currentNode.position : nextNode.position,
           selected: currentNode?.selected ?? false,
-          ...(currentWidth && currentHeight && keepsEditing
+          ...(currentWidth && currentHeight && !(currentIsEditing && !nextIsEditing)
             ? {
-                width: nextWidth,
-                height: nextHeight,
+                width: Math.max(currentWidth, nextWidth),
+                height: Math.max(currentHeight, nextHeight),
                 style: {
                   ...nextNode.style,
-                  width: nextWidth,
-                  height: nextHeight,
+                  width: Math.max(currentWidth, nextWidth),
+                  height: Math.max(currentHeight, nextHeight),
                 },
               }
             : {}),
@@ -438,6 +446,28 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
       }),
     );
   }, [mappedNodes]);
+
+  const finishEditing = useCallback(() => {
+    if (!editingTableId) return;
+
+    const table = model.tables.find((candidate) => candidate.id === editingTableId);
+    const startSize = editingStartSizes.current[editingTableId];
+
+    if (table && startSize) {
+      const requiredNormalHeight = table.columns.length ? normalRequiredHeight(table) : startSize.height;
+
+      onUpdateTable({
+        ...table,
+        size: {
+          width: Math.max(startSize.width, MIN_TABLE_SIZE.width),
+          height: Math.max(startSize.height, requiredNormalHeight),
+        },
+      });
+    }
+
+    delete editingStartSizes.current[editingTableId];
+    setEditingTableId(null);
+  }, [editingTableId, model.tables, onUpdateTable]);
 
   function handleNodesChange(changes: NodeChange<Node<LogicalTableNodeData>>[]) {
     setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
@@ -553,6 +583,9 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
         onNodesChange={handleNodesChange}
         onNodesDelete={(deletedNodes) => {
           const deletedIds = new Set(deletedNodes.map((node) => node.id));
+          deletedIds.forEach((id) => {
+            delete editingStartSizes.current[id];
+          });
           setEditingTableId((currentId) => (currentId && deletedIds.has(currentId) ? null : currentId));
 
           onUpdateModel({
@@ -575,22 +608,30 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
         onNodeClick={(event, _node) => {
           setSelectedEdgeId(null);
           if (!(event.target instanceof Element && event.target.closest('.nodrag'))) {
-            setEditingTableId(null);
+            finishEditing();
           }
         }}
         onNodeDoubleClick={(_, node) => {
+          const table = model.tables.find((candidate) => candidate.id === node.id);
+          if (table && !editingStartSizes.current[node.id]) {
+            editingStartSizes.current[node.id] = {
+              width: node.width ?? node.measured?.width ?? table.size?.width ?? DEFAULT_TABLE_SIZE.width,
+              height: node.height ?? node.measured?.height ?? table.size?.height ?? DEFAULT_TABLE_SIZE.height,
+            };
+          }
+          if (editingTableId && editingTableId !== node.id) finishEditing();
           setEditingTableId(node.id);
         }}
         onPaneClick={() => {
           setNodes((currentNodes) => currentNodes.map((node) => ({ ...node, selected: false })));
           setSelectedEdgeId(null);
-          setEditingTableId(null);
+          finishEditing();
         }}
         onConnect={handleConnect}
         onEdgesChange={handleEdgesChange}
         onEdgeClick={(_, edge) => {
           setNodes((currentNodes) => currentNodes.map((node) => ({ ...node, selected: false })));
-          setEditingTableId(null);
+          finishEditing();
           setSelectedEdgeId(edge.id);
         }}
         elementsSelectable
