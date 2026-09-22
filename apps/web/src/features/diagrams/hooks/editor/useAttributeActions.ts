@@ -1,4 +1,4 @@
-import type { Attribute, ConceptualModel, ElementKind, LogicalModel } from '../../types';
+import type { Attribute, ConceptualModel, ElementKind } from '../../types';
 import type { AttributeSelection, DiagramPosition, DiagramSize, StateSetter } from './editor.types';
 import { attributePositionKey, createEmptyConceptualModel, createManualAttribute } from './model-factories';
 import {
@@ -11,7 +11,6 @@ import {
 type AttributeActionDependencies = {
   conceptualModel: ConceptualModel | null;
   setConceptualModel: StateSetter<ConceptualModel | null>;
-  setLogicalModel: StateSetter<LogicalModel | null>;
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
   setNodeSizes: StateSetter<Record<string, DiagramSize>>;
   setSelectedAttribute: StateSetter<AttributeSelection>;
@@ -21,7 +20,6 @@ type AttributeActionDependencies = {
 export function useAttributeActions({
   conceptualModel,
   setConceptualModel,
-  setLogicalModel,
   setElementPositions,
   setNodeSizes,
   setSelectedAttribute,
@@ -49,7 +47,6 @@ export function useAttributeActions({
         [attributePositionKey(entityId, attribute.id)]: position,
       }));
     }
-    setLogicalModel(null);
   }
 
   function selectAttribute(entityId: string | null, attributeId: string) {
@@ -65,7 +62,6 @@ export function useAttributeActions({
     setConceptualModel((currentModel) =>
       currentModel ? updateAttributeInModel(currentModel, entityId, attributeId, changes) : currentModel,
     );
-    setLogicalModel(null);
   }
 
   function removeAttribute(entityId: string | null, attributeId: string) {
@@ -76,7 +72,6 @@ export function useAttributeActions({
       currentSelection?.entityId === entityId && currentSelection.attributeId === attributeId ? null : currentSelection,
     );
     setElementPositions(({ [attributePositionKey(entityId, attributeId)]: _removed, ...remaining }) => remaining);
-    setLogicalModel(null);
   }
 
   function connectAttributeToEntity(
@@ -106,7 +101,6 @@ export function useAttributeActions({
             }
           : currentModel,
       );
-      setLogicalModel(null);
       return;
     }
 
@@ -153,7 +147,6 @@ export function useAttributeActions({
     });
     transferNodeSize(sourceEntityId, targetEntityId, attributeId, setNodeSizes);
     setSelectedAttribute({ entityId: targetEntityId, attributeId });
-    setLogicalModel(null);
   }
 
   function connectAttributeToAttribute(
@@ -217,7 +210,6 @@ export function useAttributeActions({
         })),
       };
     });
-    setLogicalModel(null);
   }
 
   function disconnectAttributeFromEntity(entityId: string, attributeId: string) {
@@ -244,7 +236,6 @@ export function useAttributeActions({
     });
     transferNodeSize(entityId, null, attributeId, setNodeSizes);
     setSelectedAttribute({ entityId: null, attributeId });
-    setLogicalModel(null);
   }
 
   function connectAttributeToRelationship(
@@ -274,7 +265,6 @@ export function useAttributeActions({
         ),
       };
     });
-    setLogicalModel(null);
   }
 
   function disconnectAttributeFromRelationship(relationshipId: string, entityId: string | null, attributeId: string) {
@@ -316,7 +306,6 @@ export function useAttributeActions({
         ),
       };
     });
-    setLogicalModel(null);
   }
 
   function disconnectAttributeFromAttribute(entityId: string | null, attributeId: string, parentAttributeId: string) {
@@ -352,7 +341,6 @@ export function useAttributeActions({
         })),
       };
     });
-    setLogicalModel(null);
   }
 
   return {

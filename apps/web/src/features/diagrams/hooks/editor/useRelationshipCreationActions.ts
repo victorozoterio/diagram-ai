@@ -1,4 +1,4 @@
-import type { Cardinality, ConceptualModel, LogicalModel, Relationship } from '../../types';
+import type { Cardinality, ConceptualModel, Relationship } from '../../types';
 import type { DiagramPosition, StateSetter } from './editor.types';
 import {
   createEmptyConceptualModel,
@@ -13,14 +13,12 @@ type GeneralizationRole = 'supertype' | 'subtype';
 
 type RelationshipCreationDependencies = {
   setConceptualModel: StateSetter<ConceptualModel | null>;
-  setLogicalModel: StateSetter<LogicalModel | null>;
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
   setSelectedEntityIds: StateSetter<string[]>;
 };
 
 export function useRelationshipCreationActions({
   setConceptualModel,
-  setLogicalModel,
   setElementPositions,
   setSelectedEntityIds,
 }: RelationshipCreationDependencies) {
@@ -81,7 +79,6 @@ export function useRelationshipCreationActions({
     });
 
     setSelectedEntityIds([]);
-    setLogicalModel(null);
   }
 
   function createRelationshipFromConnection(
@@ -111,7 +108,6 @@ export function useRelationshipCreationActions({
       ...currentPositions,
       [relationshipPositionKey(relationship.id)]: position,
     }));
-    setLogicalModel(null);
   }
 
   function connectEntityToRelationship(
@@ -168,7 +164,6 @@ export function useRelationshipCreationActions({
         }),
       };
     });
-    setLogicalModel(null);
   }
 
   function connectEntityToGeneralization(
@@ -211,7 +206,6 @@ export function useRelationshipCreationActions({
         }),
       };
     });
-    setLogicalModel(null);
   }
 
   function disconnectEntityFromGeneralization(relationshipId: string, entityId: string, role: GeneralizationRole) {
@@ -236,7 +230,6 @@ export function useRelationshipCreationActions({
         }),
       };
     });
-    setLogicalModel(null);
   }
 
   return {

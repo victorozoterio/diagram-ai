@@ -30,6 +30,10 @@ export type LogicalTable = {
   id: string;
   name: string;
   columns: LogicalColumn[];
+  size?: {
+    width: number;
+    height: number;
+  };
   position?: {
     x: number;
     y: number;

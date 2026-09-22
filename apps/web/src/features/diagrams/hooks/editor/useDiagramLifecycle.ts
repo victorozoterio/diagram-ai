@@ -38,7 +38,6 @@ export function useDiagramLifecycle({
 }: LifecycleDependencies) {
   async function generateConceptualDiagram() {
     setError(null);
-    setLogicalModel(null);
     setIsGenerating(true);
 
     try {

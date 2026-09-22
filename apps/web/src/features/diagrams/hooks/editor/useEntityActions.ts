@@ -1,4 +1,4 @@
-import type { ConceptualModel, Entity, EntityKind, LogicalModel } from '../../types';
+import type { ConceptualModel, Entity, EntityKind } from '../../types';
 import type { AttributeSelection, DiagramPosition, StateSetter } from './editor.types';
 import { createEmptyConceptualModel, createManualEntity } from './model-factories';
 import { removeEntityFromModel, updateEntityInModel } from './model-operations';
@@ -6,7 +6,6 @@ import { removeEntityFromModel, updateEntityInModel } from './model-operations';
 type EntityActionDependencies = {
   conceptualModel: ConceptualModel | null;
   setConceptualModel: StateSetter<ConceptualModel | null>;
-  setLogicalModel: StateSetter<LogicalModel | null>;
   setEntityPositions: StateSetter<Record<string, DiagramPosition>>;
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
   setSelectedAttribute: StateSetter<AttributeSelection>;
@@ -16,7 +15,6 @@ type EntityActionDependencies = {
 export function useEntityActions({
   conceptualModel,
   setConceptualModel,
-  setLogicalModel,
   setEntityPositions,
   setElementPositions,
   setSelectedAttribute,
@@ -33,7 +31,6 @@ export function useEntityActions({
     if (position) {
       setEntityPositions((currentPositions) => ({ ...currentPositions, [entity.id]: position }));
     }
-    setLogicalModel(null);
   }
 
   function removeEntity(entityId: string) {
@@ -44,7 +41,6 @@ export function useEntityActions({
     setElementPositions((currentPositions) =>
       Object.fromEntries(Object.entries(currentPositions).filter(([key]) => !key.startsWith(`${entityId}:`))),
     );
-    setLogicalModel(null);
   }
 
   function updateEntityPosition(entityId: string, position: DiagramPosition) {
@@ -66,7 +62,6 @@ export function useEntityActions({
     setConceptualModel((currentModel) =>
       currentModel ? updateEntityInModel(currentModel, entityId, changes) : currentModel,
     );
-    setLogicalModel(null);
   }
 
   return {

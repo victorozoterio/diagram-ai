@@ -1,28 +1,67 @@
 .tableNode {
-  width: 430px;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  container-type: inline-size;
+  box-sizing: border-box;
+  min-width: 260px;
+  min-height: 80px;
+  overflow: visible;
   background: #ffffff;
   border: 1px solid #6366f1;
   border-radius: 8px;
   box-shadow: 0 10px 24px rgb(15 23 42 / 10%);
 }
 
+.selected {
+  filter: drop-shadow(0 0 5px rgb(67 56 202 / 42%));
+}
+
+.tableContent {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #ffffff;
+}
+
 .connectionHandle {
   width: 10px;
   height: 10px;
+  background: transparent;
+  border: 0;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.connectionHandle:global(.react-flow__handle) {
+  background: transparent;
+  border: 0;
+}
+
+.tableNode:hover .connectionHandle,
+.tableNode:focus-within .connectionHandle,
+.selected .connectionHandle {
+  opacity: 1;
+}
+
+.tableNode:hover .connectionHandle,
+.tableNode:focus-within .connectionHandle,
+.selected .connectionHandle {
   background: #6366f1;
-  border: 2px solid #ffffff;
 }
 
 .tableTitle {
   display: flex;
   align-items: center;
+  justify-content: center;
   min-height: 48px;
   padding: 12px 16px;
   background: #eef2ff;
   border-bottom: 1px solid #6366f1;
   color: #4338ca;
   font-size: 16px;
+  text-align: center;
 }
 
 .columnList {
@@ -33,45 +72,60 @@
 
 .columnItem {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: max(1px, calc(6px * var(--column-scale, 1)));
   padding: 8px 0;
   border-top: 1px solid #e5e7eb;
   font-size: 13px;
+  white-space: nowrap;
+}
+
+.editing .columnItem {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px 0;
+  white-space: normal;
 }
 
 .columnBadges {
   display: flex;
-  flex: 0 0 42px;
-  gap: 4px;
+  flex: 0 0 auto;
+  gap: max(1px, calc(4px * var(--column-scale, 1)));
+  white-space: nowrap;
 }
 
-.columnEditorRow,
-.columnFlags,
+.columnBadges:empty {
+  display: none;
+}
+
+.columnEditorOptions,
+.columnIdentityRow,
 .referenceEditor {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.columnEditorRow,
+.columnEditorOptions,
+.columnIdentityRow,
 .referenceEditor {
   width: 100%;
 }
 
-.keyOptions {
-  display: flex;
-  gap: 8px;
+.columnEditorOptions {
+  justify-content: center;
+  white-space: nowrap;
 }
 
-.keyOptions label,
-.columnFlags label {
+.columnEditorOptions label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   color: #64748b;
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
 }
 
@@ -95,13 +149,17 @@
 }
 
 .columnNameInput {
-  flex: 1 1 150px;
-  padding: 5px 7px;
+  flex: 1 1 auto;
+  width: 100%;
+  padding: 3px 5px;
+  font-size: 11px;
 }
 
 .columnSelect {
-  flex: 1 1 110px;
-  padding: 5px 7px;
+  flex: 0 0 96px;
+  width: 96px;
+  padding: 3px 5px;
+  font-size: 11px;
 }
 
 .columnNameInput:focus,
@@ -111,13 +169,13 @@
   box-shadow: 0 0 0 2px rgb(99 102 241 / 12%);
 }
 
-.columnFlags {
-  width: 100%;
-  justify-content: flex-start;
+.referenceEditor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
-.referenceEditor {
-  flex-wrap: wrap;
+.referenceEditor .columnSelect {
+  width: 100%;
 }
 
 .removeColumnButton,
@@ -127,7 +185,13 @@
 }
 
 .removeColumnButton {
-  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 1px;
+  padding: 0;
   background: transparent;
   color: #94a3b8;
   font-size: 18px;
@@ -140,8 +204,8 @@
 
 .addColumnButton {
   width: calc(100% - 32px);
-  margin: 8px 16px 12px;
-  padding: 7px 10px;
+  margin: 4px 16px 4px;
+  padding: 5px 8px;
   border: 1px dashed #a5b4fc;
   border-radius: 6px;
   background: #eef2ff;
@@ -168,7 +232,7 @@
 }
 
 .columnType {
-  padding: 2px 8px;
+  padding: max(1px, calc(2px * var(--column-scale, 1))) max(2px, calc(8px * var(--column-scale, 1)));
   color: #4338ca;
   font-size: 11px;
   font-weight: 700;
@@ -179,4 +243,11 @@
 .columnMeta {
   color: #6b7280;
   font-size: 11px;
+  white-space: nowrap;
+}
+
+.tableNode:not(.editing) .keyTag,
+.tableNode:not(.editing) .columnType,
+.tableNode:not(.editing) .columnMeta {
+  font-size: inherit;
 }

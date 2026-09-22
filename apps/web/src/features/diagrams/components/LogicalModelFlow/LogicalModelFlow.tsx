@@ -1,4 +1,5 @@
 import {
+  applyNodeChanges,
   Background,
   type Connection,
   ConnectionMode,
@@ -8,16 +9,18 @@ import {
   Handle,
   MiniMap,
   type Node,
+  type NodeChange,
   type NodeProps,
   Position,
   ReactFlow,
   type ReactFlowInstance,
 } from '@xyflow/react';
-import { useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 
 import type { LogicalColumn, LogicalModel, LogicalTable, LogicalTableRelationship } from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
+import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
 import styles from './LogicalModelFlow.module.css';
 
 type LogicalModelFlowProps = {
@@ -32,6 +35,8 @@ type LogicalTableNodeData = {
   tables: LogicalTable[];
   onUpdateTable: (table: LogicalTable) => void;
   editingTableId: string | null;
+  onResize: (nodeId: string, size: { width: number; height: number }) => void;
+  onResizeEnd: (nodeId: string, size: { width: number; height: number }) => void;
 };
 
 const columnTypes: LogicalColumn['type'][] = [
@@ -46,9 +51,32 @@ const columnTypes: LogicalColumn['type'][] = [
   'datetime',
 ];
 
-function TableNode({ data }: NodeProps<Node<LogicalTableNodeData>>) {
-  const { table, tables, onUpdateTable, editingTableId } = data;
+const DEFAULT_TABLE_SIZE = { width: 430, height: 100 };
+const MIN_TABLE_SIZE = { width: 260, height: 80 };
+const EDITING_REQUIRED_WIDTH = 300;
+const EDITING_TABLE_HEADER_HEIGHT = 74;
+const EDITING_TABLE_ADD_BUTTON_HEIGHT = 36;
+const EDITING_EMPTY_TABLE_HEIGHT = 74;
+const EDITING_COLUMN_HEIGHT = 58;
+const EDITING_FOREIGN_KEY_COLUMN_HEIGHT = 84;
+
+function editingRequiredHeight(table: LogicalTable) {
+  const columnsHeight = table.columns.length
+    ? table.columns.reduce(
+        (height, column) => height + (column.foreignKey ? EDITING_FOREIGN_KEY_COLUMN_HEIGHT : EDITING_COLUMN_HEIGHT),
+        0,
+      )
+    : EDITING_EMPTY_TABLE_HEIGHT;
+
+  return EDITING_TABLE_HEADER_HEIGHT + columnsHeight + EDITING_TABLE_ADD_BUTTON_HEIGHT;
+}
+
+function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeData>>) {
+  const { table, tables, onUpdateTable, editingTableId, onResize, onResizeEnd } = data;
   const isEditing = editingTableId === table.id;
+  const tableWidth = width ?? table.size?.width ?? DEFAULT_TABLE_SIZE.width;
+  const columnScale = tableColumnScale(table.columns, tableWidth);
+  const referencedTables = tables.filter((candidate) => candidate.id !== table.id);
   const updateColumns = (columns: LogicalTable['columns']) => onUpdateTable({ ...table, columns });
   const updateColumn = (columnId: string, update: Partial<LogicalColumn>) =>
     updateColumns(table.columns.map((column) => (column.id === columnId ? { ...column, ...update } : column)));
@@ -70,33 +98,48 @@ function TableNode({ data }: NodeProps<Node<LogicalTableNodeData>>) {
   const removeColumn = (columnId: string) => updateColumns(table.columns.filter((column) => column.id !== columnId));
 
   return (
-    <div className={styles.tableNode}>
-      <div className={styles.tableTitle}>
-        {isEditing ? (
-          <input
-            className={`${styles.tableNameInput} nodrag`}
-            value={table.name}
-            aria-label='Nome da tabela'
-            onChange={(event) => onUpdateTable({ ...table, name: event.target.value })}
-            onPointerDown={(event) => event.stopPropagation()}
-          />
-        ) : (
-          <strong>{table.name}</strong>
-        )}
-      </div>
+    <div className={`${styles.tableNode} ${selected ? styles.selected : ''} ${isEditing ? styles.editing : ''}`}>
+      <ResizableNodeControls
+        nodeId={table.id}
+        selected={Boolean(selected)}
+        minSize={{
+          ...MIN_TABLE_SIZE,
+          height: Math.max(MIN_TABLE_SIZE.height, 62 + table.columns.length * 34),
+        }}
+        color='#4338ca'
+        onResize={onResize}
+        onResizeEnd={onResizeEnd}
+      />
+      <div className={styles.tableContent}>
+        <div className={styles.tableTitle}>
+          {isEditing ? (
+            <input
+              className={`${styles.tableNameInput} nodrag`}
+              value={table.name}
+              aria-label='Nome da tabela'
+              onChange={(event) => onUpdateTable({ ...table, name: event.target.value })}
+              onPointerDown={(event) => event.stopPropagation()}
+            />
+          ) : (
+            <strong>{table.name}</strong>
+          )}
+        </div>
 
-      {table.columns.length > 0 ? (
-        <ul className={styles.columnList}>
-          {table.columns.map((column) => {
-            const referencedTable = tables.find((candidate) => candidate.id === column.references?.tableId);
-            const nullable = column.nullable ?? !column.required;
+        {table.columns.length > 0 ? (
+          <ul className={styles.columnList}>
+            {table.columns.map((column) => {
+              const referencedTable = referencedTables.find((candidate) => candidate.id === column.references?.tableId);
+              const nullable = column.nullable ?? !column.required;
 
-            return (
-              <li key={column.id} className={styles.columnItem}>
-                {isEditing ? (
-                  <>
-                    <div className={styles.columnEditorRow}>
-                      <div className={styles.keyOptions}>
+              return (
+                <li
+                  key={column.id}
+                  className={styles.columnItem}
+                  style={!isEditing ? columnResponsiveStyle(columnScale) : undefined}
+                >
+                  {isEditing ? (
+                    <>
+                      <div className={styles.columnEditorOptions}>
                         <label className='nodrag'>
                           <input
                             type='checkbox'
@@ -112,139 +155,145 @@ function TableNode({ data }: NodeProps<Node<LogicalTableNodeData>>) {
                             onChange={(event) =>
                               updateColumn(column.id, {
                                 foreignKey: event.target.checked,
-                                references: event.target.checked ? column.references : undefined,
+                                references:
+                                  event.target.checked && column.references?.tableId !== table.id
+                                    ? column.references
+                                    : undefined,
                               })
                             }
                           />
                           FK
                         </label>
+                        <label className='nodrag'>
+                          <input
+                            type='checkbox'
+                            checked={nullable}
+                            onChange={(event) =>
+                              updateColumn(column.id, {
+                                nullable: event.target.checked,
+                                required: !event.target.checked,
+                              })
+                            }
+                          />
+                          Nullable
+                        </label>
+                        <label className='nodrag'>
+                          <input
+                            type='checkbox'
+                            checked={column.unique}
+                            onChange={(event) => updateColumn(column.id, { unique: event.target.checked })}
+                          />
+                          Unique
+                        </label>
+                        <button
+                          className={`${styles.removeColumnButton} nodrag`}
+                          type='button'
+                          aria-label={`Excluir campo ${column.name}`}
+                          onClick={() => removeColumn(column.id)}
+                        >
+                          ×
+                        </button>
                       </div>
-                      <button
-                        className={`${styles.removeColumnButton} nodrag`}
-                        type='button'
-                        aria-label={`Excluir campo ${column.name}`}
-                        onClick={() => removeColumn(column.id)}
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <input
-                      className={`${styles.columnNameInput} nodrag`}
-                      value={column.name}
-                      aria-label='Nome do campo'
-                      onChange={(event) => updateColumn(column.id, { name: event.target.value })}
-                      onPointerDown={(event) => event.stopPropagation()}
-                    />
-                    <select
-                      className={`${styles.columnSelect} nodrag`}
-                      value={column.type}
-                      aria-label='Tipo do campo'
-                      onChange={(event) =>
-                        updateColumn(column.id, { type: event.target.value as LogicalColumn['type'] })
-                      }
-                      onPointerDown={(event) => event.stopPropagation()}
-                    >
-                      {columnTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                    <div className={styles.columnFlags}>
-                      <label className='nodrag'>
+                      <div className={styles.columnIdentityRow}>
                         <input
-                          type='checkbox'
-                          checked={nullable}
-                          onChange={(event) =>
-                            updateColumn(column.id, { nullable: event.target.checked, required: !event.target.checked })
-                          }
+                          className={`${styles.columnNameInput} nodrag`}
+                          value={column.name}
+                          aria-label='Nome do campo'
+                          onChange={(event) => updateColumn(column.id, { name: event.target.value })}
+                          onPointerDown={(event) => event.stopPropagation()}
                         />
-                        Nullable
-                      </label>
-                      <label className='nodrag'>
-                        <input
-                          type='checkbox'
-                          checked={column.unique}
-                          onChange={(event) => updateColumn(column.id, { unique: event.target.checked })}
-                        />
-                        Unique
-                      </label>
-                    </div>
-                    {column.foreignKey && (
-                      <div className={styles.referenceEditor}>
                         <select
                           className={`${styles.columnSelect} nodrag`}
-                          value={column.references?.tableId ?? ''}
-                          aria-label='Tabela referenciada'
+                          value={column.type}
+                          aria-label='Tipo do campo'
                           onChange={(event) =>
-                            updateColumn(column.id, {
-                              references: event.target.value
-                                ? { tableId: event.target.value, columnId: '' }
-                                : undefined,
-                            })
+                            updateColumn(column.id, { type: event.target.value as LogicalColumn['type'] })
                           }
                           onPointerDown={(event) => event.stopPropagation()}
                         >
-                          <option value=''>Tabela referenciada</option>
-                          {tables.map((candidate) => (
-                            <option key={candidate.id} value={candidate.id}>
-                              {candidate.name}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className={`${styles.columnSelect} nodrag`}
-                          value={column.references?.columnId ?? ''}
-                          aria-label='Campo referenciado'
-                          disabled={!referencedTable}
-                          onChange={(event) =>
-                            updateColumn(column.id, {
-                              references: column.references
-                                ? { ...column.references, columnId: event.target.value }
-                                : undefined,
-                            })
-                          }
-                          onPointerDown={(event) => event.stopPropagation()}
-                        >
-                          <option value=''>Campo referenciado</option>
-                          {referencedTable?.columns.map((referencedColumn) => (
-                            <option key={referencedColumn.id} value={referencedColumn.id}>
-                              {referencedColumn.name}
+                          {columnTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
                             </option>
                           ))}
                         </select>
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className={styles.columnBadges}>
-                      {column.primaryKey && <span className={styles.keyTag}>PK</span>}
-                      {column.foreignKey && <span className={styles.keyTag}>FK</span>}
-                    </div>
-                    <span>{column.name}</span>
-                    <small className={styles.columnType}>{column.type}</small>
-                    {nullable ? (
-                      <span className={styles.columnMeta}>NULL</span>
-                    ) : (
-                      <span className={styles.columnMeta}>NOT NULL</span>
-                    )}
-                    {column.unique && <span className={styles.columnMeta}>UNIQUE</span>}
-                  </>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className={styles.emptyTable}>Nenhuma coluna definida</div>
-      )}
+                      {column.foreignKey && (
+                        <div className={styles.referenceEditor}>
+                          <select
+                            className={`${styles.columnSelect} nodrag`}
+                            value={referencedTable?.id ?? ''}
+                            aria-label='Tabela referenciada'
+                            onChange={(event) =>
+                              updateColumn(column.id, {
+                                references: event.target.value
+                                  ? { tableId: event.target.value, columnId: '' }
+                                  : undefined,
+                              })
+                            }
+                            onPointerDown={(event) => event.stopPropagation()}
+                          >
+                            <option value=''>Tabela referenciada</option>
+                            {referencedTables.map((candidate) => (
+                              <option key={candidate.id} value={candidate.id}>
+                                {candidate.name}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            className={`${styles.columnSelect} nodrag`}
+                            value={column.references?.columnId ?? ''}
+                            aria-label='Campo referenciado'
+                            disabled={!referencedTable}
+                            onChange={(event) =>
+                              updateColumn(column.id, {
+                                references: column.references
+                                  ? { ...column.references, columnId: event.target.value }
+                                  : undefined,
+                              })
+                            }
+                            onPointerDown={(event) => event.stopPropagation()}
+                          >
+                            <option value=''>Campo referenciado</option>
+                            {referencedTable?.columns.map((referencedColumn) => (
+                              <option key={referencedColumn.id} value={referencedColumn.id}>
+                                {referencedColumn.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.columnBadges}>
+                        {column.primaryKey && <span className={styles.keyTag}>PK</span>}
+                        {column.foreignKey && <span className={styles.keyTag}>FK</span>}
+                      </div>
+                      <span>{column.name}</span>
+                      <small className={styles.columnType}>{column.type}</small>
+                      {nullable ? (
+                        <span className={styles.columnMeta}>NULL</span>
+                      ) : (
+                        <span className={styles.columnMeta}>NOT NULL</span>
+                      )}
+                      {column.unique && <span className={styles.columnMeta}>UNIQUE</span>}
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className={styles.emptyTable}>Nenhuma coluna definida</div>
+        )}
 
-      {isEditing && (
-        <button className={`${styles.addColumnButton} nodrag`} type='button' onClick={addColumn}>
-          + Adicionar campo
-        </button>
-      )}
+        {isEditing && (
+          <button className={`${styles.addColumnButton} nodrag`} type='button' onClick={addColumn}>
+            + Adicionar campo
+          </button>
+        )}
+      </div>
 
       <Handle type='source' id='source-top' position={Position.Top} className={styles.connectionHandle} />
       <Handle type='target' id='target-top' position={Position.Top} className={styles.connectionHandle} />
@@ -266,21 +315,130 @@ function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function columnEstimatedWidth(column: LogicalColumn) {
+  const hasRequired = column.nullable === false || column.required;
+  const textUnits =
+    column.name.length +
+    column.type.length +
+    (hasRequired ? 'NOT NULL'.length : 'NULL'.length) +
+    (column.unique ? 'UNIQUE'.length : 0);
+  const badgeWidth = (column.primaryKey ? 24 : 0) + (column.foreignKey ? 24 : 0);
+  const visibleItemCount = 3 + (column.unique ? 1 : 0) + (badgeWidth > 0 ? 1 : 0);
+  const gapWidth = Math.max(0, visibleItemCount - 1) * 6;
+  const typePadding = 16;
+  return textUnits * 7.2 + badgeWidth + gapWidth + typePadding;
+}
+
+function tableColumnScale(columns: LogicalColumn[], tableWidth: number) {
+  const availableWidth = Math.max(1, tableWidth - 32);
+  const widestColumn = columns.reduce((width, column) => Math.max(width, columnEstimatedWidth(column)), 0);
+  const scale = widestColumn > 0 ? Math.min(1, availableWidth / widestColumn) : 1;
+  const fontSize = Math.max(6, 13 * scale);
+  return fontSize / 13;
+}
+
+function columnResponsiveStyle(scale: number): CSSProperties {
+  const fontSize = Math.max(6, 13 * scale);
+  const visualScale = fontSize / 13;
+
+  return {
+    fontSize: `${fontSize}px`,
+    '--column-scale': visualScale,
+  } as CSSProperties;
+}
+
 export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateModel }: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
-  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
-  const nodes: Node<LogicalTableNodeData>[] = model.tables.map((table, index) => ({
-    id: table.id,
-    type: 'table',
-    selected: table.id === selectedTableId,
-    position: table.position ?? {
-      x: 80 + (index % 3) * 360,
-      y: 80 + Math.floor(index / 3) * 300,
+  const [nodes, setNodes] = useState<Node<LogicalTableNodeData>[]>([]);
+  const handleResize = useCallback((nodeId: string, size: { width: number; height: number }) => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, width: size.width, height: size.height, style: { ...node.style, ...size } }
+          : node,
+      ),
+    );
+  }, []);
+
+  const handleResizeEnd = useCallback(
+    (nodeId: string, size: { width: number; height: number }) => {
+      const table = model.tables.find((candidate) => candidate.id === nodeId);
+      if (table) onUpdateTable({ ...table, size });
     },
-    data: { table, tables: model.tables, onUpdateTable, editingTableId },
-  }));
+    [model.tables, onUpdateTable],
+  );
+
+  const mappedNodes = useMemo<Node<LogicalTableNodeData>[]>(
+    () =>
+      model.tables.map((table, index) => {
+        const size = table.size;
+        const isEditing = editingTableId === table.id;
+        const baseWidth = size?.width ?? DEFAULT_TABLE_SIZE.width;
+        const baseHeight = size?.height ?? DEFAULT_TABLE_SIZE.height;
+        const width = isEditing ? Math.max(baseWidth, EDITING_REQUIRED_WIDTH) : baseWidth;
+        const height = isEditing ? Math.max(baseHeight, editingRequiredHeight(table)) : baseHeight;
+
+        return {
+          id: table.id,
+          type: 'table',
+          width,
+          height,
+          style: {
+            width,
+            height,
+          },
+          position: table.position ?? {
+            x: 80 + (index % 3) * 360,
+            y: 80 + Math.floor(index / 3) * 300,
+          },
+          data: {
+            table,
+            tables: model.tables,
+            onUpdateTable,
+            editingTableId,
+            onResize: handleResize,
+            onResizeEnd: handleResizeEnd,
+          },
+        };
+      }),
+    [editingTableId, handleResize, handleResizeEnd, model.tables, onUpdateTable],
+  );
+
+  useEffect(() => {
+    setNodes((currentNodes) =>
+      mappedNodes.map((nextNode) => {
+        const currentNode = currentNodes.find((node) => node.id === nextNode.id);
+        const keepsEditing = currentNode?.data.editingTableId === nextNode.data.editingTableId;
+        const currentWidth = currentNode?.width;
+        const currentHeight = currentNode?.height;
+        const nextWidth = nextNode.width ?? DEFAULT_TABLE_SIZE.width;
+        const nextHeight = nextNode.height ?? DEFAULT_TABLE_SIZE.height;
+
+        return {
+          ...nextNode,
+          position: currentNode?.dragging ? currentNode.position : nextNode.position,
+          selected: currentNode?.selected ?? false,
+          ...(currentWidth && currentHeight && keepsEditing
+            ? {
+                width: nextWidth,
+                height: nextHeight,
+                style: {
+                  ...nextNode.style,
+                  width: nextWidth,
+                  height: nextHeight,
+                },
+              }
+            : {}),
+        };
+      }),
+    );
+  }, [mappedNodes]);
+
+  function handleNodesChange(changes: NodeChange<Node<LogicalTableNodeData>>[]) {
+    setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
+  }
 
   const manualEdges: Edge[] = (model.relationships ?? []).map((relationship) => ({
     id: relationship.id,
@@ -371,35 +529,77 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
           flowInstance.current = instance;
         }}
         onNodeDragStop={(_, node) => {
-          const table = model.tables.find((candidate) => candidate.id === node.id);
-          if (table) onUpdateTable({ ...table, position: node.position });
+          const selectedIds = new Set(
+            nodes.filter((currentNode) => currentNode.selected).map((currentNode) => currentNode.id),
+          );
+          selectedIds.add(node.id);
+          const positions = new Map(
+            nodes.map((currentNode) => [
+              currentNode.id,
+              currentNode.id === node.id ? node.position : currentNode.position,
+            ]),
+          );
+
+          onUpdateModel({
+            ...model,
+            tables: model.tables.map((table) =>
+              selectedIds.has(table.id) ? { ...table, position: positions.get(table.id) ?? table.position } : table,
+            ),
+          });
         }}
-        onNodeClick={(event, node) => {
-          setSelectedTableId(node.id);
+        onNodesChange={handleNodesChange}
+        onNodesDelete={(deletedNodes) => {
+          const deletedIds = new Set(deletedNodes.map((node) => node.id));
+          setEditingTableId((currentId) => (currentId && deletedIds.has(currentId) ? null : currentId));
+
+          onUpdateModel({
+            ...model,
+            tables: model.tables
+              .filter((table) => !deletedIds.has(table.id))
+              .map((table) => ({
+                ...table,
+                columns: table.columns.map((column) =>
+                  column.references && deletedIds.has(column.references.tableId)
+                    ? { ...column, foreignKey: false, references: undefined }
+                    : column,
+                ),
+              })),
+            relationships: (model.relationships ?? []).filter(
+              (relationship) => !deletedIds.has(relationship.source) && !deletedIds.has(relationship.target),
+            ),
+          });
+        }}
+        onNodeClick={(event, _node) => {
           setSelectedEdgeId(null);
           if (!(event.target instanceof Element && event.target.closest('.nodrag'))) {
             setEditingTableId(null);
           }
         }}
         onNodeDoubleClick={(_, node) => {
-          setSelectedTableId(node.id);
           setEditingTableId(node.id);
         }}
         onPaneClick={() => {
-          setSelectedTableId(null);
+          setNodes((currentNodes) => currentNodes.map((node) => ({ ...node, selected: false })));
           setSelectedEdgeId(null);
           setEditingTableId(null);
         }}
         onConnect={handleConnect}
         onEdgesChange={handleEdgesChange}
         onEdgeClick={(_, edge) => {
-          setSelectedTableId(null);
+          setNodes((currentNodes) => currentNodes.map((node) => ({ ...node, selected: false })));
           setEditingTableId(null);
           setSelectedEdgeId(edge.id);
         }}
         elementsSelectable
         edgesFocusable
         connectionMode={ConnectionMode.Loose}
+        selectionOnDrag
+        panOnDrag={[1]}
+        panOnScroll
+        zoomOnScroll
+        zoomOnPinch
+        selectionKeyCode={['Shift', 'Meta']}
+        multiSelectionKeyCode={['Shift', 'Meta']}
         deleteKeyCode={['Backspace', 'Delete']}
         fitView
       >

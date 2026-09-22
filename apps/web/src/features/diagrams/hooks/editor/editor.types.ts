@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { ConceptualModel, LogicalModel } from '../../types';
+import type { ConceptualModel } from '../../types';
 
 export type DiagramPosition = { x: number; y: number };
 export type DiagramSize = { width: number; height: number };
@@ -18,5 +18,4 @@ export type StateSetter<T> = Dispatch<SetStateAction<T>>;
 export type ConceptualModelState = {
   conceptualModel: ConceptualModel | null;
   setConceptualModel: StateSetter<ConceptualModel | null>;
-  setLogicalModel: StateSetter<LogicalModel | null>;
 };

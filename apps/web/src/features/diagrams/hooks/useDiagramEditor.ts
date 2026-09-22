@@ -118,7 +118,6 @@ export function useDiagramEditor() {
   const entityActions = useEntityActions({
     conceptualModel,
     setConceptualModel,
-    setLogicalModel,
     setEntityPositions,
     setElementPositions,
     setSelectedAttribute,
@@ -128,7 +127,6 @@ export function useDiagramEditor() {
   const attributeActions = useAttributeActions({
     conceptualModel,
     setConceptualModel,
-    setLogicalModel,
     setElementPositions,
     setNodeSizes,
     setSelectedAttribute,
@@ -137,7 +135,6 @@ export function useDiagramEditor() {
 
   const relationshipActions = useRelationshipActions({
     setConceptualModel,
-    setLogicalModel,
     setElementPositions,
     setSelectedEntityIds,
   });

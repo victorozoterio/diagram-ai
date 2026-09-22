@@ -1,17 +1,15 @@
-import type { ConceptualModel, LogicalModel, Relationship } from '../../types';
+import type { ConceptualModel, Relationship } from '../../types';
 import type { DiagramPosition, StateSetter } from './editor.types';
 import { relationshipPositionKey, resolveRelationshipCardinality } from './model-factories';
 import { removeRelationshipFromModel, updateRelationshipInModel } from './model-operations';
 
 type RelationshipEditingDependencies = {
   setConceptualModel: StateSetter<ConceptualModel | null>;
-  setLogicalModel: StateSetter<LogicalModel | null>;
   setElementPositions: StateSetter<Record<string, DiagramPosition>>;
 };
 
 export function useRelationshipEditingActions({
   setConceptualModel,
-  setLogicalModel,
   setElementPositions,
 }: RelationshipEditingDependencies) {
   function updateRelationship(relationshipId: string, changes: Partial<Pick<Relationship, 'name'>>) {
@@ -22,7 +20,6 @@ export function useRelationshipEditingActions({
     setConceptualModel((currentModel) =>
       currentModel ? updateRelationshipInModel(currentModel, relationshipId, changes) : currentModel,
     );
-    setLogicalModel(null);
   }
 
   function removeRelationship(relationshipId: string) {
@@ -30,7 +27,6 @@ export function useRelationshipEditingActions({
       currentModel ? removeRelationshipFromModel(currentModel, relationshipId) : currentModel,
     );
     setElementPositions(({ [relationshipPositionKey(relationshipId)]: _removed, ...remaining }) => remaining);
-    setLogicalModel(null);
   }
 
   function disconnectEntityFromRelationship(relationshipId: string, entityId: string) {
@@ -55,7 +51,6 @@ export function useRelationshipEditingActions({
         }),
       };
     });
-    setLogicalModel(null);
   }
 
   function cycleRelationshipCardinality(relationshipId: string, entityId: string) {
@@ -88,7 +83,6 @@ export function useRelationshipEditingActions({
         }),
       };
     });
-    setLogicalModel(null);
   }
 
   return {
