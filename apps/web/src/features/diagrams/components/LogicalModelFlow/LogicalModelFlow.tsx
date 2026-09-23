@@ -1,8 +1,6 @@
 import {
   applyNodeChanges,
   Background,
-  type Connection,
-  ConnectionMode,
   Controls,
   type Edge,
   type EdgeChange,
@@ -19,7 +17,7 @@ import {
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 
-import type { LogicalColumn, LogicalModel, LogicalTable, LogicalTableRelationship } from '../../types';
+import type { LogicalColumn, LogicalModel, LogicalTable } from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
 import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
@@ -318,15 +316,6 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
           </button>
         )}
       </div>
-
-      <Handle type='source' id='source-top' position={Position.Top} className={styles.connectionHandle} />
-      <Handle type='target' id='target-top' position={Position.Top} className={styles.connectionHandle} />
-      <Handle type='source' id='source-bottom' position={Position.Bottom} className={styles.connectionHandle} />
-      <Handle type='target' id='target-bottom' position={Position.Bottom} className={styles.connectionHandle} />
-      <Handle type='source' id='source-left' position={Position.Left} className={styles.connectionHandle} />
-      <Handle type='target' id='target-left' position={Position.Left} className={styles.connectionHandle} />
-      <Handle type='source' id='source-right' position={Position.Right} className={styles.connectionHandle} />
-      <Handle type='target' id='target-right' position={Position.Right} className={styles.connectionHandle} />
     </div>
   );
 }
@@ -607,23 +596,6 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
     });
   }
 
-  function handleConnect(connection: Connection) {
-    if (!connection.source || !connection.target || connection.source === connection.target) return;
-
-    const relationship: LogicalTableRelationship = {
-      id: createId('table-connection'),
-      source: connection.source,
-      target: connection.target,
-      sourceHandle: connection.sourceHandle ?? undefined,
-      targetHandle: connection.targetHandle ?? undefined,
-    };
-
-    onUpdateModel({
-      ...model,
-      relationships: [...(model.relationships ?? []), relationship],
-    });
-  }
-
   function handleEdgesChange(changes: EdgeChange[]) {
     const removedIds = changes.filter((change) => change.type === 'remove').map((change) => change.id);
     if (removedIds.length === 0) return;
@@ -730,7 +702,6 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
           setSelectedEdgeId(null);
           finishEditing();
         }}
-        onConnect={handleConnect}
         onEdgesChange={handleEdgesChange}
         onEdgeClick={(_, edge) => {
           setNodes((currentNodes) => currentNodes.map((node) => ({ ...node, selected: false })));
@@ -739,7 +710,6 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
         }}
         elementsSelectable
         edgesFocusable
-        connectionMode={ConnectionMode.Loose}
         selectionOnDrag
         panOnDrag={[1]}
         panOnScroll

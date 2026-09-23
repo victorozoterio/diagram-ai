@@ -89,18 +89,12 @@
   background: transparent;
   border: 0;
   opacity: 0;
+  pointer-events: none;
 }
 
 .fieldConnectionHandle:global(.react-flow__handle) {
   background: transparent;
   border: 0;
-}
-
-.tableNode:hover .fieldConnectionHandle,
-.tableNode:focus-within .fieldConnectionHandle,
-.selected .fieldConnectionHandle {
-  background: #6366f1;
-  opacity: 1;
 }
 
 .editing .columnItem {
