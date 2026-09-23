@@ -105,6 +105,10 @@ export function createForeignKeyColumn({
   };
 }
 
+export function foreignKeyName(referencedTable: LogicalTable): string {
+  return `${toSnakeCase(referencedTable.name)}_id`;
+}
+
 export function addOrPromoteForeignKey({
   targetTable,
   referencedTable,
@@ -117,7 +121,7 @@ export function addOrPromoteForeignKey({
   unique: boolean;
 }): void {
   const expectedId = `${referencedTable.id}_id`;
-  const expectedName = `${referencedTable.id}_id`;
+  const expectedName = foreignKeyName(referencedTable);
   const existingColumn = findForeignKeyCandidate(targetTable, referencedTable, expectedId, expectedName);
 
   if (existingColumn) {
@@ -173,5 +177,15 @@ function normalizeColumnName(value: string): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase();
+}
+
+export function toSnakeCase(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
     .toLowerCase();
 }

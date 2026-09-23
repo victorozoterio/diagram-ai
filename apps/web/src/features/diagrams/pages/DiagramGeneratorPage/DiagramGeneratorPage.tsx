@@ -106,6 +106,12 @@ export function DiagramGeneratorPage() {
     });
   }
 
+  async function convertAndOpenLogicalModel() {
+    if (await convertConceptualToLogicalDiagram()) {
+      setMode('logical');
+    }
+  }
+
   return (
     <main className={styles.app}>
       <EditorHeader
@@ -113,7 +119,7 @@ export function DiagramGeneratorPage() {
         isConverting={isConverting}
         canConvertToLogical={canConvertToLogical}
         onGenerate={generateConceptualDiagram}
-        onConvert={convertConceptualToLogicalDiagram}
+        onConvert={convertAndOpenLogicalModel}
         exportMenuTargetRef={setExportMenuTarget}
         mode={mode}
         onModeChange={setMode}

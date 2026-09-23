@@ -5,6 +5,7 @@ import {
   createForeignKeyColumn,
   ensurePrimaryKey,
   findTable,
+  foreignKeyName,
   mapAttributeType,
 } from './logical-column.utils';
 
@@ -42,7 +43,7 @@ export function applyMultivaluedAttributes(tables: LogicalTable[], entities: Ent
           },
           createForeignKeyColumn({
             id: `${entity.id}_${attribute.id}_${entity.id}_id`,
-            name: `${entity.id}Id`,
+            name: foreignKeyName(table),
             referencedTable: table,
             referencedColumn: primaryKey,
           }),

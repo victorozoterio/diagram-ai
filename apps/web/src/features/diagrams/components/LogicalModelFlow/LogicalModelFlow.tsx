@@ -49,6 +49,8 @@ const columnTypes: LogicalColumn['type'][] = [
   'boolean',
   'date',
   'datetime',
+  'timestamp',
+  'unknown',
 ];
 
 const DEFAULT_TABLE_SIZE = { width: 430, height: 100 };

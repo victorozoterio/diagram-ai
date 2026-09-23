@@ -1,5 +1,5 @@
 import ELK, { type ElkNode } from 'elkjs/lib/elk.bundled.js';
-import type { ConceptualModel } from '../../types';
+import type { ConceptualModel, LogicalModel, LogicalTable } from '../../types';
 import type { DiagramPosition } from './editor.types';
 
 const elk = new ELK();
@@ -18,10 +18,77 @@ const ATTRIBUTE_FAN = {
   diagonalOffset: 40,
 };
 
+const LOGICAL_TABLE_SIZE = { width: 280, height: 130 };
+const LOGICAL_TABLE_HEADER_HEIGHT = 74;
+const LOGICAL_TABLE_ROW_HEIGHT = 34;
+
 export type ConceptualLayout = {
   entityPositions: Record<string, DiagramPosition>;
   elementPositions: Record<string, DiagramPosition>;
 };
+
+export async function calculateInitialLogicalLayout(model: LogicalModel): Promise<LogicalModel> {
+  const tables = model.tables.map((table) => ({
+    ...table,
+    size: logicalTableSize(table),
+  }));
+  const tableIds = new Set(tables.map((table) => table.id));
+  const graph: ElkNode = {
+    id: 'logical-model',
+    layoutOptions: {
+      'elk.algorithm': 'layered',
+      'elk.direction': 'RIGHT',
+      'elk.edgeRouting': 'ORTHOGONAL',
+      'elk.padding': '[top=80,left=80,bottom=80,right=80]',
+      'elk.spacing.nodeNode': '120',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '190',
+      'elk.layered.spacing.edgeNodeBetweenLayers': '80',
+      'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
+      'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+    },
+    children: tables.map((table) => ({
+      id: table.id,
+      width: table.size?.width ?? LOGICAL_TABLE_SIZE.width,
+      height: table.size?.height ?? LOGICAL_TABLE_SIZE.height,
+    })),
+    edges: tables.flatMap((table) =>
+      table.columns.flatMap((column) => {
+        const referencedTableId = column.references?.tableId;
+        if (!referencedTableId || !tableIds.has(referencedTableId) || referencedTableId === table.id) {
+          return [];
+        }
+
+        return [
+          {
+            id: `fk:${table.id}:${column.id}`,
+            sources: [referencedTableId],
+            targets: [table.id],
+          },
+        ];
+      }),
+    ),
+  };
+  const layout = await elk.layout(graph);
+  const positions = new Map((layout.children ?? []).map((node) => [node.id, { x: node.x ?? 0, y: node.y ?? 0 }]));
+
+  return {
+    ...model,
+    tables: tables.map((table) => ({
+      ...table,
+      position: positions.get(table.id) ?? table.position,
+    })),
+  };
+}
+
+function logicalTableSize(table: LogicalTable) {
+  return {
+    width: table.size?.width ?? LOGICAL_TABLE_SIZE.width,
+    height: Math.max(
+      table.size?.height ?? 0,
+      table.columns.length ? LOGICAL_TABLE_HEADER_HEIGHT + table.columns.length * LOGICAL_TABLE_ROW_HEIGHT : 130,
+    ),
+  };
+}
 
 export async function calculateInitialConceptualLayout(model: ConceptualModel): Promise<ConceptualLayout> {
   const graph: ElkNode = {

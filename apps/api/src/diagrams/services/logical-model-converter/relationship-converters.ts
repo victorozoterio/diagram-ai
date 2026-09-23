@@ -1,6 +1,13 @@
 import { Relationship } from '../../schemas/conceptual-model.schema';
 import { LogicalTable } from '../../schemas/logical-model.schema';
-import { addOrPromoteForeignKey, createForeignKeyColumn, ensurePrimaryKey, findTable } from './logical-column.utils';
+import {
+  addOrPromoteForeignKey,
+  createForeignKeyColumn,
+  ensurePrimaryKey,
+  findTable,
+  foreignKeyName,
+  toSnakeCase,
+} from './logical-column.utils';
 import { relationshipAttributesToColumns } from './table-converters';
 
 export function applyRelationshipConversions(tables: LogicalTable[], relationships: Relationship[]): void {
@@ -76,18 +83,18 @@ function applyManyToManyRelationship(tables: LogicalTable[], relationship: Relat
   const secondPrimaryKey = ensurePrimaryKey(secondTable);
   tables.push({
     id: relationship.id,
-    name: toPascalCase(relationship.name),
+    name: `${toSnakeCase(firstTable.name)}_${toSnakeCase(secondTable.name)}`,
     columns: [
       createForeignKeyColumn({
         id: `${relationship.id}_${firstTable.id}_id`,
-        name: `${firstTable.id}Id`,
+        name: foreignKeyName(firstTable),
         referencedTable: firstTable,
         referencedColumn: firstPrimaryKey,
         primaryKey: true,
       }),
       createForeignKeyColumn({
         id: `${relationship.id}_${secondTable.id}_id`,
-        name: `${secondTable.id}Id`,
+        name: foreignKeyName(secondTable),
         referencedTable: secondTable,
         referencedColumn: secondPrimaryKey,
         primaryKey: true,
@@ -95,12 +102,4 @@ function applyManyToManyRelationship(tables: LogicalTable[], relationship: Relat
       ...relationshipAttributesToColumns(relationship),
     ],
   });
-}
-
-function toPascalCase(value: string): string {
-  return value
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+(.)/g, (_, character: string) => character.toUpperCase())
-    .replace(/^(.)/, (_, character: string) => character.toUpperCase())
-    .replace(/\s/g, '');
 }

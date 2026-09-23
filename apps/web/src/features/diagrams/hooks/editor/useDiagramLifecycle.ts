@@ -1,6 +1,6 @@
 import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
 import type { ConceptualModel, LogicalModel } from '../../types';
-import { calculateInitialConceptualLayout } from './auto-layout';
+import { calculateInitialConceptualLayout, calculateInitialLogicalLayout } from './auto-layout';
 import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoints, StateSetter } from './editor.types';
 
 type LifecycleDependencies = {
@@ -65,15 +65,19 @@ export function useDiagramLifecycle({
 
   async function convertConceptualToLogicalDiagram() {
     if (!conceptualModel) {
-      return;
+      return false;
     }
 
     setError(null);
     setIsConverting(true);
     try {
-      setLogicalModel(await convertToLogicalModel(conceptualModel));
+      const convertedModel = await convertToLogicalModel(conceptualModel);
+      const logicalModel = await calculateInitialLogicalLayout(normalizeLogicalModel(convertedModel));
+      setLogicalModel(logicalModel);
+      return true;
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao converter o modelo lógico.');
+      return false;
     } finally {
       setIsConverting(false);
     }
@@ -96,5 +100,19 @@ export function useDiagramLifecycle({
     convertConceptualToLogicalDiagram,
     clearLogicalModel: () => setLogicalModel(null),
     clearDiagram,
+  };
+}
+
+function normalizeLogicalModel(model: LogicalModel): LogicalModel {
+  return {
+    ...model,
+    tables: model.tables.map((table) => ({
+      ...table,
+      columns: table.columns.map((column) => ({
+        ...column,
+        nullable: column.nullable ?? !column.required,
+      })),
+    })),
+    relationships: [],
   };
 }
