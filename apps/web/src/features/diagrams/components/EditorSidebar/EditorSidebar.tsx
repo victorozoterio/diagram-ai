@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { ConceptualModel, ElementKind } from '../../types';
+import type { ElementKind } from '../../types';
 import styles from './EditorSidebar.module.css';
-
-type EditorSidebarProps = {
-  model: ConceptualModel | null;
-  onAddEntity: () => void;
-};
 
 function ElementPreview({ kind }: { kind: ElementKind }) {
   const isEntity = kind === 'entity' || kind === 'weak-entity' || kind === 'associative-entity';
@@ -36,7 +31,7 @@ function ElementPreview({ kind }: { kind: ElementKind }) {
   );
 }
 
-export function EditorSidebar({ model, onAddEntity }: EditorSidebarProps) {
+export function EditorSidebar() {
   const [search, setSearch] = useState('');
   const libraryItems: Array<{ kind: ElementKind; label: string }> = [
     { kind: 'entity', label: 'Entidade' },
@@ -75,50 +70,23 @@ export function EditorSidebar({ model, onAddEntity }: EditorSidebarProps) {
       </div>
 
       <div className={styles.libraryContent}>
-        <section className={styles.category}>
-          <div className={styles.elementList}>
-            {filterItems(libraryItems).map((item) => (
-              <button
-                className={styles.elementItem}
-                key={item.kind}
-                type='button'
-                draggable
-                onDragStart={(event) => {
-                  event.dataTransfer.effectAllowed = 'copy';
-                  event.dataTransfer.setData('application/diagram-element', item.kind);
-                }}
-              >
-                <ElementPreview kind={item.kind} />
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.category}>
-          <div className={styles.categoryTitleRow}>
-            <h3>
-              <span>☷</span>
-              Elementos no modelo
-            </h3>
-            <button type='button' onClick={onAddEntity} aria-label='Adicionar entidade'>
-              +
+        <div className={styles.elementList}>
+          {filterItems(libraryItems).map((item) => (
+            <button
+              className={styles.elementItem}
+              key={item.kind}
+              type='button'
+              draggable
+              onDragStart={(event) => {
+                event.dataTransfer.effectAllowed = 'copy';
+                event.dataTransfer.setData('application/diagram-element', item.kind);
+              }}
+            >
+              <ElementPreview kind={item.kind} />
+              <span>{item.label}</span>
             </button>
-          </div>
-          {model && model.entities.length > 0 ? (
-            <ul className={styles.entityList}>
-              {model.entities.map((entity) => (
-                <li key={entity.id}>
-                  <span className={styles.entityIcon}>▦</span>
-                  <span>{entity.name}</span>
-                  <small>{entity.attributes.length}</small>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.emptyState}>Nenhum elemento adicionado.</p>
-          )}
-        </section>
+          ))}
+        </div>
       </div>
 
       <div className={styles.sidebarFooter}>Arraste um elemento para o canvas para utilizá-lo no modelo.</div>

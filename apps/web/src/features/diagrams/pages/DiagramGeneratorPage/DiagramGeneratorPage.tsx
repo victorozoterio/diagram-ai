@@ -44,7 +44,6 @@ export function DiagramGeneratorPage() {
     setDescription,
     generateConceptualDiagram,
     convertConceptualToLogicalDiagram,
-    addEntity,
     removeEntity,
     selectEntity,
     updateEntity,
@@ -126,11 +125,7 @@ export function DiagramGeneratorPage() {
       />
 
       <div className={styles.workspace}>
-        {mode === 'conceptual' ? (
-          <EditorSidebar model={conceptualModel} onAddEntity={addEntity} />
-        ) : (
-          <LogicalEditorSidebar />
-        )}
+        {mode === 'conceptual' ? <EditorSidebar /> : <LogicalEditorSidebar />}
 
         <EditorCanvas>
           {mode === 'conceptual' ? (
