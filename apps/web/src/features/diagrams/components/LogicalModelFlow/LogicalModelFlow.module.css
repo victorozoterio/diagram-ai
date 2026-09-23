@@ -263,6 +263,10 @@
   border-radius: 999px;
 }
 
+.highlightedColumnName {
+  color: #4f46e5;
+}
+
 .columnMeta {
   color: #6b7280;
   font-size: 11px;

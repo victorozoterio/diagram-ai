@@ -34,6 +34,7 @@ type LogicalModelFlowProps = {
 type LogicalTableNodeData = {
   table: LogicalTable;
   tables: LogicalTable[];
+  highlightedColumnIds: string[];
   onUpdateTable: (table: LogicalTable) => void;
   editingTableId: string | null;
   onResize: (nodeId: string, size: { width: number; height: number }) => void;
@@ -84,7 +85,7 @@ function normalRequiredHeight(table: LogicalTable) {
 }
 
 function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeData>>) {
-  const { table, tables, onUpdateTable, editingTableId, onResize, onResizeEnd } = data;
+  const { table, tables, highlightedColumnIds, onUpdateTable, editingTableId, onResize, onResizeEnd } = data;
   const updateNodeInternals = useUpdateNodeInternals();
   const isEditing = editingTableId === table.id;
   const tableWidth = width ?? table.size?.width ?? DEFAULT_TABLE_SIZE.width;
@@ -292,7 +293,11 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
                         {column.primaryKey && <span className={styles.keyTag}>PK</span>}
                         {column.foreignKey && <span className={styles.keyTag}>FK</span>}
                       </div>
-                      <span>{column.name}</span>
+                      <span
+                        className={highlightedColumnIds.includes(column.id) ? styles.highlightedColumnName : undefined}
+                      >
+                        {column.name}
+                      </span>
                       <small className={styles.columnType}>{column.type}</small>
                       {nullable ? (
                         <span className={styles.columnMeta}>NULL</span>
@@ -367,6 +372,44 @@ function fieldHandleId(columnId: string, type: 'source' | 'target', side: 'left'
   return `field:${columnId}:${type}:${side}`;
 }
 
+function getSelectedEdgeFieldKeys(model: LogicalModel, edgeId: string | null) {
+  const fieldKeys = new Set<string>();
+  if (!edgeId) return fieldKeys;
+
+  for (const table of model.tables) {
+    for (const column of table.columns) {
+      if (!column.references) continue;
+
+      const generatedEdgeId = `${table.id}_${column.id}_${column.references.tableId}_${column.references.columnId}`;
+      if (generatedEdgeId !== edgeId) continue;
+
+      const referencedTable = model.tables.find((candidate) => candidate.id === column.references?.tableId);
+      const referencedColumn = referencedTable?.columns.find(
+        (candidate) => candidate.id === column.references?.columnId,
+      );
+      if (referencedTable && referencedColumn) {
+        fieldKeys.add(`${table.id}:${column.id}`);
+        fieldKeys.add(`${referencedTable.id}:${referencedColumn.id}`);
+      }
+      return fieldKeys;
+    }
+  }
+
+  const relationship = model.relationships?.find((candidate) => candidate.id === edgeId);
+  if (!relationship) return fieldKeys;
+
+  const sourceColumnId = columnIdFromHandle(relationship.sourceHandle);
+  const targetColumnId = columnIdFromHandle(relationship.targetHandle);
+  if (sourceColumnId) fieldKeys.add(`${relationship.source}:${sourceColumnId}`);
+  if (targetColumnId) fieldKeys.add(`${relationship.target}:${targetColumnId}`);
+  return fieldKeys;
+}
+
+function columnIdFromHandle(handle: string | undefined) {
+  if (!handle?.startsWith('field:')) return null;
+  return handle.split(':')[1] ?? null;
+}
+
 function columnEstimatedWidth(column: LogicalColumn) {
   const hasRequired = column.nullable === false || column.required;
   const textUnits =
@@ -405,6 +448,7 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<LogicalTableNodeData>[]>([]);
   const editingStartSizes = useRef<Record<string, { width: number; height: number }>>({});
+  const highlightedFieldKeys = useMemo(() => getSelectedEdgeFieldKeys(model, selectedEdgeId), [model, selectedEdgeId]);
   const handleResize = useCallback((nodeId: string, size: { width: number; height: number }) => {
     setNodes((currentNodes) =>
       currentNodes.map((node) =>
@@ -449,6 +493,11 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
           data: {
             table,
             tables: model.tables,
+            highlightedColumnIds:
+              model.tables
+                .find((candidate) => candidate.id === table.id)
+                ?.columns.filter((column) => highlightedFieldKeys.has(`${table.id}:${column.id}`))
+                .map((column) => column.id) ?? [],
             onUpdateTable,
             editingTableId,
             onResize: handleResize,
@@ -456,7 +505,7 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
           },
         };
       }),
-    [editingTableId, handleResize, handleResizeEnd, model.tables, onUpdateTable],
+    [editingTableId, handleResize, handleResizeEnd, highlightedFieldKeys, model.tables, onUpdateTable],
   );
 
   useEffect(() => {
