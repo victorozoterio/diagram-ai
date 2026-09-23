@@ -17,6 +17,15 @@
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
+  line-height: 1;
+}
+
+.chevron {
+  display: block;
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  line-height: 0;
 }
 
 .trigger:hover,

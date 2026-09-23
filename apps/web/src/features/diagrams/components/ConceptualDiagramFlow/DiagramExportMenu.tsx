@@ -104,7 +104,16 @@ export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget }: Diagr
         }}
       >
         Exportar
-        <span aria-hidden='true'>⌄</span>
+        <svg className={styles.chevron} viewBox='0 0 12 12' aria-hidden='true'>
+          <path
+            d='m3 4.5 3 3 3-3'
+            fill='none'
+            stroke='currentColor'
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            strokeWidth='1.5'
+          />
+        </svg>
       </button>
 
       {isOpen && (
