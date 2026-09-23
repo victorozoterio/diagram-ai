@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 
 import type { LogicalColumn, LogicalModel, LogicalTable } from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
+import { DiagramExportMenu } from '../ConceptualDiagramFlow/DiagramExportMenu';
 import { FitViewOnNodeChange } from '../ConceptualDiagramFlow/FitViewOnNodeChange';
 import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
@@ -27,6 +28,7 @@ import styles from './LogicalModelFlow.module.css';
 
 type LogicalModelFlowProps = {
   model: LogicalModel;
+  exportMenuTarget?: Element | null;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -121,7 +123,10 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
   }, [fieldLayoutKey, table.id, updateNodeInternals]);
 
   return (
-    <div className={`${styles.tableNode} ${selected ? styles.selected : ''} ${isEditing ? styles.editing : ''}`}>
+    <div
+      className={`${styles.tableNode} ${selected ? styles.selected : ''} ${isEditing ? styles.editing : ''}`}
+      data-export-preserve-style='logical-table'
+    >
       <ResizableNodeControls
         nodeId={table.id}
         selected={Boolean(selected)}
@@ -133,8 +138,8 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
         onResize={onResize}
         onResizeEnd={onResizeEnd}
       />
-      <div className={styles.tableContent}>
-        <div className={styles.tableTitle}>
+      <div className={styles.tableContent} data-export-preserve-style='logical-table-content'>
+        <div className={styles.tableTitle} data-export-preserve-style='logical-table-title'>
           {isEditing ? (
             <input
               className={`${styles.tableNameInput} nodrag`}
@@ -443,8 +448,15 @@ function columnResponsiveStyle(scale: number): CSSProperties {
   } as CSSProperties;
 }
 
-export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateModel }: LogicalModelFlowProps) {
+export function LogicalModelFlow({
+  model,
+  exportMenuTarget,
+  onAddTable,
+  onUpdateTable,
+  onUpdateModel,
+}: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
+  const flowWrapperRef = useRef<HTMLDivElement | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<LogicalTableNodeData>[]>([]);
@@ -664,6 +676,7 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
 
   return (
     <div
+      ref={flowWrapperRef}
       className={conceptualStyles.diagramFlow}
       style={{
         visibility: model.tables.length === 0 || viewportReadyForCount === model.tables.length ? 'visible' : 'hidden',
@@ -683,6 +696,7 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
         onAddTable(flowInstance.current.screenToFlowPosition({ x: event.clientX, y: event.clientY }));
       }}
     >
+      <DiagramExportMenu flowWrapperRef={flowWrapperRef} nodes={nodes} portalTarget={exportMenuTarget} />
       <ReactFlow
         nodes={nodes}
         edges={edges}

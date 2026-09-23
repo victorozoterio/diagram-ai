@@ -184,6 +184,7 @@ export function DiagramGeneratorPage() {
           ) : (
             <LogicalEditorCanvas
               model={logicalModel ?? emptyLogicalModel}
+              exportMenuTarget={exportMenuTarget}
               onAddTable={addLogicalTable}
               onUpdateTable={updateLogicalTable}
               onUpdateModel={updateLogicalModel}

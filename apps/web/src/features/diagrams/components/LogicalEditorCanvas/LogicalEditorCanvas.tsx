@@ -5,12 +5,19 @@ import styles from './LogicalEditorCanvas.module.css';
 
 type LogicalEditorCanvasProps = {
   model: LogicalModel;
+  exportMenuTarget?: Element | null;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
 };
 
-export function LogicalEditorCanvas({ model, onAddTable, onUpdateTable, onUpdateModel }: LogicalEditorCanvasProps) {
+export function LogicalEditorCanvas({
+  model,
+  exportMenuTarget,
+  onAddTable,
+  onUpdateTable,
+  onUpdateModel,
+}: LogicalEditorCanvasProps) {
   return (
     <section className={styles.section}>
       <div className={styles.heading}>
@@ -22,6 +29,7 @@ export function LogicalEditorCanvas({ model, onAddTable, onUpdateTable, onUpdate
       </div>
       <LogicalModelFlow
         model={model}
+        exportMenuTarget={exportMenuTarget}
         onAddTable={onAddTable}
         onUpdateTable={onUpdateTable}
         onUpdateModel={onUpdateModel}

@@ -1,4 +1,4 @@
-import { getNodesBounds, type Node } from '@xyflow/react';
+import type { Node } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { type RefObject, useCallback, useState } from 'react';
@@ -11,7 +11,7 @@ type DiagramExportMenuProps = {
   portalTarget?: Element | null;
 };
 
-const EXPORT_PADDING = 56;
+const EXPORT_PADDING = 32;
 const EXPORT_PIXEL_RATIO = 2;
 
 export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget }: DiagramExportMenuProps) {
@@ -25,11 +25,12 @@ export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget }: Diagr
       throw new Error('Não há elementos no diagrama para exportar.');
     }
 
-    const bounds = getNodesBounds(nodes);
+    const bounds = getExportBounds(nodes);
     const width = Math.max(1, Math.ceil(bounds.width + EXPORT_PADDING * 2));
     const height = Math.max(1, Math.ceil(bounds.height + EXPORT_PADDING * 2));
 
     const restoreSvgStyles = inlineSvgStylesForExport(viewport);
+    const restoreHtmlStyles = inlineHtmlStylesForExport(viewport);
 
     try {
       const dataUrl = await toPng(viewport, {
@@ -59,6 +60,7 @@ export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget }: Diagr
       return { dataUrl, width, height };
     } finally {
       restoreSvgStyles();
+      restoreHtmlStyles();
     }
   }, [flowWrapperRef, nodes]);
 
@@ -124,6 +126,115 @@ export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget }: Diagr
   );
 
   return portalTarget ? createPortal(menu, portalTarget) : null;
+}
+
+function getExportBounds(nodes: Node[]) {
+  const boxes = nodes.map((node) => {
+    const width = node.width ?? node.measured?.width ?? node.initialWidth ?? styleDimension(node.style?.width);
+    const height = node.height ?? node.measured?.height ?? node.initialHeight ?? styleDimension(node.style?.height);
+    const origin = node.origin ?? [0, 0];
+
+    return {
+      x: node.position.x - width * origin[0],
+      y: node.position.y - height * origin[1],
+      x2: node.position.x - width * origin[0] + width,
+      y2: node.position.y - height * origin[1] + height,
+    };
+  });
+
+  const x = Math.min(...boxes.map((box) => box.x));
+  const y = Math.min(...boxes.map((box) => box.y));
+  const x2 = Math.max(...boxes.map((box) => box.x2));
+  const y2 = Math.max(...boxes.map((box) => box.y2));
+
+  return { x, y, width: x2 - x, height: y2 - y };
+}
+
+function styleDimension(value: number | string | undefined) {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+const HTML_PRESENTATION_PROPERTIES = [
+  'background',
+  'background-color',
+  'border',
+  'border-bottom',
+  'border-bottom-color',
+  'border-bottom-style',
+  'border-bottom-width',
+  'border-left',
+  'border-left-color',
+  'border-left-style',
+  'border-left-width',
+  'border-radius',
+  'border-right',
+  'border-right-color',
+  'border-right-style',
+  'border-right-width',
+  'border-top',
+  'border-top-color',
+  'border-top-style',
+  'border-top-width',
+  'box-shadow',
+  'color',
+];
+
+function inlineHtmlStylesForExport(viewport: HTMLElement) {
+  const elements = Array.from(viewport.querySelectorAll<HTMLElement>('[data-export-preserve-style]'));
+  const previousStyles = elements.map((element) => ({
+    element,
+    style: element.getAttribute('style'),
+  }));
+
+  elements.forEach((element) => {
+    const computedStyle = window.getComputedStyle(element);
+    HTML_PRESENTATION_PROPERTIES.forEach((property) => {
+      const value = computedStyle.getPropertyValue(property);
+      if (value) element.style.setProperty(property, value);
+    });
+
+    preserveLogicalTableBorders(element);
+  });
+
+  return () => {
+    previousStyles.forEach(({ element, style }) => {
+      if (style === null) {
+        element.removeAttribute('style');
+      } else {
+        element.setAttribute('style', style);
+      }
+    });
+  };
+}
+
+function preserveLogicalTableBorders(element: HTMLElement) {
+  if (element.dataset.exportPreserveStyle === 'logical-table') {
+    ['top', 'right', 'bottom', 'left'].forEach((side) => {
+      element.style.setProperty(`border-${side}-width`, '1px', 'important');
+      element.style.setProperty(`border-${side}-style`, 'solid', 'important');
+      element.style.setProperty(`border-${side}-color`, '#6366f1', 'important');
+    });
+    element.style.setProperty('box-sizing', 'border-box', 'important');
+  }
+
+  if (element.dataset.exportPreserveStyle === 'logical-table-title') {
+    element.style.setProperty('border-bottom-width', '1px', 'important');
+    element.style.setProperty('border-bottom-style', 'solid', 'important');
+    element.style.setProperty('border-bottom-color', '#6366f1', 'important');
+  }
+
+  if (element.dataset.exportPreserveStyle === 'logical-table-content') {
+    element.style.setProperty('box-sizing', 'border-box', 'important');
+    element.style.setProperty('width', 'calc(100% - 2px)', 'important');
+    element.style.setProperty('height', 'calc(100% - 2px)', 'important');
+    element.style.setProperty('min-height', 'calc(100% - 2px)', 'important');
+    element.style.setProperty('margin', '1px', 'important');
+  }
 }
 
 const SVG_PRESENTATION_PROPERTIES = [
