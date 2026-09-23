@@ -14,6 +14,7 @@ import {
   Position,
   ReactFlow,
   type ReactFlowInstance,
+  useUpdateNodeInternals,
 } from '@xyflow/react';
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
@@ -84,10 +85,14 @@ function normalRequiredHeight(table: LogicalTable) {
 
 function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeData>>) {
   const { table, tables, onUpdateTable, editingTableId, onResize, onResizeEnd } = data;
+  const updateNodeInternals = useUpdateNodeInternals();
   const isEditing = editingTableId === table.id;
   const tableWidth = width ?? table.size?.width ?? DEFAULT_TABLE_SIZE.width;
   const columnScale = tableColumnScale(table.columns, tableWidth);
   const referencedTables = tables.filter((candidate) => candidate.id !== table.id);
+  const fieldLayoutKey = `${isEditing}:${tableWidth}:${table.columns
+    .map((column) => `${column.id}:${column.foreignKey}`)
+    .join(':')}`;
   const updateColumns = (columns: LogicalTable['columns']) => onUpdateTable({ ...table, columns });
   const updateColumn = (columnId: string, update: Partial<LogicalColumn>) =>
     updateColumns(table.columns.map((column) => (column.id === columnId ? { ...column, ...update } : column)));
@@ -107,6 +112,11 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
     ]);
   };
   const removeColumn = (columnId: string) => updateColumns(table.columns.filter((column) => column.id !== columnId));
+
+  useEffect(() => {
+    if (!fieldLayoutKey) return;
+    updateNodeInternals(table.id);
+  }, [fieldLayoutKey, table.id, updateNodeInternals]);
 
   return (
     <div className={`${styles.tableNode} ${selected ? styles.selected : ''} ${isEditing ? styles.editing : ''}`}>
@@ -148,6 +158,7 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
                   className={styles.columnItem}
                   style={!isEditing ? columnResponsiveStyle(columnScale) : undefined}
                 >
+                  <FieldConnectionHandles columnId={column.id} />
                   {isEditing ? (
                     <>
                       <div className={styles.columnEditorOptions}>
@@ -318,12 +329,47 @@ function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeDat
   );
 }
 
+function FieldConnectionHandles({ columnId }: { columnId: string }) {
+  return (
+    <>
+      <Handle
+        type='source'
+        id={fieldHandleId(columnId, 'source', 'left')}
+        position={Position.Left}
+        className={styles.fieldConnectionHandle}
+      />
+      <Handle
+        type='target'
+        id={fieldHandleId(columnId, 'target', 'left')}
+        position={Position.Left}
+        className={styles.fieldConnectionHandle}
+      />
+      <Handle
+        type='source'
+        id={fieldHandleId(columnId, 'source', 'right')}
+        position={Position.Right}
+        className={styles.fieldConnectionHandle}
+      />
+      <Handle
+        type='target'
+        id={fieldHandleId(columnId, 'target', 'right')}
+        position={Position.Right}
+        className={styles.fieldConnectionHandle}
+      />
+    </>
+  );
+}
+
 const nodeTypes = {
   table: TableNode,
 };
 
 function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function fieldHandleId(columnId: string, type: 'source' | 'target', side: 'left' | 'right') {
+  return `field:${columnId}:${type}:${side}`;
 }
 
 function columnEstimatedWidth(column: LogicalColumn) {
@@ -490,12 +536,24 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
     table.columns.flatMap((column) => {
       if (!column.references) return [];
 
+      const referencedTable = model.tables.find((candidate) => candidate.id === column.references?.tableId);
+      const referencedColumn = referencedTable?.columns.find(
+        (candidate) => candidate.id === column.references?.columnId,
+      );
+      if (!referencedTable || !referencedColumn) return [];
+
+      const sourceIsLeft = tableCenterX(nodes, referencedTable) <= tableCenterX(nodes, table);
+      const sourceSide = sourceIsLeft ? 'right' : 'left';
+      const targetSide = sourceIsLeft ? 'left' : 'right';
+
       const id = `${table.id}_${column.id}_${column.references.tableId}_${column.references.columnId}`;
       return [
         {
           id,
           source: column.references.tableId,
           target: table.id,
+          sourceHandle: fieldHandleId(referencedColumn.id, 'source', sourceSide),
+          targetHandle: fieldHandleId(column.id, 'target', targetSide),
           label: column.name,
           type: 'smoothstep',
           selected: id === selectedEdgeId,
@@ -662,4 +720,11 @@ function edgeStyle(selected: boolean) {
     stroke: selected ? '#4f46e5' : '#94a3b8',
     strokeWidth: selected ? 2.5 : 1.5,
   };
+}
+
+function tableCenterX(nodes: Node<LogicalTableNodeData>[], table: LogicalTable) {
+  const node = nodes.find((candidate) => candidate.id === table.id);
+  const position = node?.position ?? table.position ?? { x: 0, y: 0 };
+  const width = node?.width ?? table.size?.width ?? DEFAULT_TABLE_SIZE.width;
+  return position.x + width / 2;
 }

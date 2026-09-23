@@ -71,6 +71,7 @@
 }
 
 .columnItem {
+  position: relative;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
@@ -80,6 +81,26 @@
   border-top: 1px solid #e5e7eb;
   font-size: 13px;
   white-space: nowrap;
+}
+
+.fieldConnectionHandle {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border: 0;
+  opacity: 0;
+}
+
+.fieldConnectionHandle:global(.react-flow__handle) {
+  background: transparent;
+  border: 0;
+}
+
+.tableNode:hover .fieldConnectionHandle,
+.tableNode:focus-within .fieldConnectionHandle,
+.selected .fieldConnectionHandle {
+  background: #6366f1;
+  opacity: 1;
 }
 
 .editing .columnItem {
