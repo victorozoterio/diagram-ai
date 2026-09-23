@@ -1,0 +1,36 @@
+.emptyCanvas {
+  position: absolute;
+  inset: 82px 0 0;
+  z-index: 1;
+  display: grid;
+  pointer-events: none;
+  place-content: center;
+  justify-items: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 12px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 22px;
+}
+
+.emptyCanvas h1 {
+  margin: 16px 0 6px;
+  color: #111827;
+  font-size: 20px;
+}
+
+.emptyCanvas p {
+  max-width: 360px;
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+}

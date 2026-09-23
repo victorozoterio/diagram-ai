@@ -1,4 +1,5 @@
 import type { LogicalModel, LogicalTable } from '../../types';
+import { EmptyCanvasState } from '../EmptyCanvasState/EmptyCanvasState';
 import { LogicalModelFlow } from '../LogicalModelFlow/LogicalModelFlow';
 import styles from './LogicalEditorCanvas.module.css';
 
@@ -25,6 +26,9 @@ export function LogicalEditorCanvas({ model, onAddTable, onUpdateTable, onUpdate
         onUpdateTable={onUpdateTable}
         onUpdateModel={onUpdateModel}
       />
+      {model.tables.length === 0 && (
+        <EmptyCanvasState description='Gere um modelo ou arraste um elemento da biblioteca para começar.' />
+      )}
     </section>
   );
 }

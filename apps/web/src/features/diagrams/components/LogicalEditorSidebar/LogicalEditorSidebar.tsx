@@ -62,7 +62,7 @@ export function LogicalEditorSidebar() {
         </section>
       </div>
 
-      <div className={styles.sidebarFooter}>Arraste uma tabela para o canvas para utilizá-la no modelo.</div>
+      <div className={styles.sidebarFooter}>Arraste um elemento para o canvas para utilizá-lo no modelo.</div>
     </aside>
   );
 }

@@ -6,6 +6,7 @@ import {
   EditorCanvas,
   EditorHeader,
   EditorSidebar,
+  EmptyCanvasState,
   LogicalEditorCanvas,
   LogicalEditorSidebar,
 } from '../../components';
@@ -177,11 +178,7 @@ export function DiagramGeneratorPage() {
                 onCycleRelationshipCardinality={cycleRelationshipCardinality}
               />
               {!conceptualModel && (
-                <div className={styles.emptyCanvas}>
-                  <span className={styles.emptyIcon}>⌘</span>
-                  <h1>Seu modelo começa aqui</h1>
-                  <p>Gere um modelo ou arraste um elemento da biblioteca para começar.</p>
-                </div>
+                <EmptyCanvasState description='Gere um modelo ou arraste um elemento da biblioteca para começar.' />
               )}
             </section>
           ) : (

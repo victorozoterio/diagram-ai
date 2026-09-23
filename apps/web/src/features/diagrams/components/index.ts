@@ -5,6 +5,7 @@ export { EditorCanvas } from './EditorCanvas/EditorCanvas';
 export type { EditorMode } from './EditorHeader/EditorHeader';
 export { EditorHeader } from './EditorHeader/EditorHeader';
 export { EditorSidebar } from './EditorSidebar/EditorSidebar';
+export { EmptyCanvasState } from './EmptyCanvasState/EmptyCanvasState';
 export { LogicalEditorCanvas } from './LogicalEditorCanvas/LogicalEditorCanvas';
 export { LogicalEditorSidebar } from './LogicalEditorSidebar/LogicalEditorSidebar';
 export { LogicalModelFlow } from './LogicalModelFlow/LogicalModelFlow';
