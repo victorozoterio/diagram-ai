@@ -17,6 +17,53 @@ export function convertEntitiesToTables(entities: Entity[]): LogicalTable[] {
   }));
 }
 
+/**
+ * Aplica table-per-type: cada subtipo compartilha a chave do supertipo como PK e FK.
+ */
+export function applyGeneralizationConversions(tables: LogicalTable[], relationships: Relationship[]): void {
+  for (const relationship of relationships) {
+    if (!isGeneralization(relationship) || !relationship.supertypeId) continue;
+
+    const supertypeTable = findTable(tables, relationship.supertypeId);
+    if (!supertypeTable) continue;
+
+    const supertypePrimaryKey = ensurePrimaryKey(supertypeTable);
+
+    for (const subtypeId of relationship.subtypeIds) {
+      const subtypeTable = findTable(tables, subtypeId);
+      if (!subtypeTable) continue;
+
+      const inheritedColumnId = `${subtypeTable.id}_${supertypeTable.id}_id`;
+      const inheritedColumn = subtypeTable.columns.find((column) => column.id === inheritedColumnId);
+
+      subtypeTable.columns = subtypeTable.columns.filter((column) => !column.primaryKey || column === inheritedColumn);
+
+      if (inheritedColumn) {
+        inheritedColumn.name = foreignKeyName(supertypeTable);
+        inheritedColumn.type = supertypePrimaryKey.type;
+        inheritedColumn.primaryKey = true;
+        inheritedColumn.foreignKey = true;
+        inheritedColumn.required = true;
+        inheritedColumn.references = {
+          tableId: supertypeTable.id,
+          columnId: supertypePrimaryKey.id,
+        };
+        continue;
+      }
+
+      subtypeTable.columns.unshift(
+        createForeignKeyColumn({
+          id: inheritedColumnId,
+          name: foreignKeyName(supertypeTable),
+          referencedTable: supertypeTable,
+          referencedColumn: supertypePrimaryKey,
+          primaryKey: true,
+        }),
+      );
+    }
+  }
+}
+
 export function applyMultivaluedAttributes(tables: LogicalTable[], entities: Entity[]): void {
   for (const entity of entities) {
     const table = findTable(tables, entity.id);
@@ -72,4 +119,8 @@ function toPascalCase(value: string): string {
     .replace(/\s+(.)/g, (_, character: string) => character.toUpperCase())
     .replace(/^(.)/, (_, character: string) => character.toUpperCase())
     .replace(/\s/g, '');
+}
+
+function isGeneralization(relationship: Relationship): boolean {
+  return relationship.kind === 'generalization' || relationship.kind === 'specialization';
 }

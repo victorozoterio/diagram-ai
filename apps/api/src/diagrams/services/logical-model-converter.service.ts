@@ -3,7 +3,11 @@ import { ConceptualModel } from '../schemas/conceptual-model.schema';
 import { LogicalModel } from '../schemas/logical-model.schema';
 import { ensurePrimaryKey } from './logical-model-converter/logical-column.utils';
 import { applyRelationshipConversions } from './logical-model-converter/relationship-converters';
-import { applyMultivaluedAttributes, convertEntitiesToTables } from './logical-model-converter/table-converters';
+import {
+  applyGeneralizationConversions,
+  applyMultivaluedAttributes,
+  convertEntitiesToTables,
+} from './logical-model-converter/table-converters';
 
 /**
  * Orquestra a conversão do modelo conceitual.
@@ -15,6 +19,7 @@ export class LogicalModelConverterService {
     const tables = convertEntitiesToTables(conceptualModel.entities);
 
     tables.forEach(ensurePrimaryKey);
+    applyGeneralizationConversions(tables, conceptualModel.relationships);
     applyRelationshipConversions(tables, conceptualModel.relationships);
     applyMultivaluedAttributes(tables, conceptualModel.entities);
 
