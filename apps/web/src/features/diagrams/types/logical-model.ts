@@ -23,6 +23,7 @@ export type LogicalColumn = {
   references?: {
     tableId: string;
     columnId: string;
+    routeOffset?: number;
   };
 };
 
@@ -46,6 +47,7 @@ export type LogicalTableRelationship = {
   target: string;
   sourceHandle?: string;
   targetHandle?: string;
+  routeOffset?: number;
 };
 
 export type LogicalModel = {

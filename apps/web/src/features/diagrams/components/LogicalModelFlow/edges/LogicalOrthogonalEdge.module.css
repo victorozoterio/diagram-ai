@@ -1,0 +1,15 @@
+.segmentHitArea {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18;
+  pointer-events: stroke;
+  cursor: move;
+}
+
+.verticalSegment {
+  cursor: ew-resize;
+}
+
+.horizontalSegment {
+  cursor: ns-resize;
+}

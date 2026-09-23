@@ -22,6 +22,8 @@ import '@xyflow/react/dist/style.css';
 import type { LogicalColumn, LogicalModel, LogicalTable, LogicalTableRelationship } from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
 import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
+import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
+import { LogicalOrthogonalEdge } from './edges/LogicalOrthogonalEdge';
 import styles from './LogicalModelFlow.module.css';
 
 type LogicalModelFlowProps = {
@@ -364,6 +366,10 @@ const nodeTypes = {
   table: TableNode,
 };
 
+const edgeTypes = {
+  logicalOrthogonal: LogicalOrthogonalEdge,
+};
+
 function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -527,7 +533,11 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
     target: relationship.target,
     sourceHandle: relationship.sourceHandle,
     targetHandle: relationship.targetHandle,
-    type: 'smoothstep',
+    type: 'logicalOrthogonal',
+    data: {
+      routeOffset: relationship.routeOffset,
+      onUpdateRoute: (edgeId: string, routeOffset: number) => updateRouteOffset(edgeId, routeOffset),
+    } satisfies LogicalOrthogonalEdgeData,
     selected: relationship.id === selectedEdgeId,
     style: edgeStyle(relationship.id === selectedEdgeId),
   }));
@@ -555,7 +565,12 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
           sourceHandle: fieldHandleId(referencedColumn.id, 'source', sourceSide),
           targetHandle: fieldHandleId(column.id, 'target', targetSide),
           label: column.name,
-          type: 'smoothstep',
+          type: 'logicalOrthogonal',
+          data: {
+            routeOffset: column.references.routeOffset,
+            onUpdateRoute: (_edgeId: string, routeOffset: number) =>
+              updateReferenceRoute(table.id, column.id, routeOffset),
+          } satisfies LogicalOrthogonalEdgeData,
           selected: id === selectedEdgeId,
           style: edgeStyle(id === selectedEdgeId),
         },
@@ -564,6 +579,33 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
   );
 
   const edges = [...referenceEdges, ...manualEdges];
+
+  function updateRouteOffset(edgeId: string, routeOffset: number) {
+    onUpdateModel({
+      ...model,
+      relationships: (model.relationships ?? []).map((relationship) =>
+        relationship.id === edgeId ? { ...relationship, routeOffset } : relationship,
+      ),
+    });
+  }
+
+  function updateReferenceRoute(tableId: string, columnId: string, routeOffset: number) {
+    onUpdateModel({
+      ...model,
+      tables: model.tables.map((table) =>
+        table.id === tableId
+          ? {
+              ...table,
+              columns: table.columns.map((column) =>
+                column.id === columnId && column.references
+                  ? { ...column, references: { ...column.references, routeOffset } }
+                  : column,
+              ),
+            }
+          : table,
+      ),
+    });
+  }
 
   function handleConnect(connection: Connection) {
     if (!connection.source || !connection.target || connection.source === connection.target) return;
@@ -618,6 +660,7 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onInit={(instance) => {
           flowInstance.current = instance;
         }}
