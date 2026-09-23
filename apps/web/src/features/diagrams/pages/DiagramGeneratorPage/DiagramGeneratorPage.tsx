@@ -140,7 +140,7 @@ export function DiagramGeneratorPage() {
                   <span className={styles.eyebrow}>CANVAS</span>
                   <h1>Modelo conceitual</h1>
                 </div>
-                <span className={styles.canvasHint}>Clique nos textos para editar · arraste para organizar</span>
+                <span className={styles.canvasHint}>Arraste para organizar</span>
               </div>
 
               <ConceptualDiagramFlow

@@ -17,7 +17,7 @@ export function LogicalEditorCanvas({ model, onAddTable, onUpdateTable, onUpdate
           <span className={styles.eyebrow}>CANVAS</span>
           <h1>Modelo lógico</h1>
         </div>
-        <span className={styles.hint}>Estrutura lógica do banco de dados</span>
+        <span className={styles.hint}>Arraste para organizar</span>
       </div>
       <LogicalModelFlow
         model={model}

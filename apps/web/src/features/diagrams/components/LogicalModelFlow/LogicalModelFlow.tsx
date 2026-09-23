@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 
 import type { LogicalColumn, LogicalModel, LogicalTable } from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
+import { FitViewOnNodeChange } from '../ConceptualDiagramFlow/FitViewOnNodeChange';
 import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
 import { LogicalOrthogonalEdge } from './edges/LogicalOrthogonalEdge';
@@ -447,7 +448,9 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<LogicalTableNodeData>[]>([]);
+  const [viewportReadyForCount, setViewportReadyForCount] = useState<number | null>(null);
   const editingStartSizes = useRef<Record<string, { width: number; height: number }>>({});
+  const handleViewportReady = useCallback(() => setViewportReadyForCount(model.tables.length), [model.tables.length]);
   const highlightedFieldKeys = useMemo(() => getSelectedEdgeFieldKeys(model, selectedEdgeId), [model, selectedEdgeId]);
   const handleResize = useCallback((nodeId: string, size: { width: number; height: number }) => {
     setNodes((currentNodes) =>
@@ -662,6 +665,9 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
   return (
     <div
       className={conceptualStyles.diagramFlow}
+      style={{
+        visibility: model.tables.length === 0 || viewportReadyForCount === model.tables.length ? 'visible' : 'hidden',
+      }}
       role='application'
       aria-label='Canvas do modelo lógico'
       onDragOver={(event) => {
@@ -767,11 +773,11 @@ export function LogicalModelFlow({ model, onAddTable, onUpdateTable, onUpdateMod
         selectionKeyCode={['Shift', 'Meta']}
         multiSelectionKeyCode={['Shift', 'Meta']}
         deleteKeyCode={['Backspace', 'Delete']}
-        fitView
       >
         <Background />
         <Controls />
         <MiniMap />
+        <FitViewOnNodeChange nodeCount={model.tables.length} onReady={handleViewportReady} />
       </ReactFlow>
     </div>
   );
