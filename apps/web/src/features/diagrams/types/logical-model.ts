@@ -50,7 +50,35 @@ export type LogicalTableRelationship = {
   routeOffset?: number;
 };
 
+export type LogicalConversionRelationship = {
+  id: string;
+  name: string;
+  type: '1:1' | '1:N' | 'N:N';
+  foreignKeyTableId?: string;
+  referencedTableId?: string;
+  associationTableId?: string;
+};
+
+export type LogicalConversionCompositeAttribute = {
+  tableId: string;
+  id: string;
+  name: string;
+  type: import('./conceptual-model').AttributeType;
+  required: boolean;
+  unique: boolean;
+  components: Array<{
+    id: string;
+    name: string;
+    type: import('./conceptual-model').AttributeType;
+    columnId: string;
+  }>;
+};
+
 export type LogicalModel = {
   tables: LogicalTable[];
   relationships?: LogicalTableRelationship[];
+  conversionMetadata?: {
+    relationships: LogicalConversionRelationship[];
+    compositeAttributes: LogicalConversionCompositeAttribute[];
+  };
 };

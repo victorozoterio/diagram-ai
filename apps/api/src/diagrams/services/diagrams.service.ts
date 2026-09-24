@@ -5,6 +5,7 @@ import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
 import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
 import { LogicalModelConverterService } from './logical-model-converter.service';
+import { LogicalToConceptualConverterService } from './logical-to-conceptual-converter.service';
 
 @Injectable()
 export class DiagramsService {
@@ -14,6 +15,7 @@ export class DiagramsService {
   constructor(
     private readonly aiService: AiService,
     private readonly logicalModelConverterService: LogicalModelConverterService,
+    private readonly logicalToConceptualConverterService: LogicalToConceptualConverterService,
   ) {}
 
   async generate(dto: GenerateDiagramDto): Promise<ConceptualModel | LogicalModel> {
@@ -79,5 +81,18 @@ export class DiagramsService {
     }
 
     return this.logicalModelConverterService.convert(parsed.data);
+  }
+
+  convertToConceptual(logicalModel: LogicalModel): ConceptualModel {
+    const parsed = LogicalModelSchema.safeParse(logicalModel);
+
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'O modelo lógico informado é inválido.',
+        errors: z.treeifyError(parsed.error),
+      });
+    }
+
+    return this.logicalToConceptualConverterService.convert(parsed.data);
   }
 }

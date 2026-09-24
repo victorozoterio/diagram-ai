@@ -1,4 +1,9 @@
-import { convertToLogicalModel, generateConceptualModel, generateLogicalModel } from '@/api/diagrams.api';
+import {
+  convertToConceptualModel,
+  convertToLogicalModel,
+  generateConceptualModel,
+  generateLogicalModel,
+} from '@/api/diagrams.api';
 import type { ConceptualModel, LogicalModel } from '../../types';
 import { calculateInitialConceptualLayout, calculateInitialLogicalLayout } from './auto-layout';
 import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoints, StateSetter } from './editor.types';
@@ -6,6 +11,7 @@ import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoint
 type LifecycleDependencies = {
   description: string;
   conceptualModel: ConceptualModel | null;
+  logicalModel: LogicalModel | null;
   setConceptualModel: StateSetter<ConceptualModel | null>;
   setLogicalModel: StateSetter<LogicalModel | null>;
   setIsGenerating: StateSetter<boolean>;
@@ -23,6 +29,7 @@ type LifecycleDependencies = {
 export function useDiagramLifecycle({
   description,
   conceptualModel,
+  logicalModel,
   setConceptualModel,
   setLogicalModel,
   setIsGenerating,
@@ -42,20 +49,7 @@ export function useDiagramLifecycle({
 
     try {
       const generatedModel = await generateConceptualModel(description);
-      let layout = { entityPositions: {}, elementPositions: {} };
-      try {
-        layout = await calculateInitialConceptualLayout(generatedModel);
-      } catch {
-        // O modelo ainda deve ser exibido caso o mecanismo de layout não consiga calculá-lo.
-      }
-      setConceptualModel(generatedModel);
-      setSelectedAttribute(null);
-      setSelectedEntityIds([]);
-      setEntityPositions(layout.entityPositions);
-      setElementPositions(layout.elementPositions);
-      setNodeSizes({});
-      setEdgeControlPoints({});
-      setLayoutVersion((currentVersion) => currentVersion + 1);
+      await presentConceptualModel(generatedModel);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
     } finally {
@@ -98,6 +92,42 @@ export function useDiagramLifecycle({
     }
   }
 
+  async function convertLogicalToConceptualDiagram() {
+    if (!logicalModel) {
+      return false;
+    }
+
+    setError(null);
+    setIsConverting(true);
+    try {
+      const convertedModel = await convertToConceptualModel(logicalModel);
+      await presentConceptualModel(convertedModel);
+      return true;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erro inesperado ao converter o modelo conceitual.');
+      return false;
+    } finally {
+      setIsConverting(false);
+    }
+  }
+
+  async function presentConceptualModel(model: ConceptualModel) {
+    let layout = { entityPositions: {}, elementPositions: {} };
+    try {
+      layout = await calculateInitialConceptualLayout(model);
+    } catch {
+      // O modelo continua disponível caso o mecanismo de layout não responda.
+    }
+    setConceptualModel(model);
+    setSelectedAttribute(null);
+    setSelectedEntityIds([]);
+    setEntityPositions(layout.entityPositions);
+    setElementPositions(layout.elementPositions);
+    setNodeSizes({});
+    setEdgeControlPoints({});
+    setLayoutVersion((currentVersion) => currentVersion + 1);
+  }
+
   function clearDiagram() {
     setConceptualModel(null);
     setLogicalModel(null);
@@ -114,6 +144,7 @@ export function useDiagramLifecycle({
     generateConceptualDiagram,
     generateLogicalDiagram,
     convertConceptualToLogicalDiagram,
+    convertLogicalToConceptualDiagram,
     clearLogicalModel: () => setLogicalModel(null),
     clearDiagram,
   };

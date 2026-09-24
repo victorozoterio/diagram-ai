@@ -5,7 +5,8 @@ export type EditorMode = 'conceptual' | 'logical';
 type EditorHeaderProps = {
   isGenerating: boolean;
   isConverting: boolean;
-  canConvertToLogical: boolean;
+  canConvert: boolean;
+  convertLabel: string;
   onGenerate: () => void;
   onConvert: () => void;
   exportMenuTargetRef?: (element: HTMLDivElement | null) => void;
@@ -16,7 +17,8 @@ type EditorHeaderProps = {
 export function EditorHeader({
   isGenerating,
   isConverting,
-  canConvertToLogical,
+  canConvert,
+  convertLabel,
   onGenerate,
   onConvert,
   exportMenuTargetRef,
@@ -60,9 +62,9 @@ export function EditorHeader({
           className={styles.secondaryButton}
           type='button'
           onClick={onConvert}
-          disabled={!canConvertToLogical || isConverting}
+          disabled={!canConvert || isConverting}
         >
-          {isConverting ? 'Convertendo...' : 'Converter para lógico'}
+          {isConverting ? 'Convertendo...' : convertLabel}
         </button>
         <button className={styles.primaryButton} type='button' onClick={onGenerate} disabled={isGenerating}>
           {isGenerating ? 'Gerando...' : 'Gerar modelo'}

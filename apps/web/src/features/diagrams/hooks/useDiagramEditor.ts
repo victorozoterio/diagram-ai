@@ -150,6 +150,7 @@ export function useDiagramEditor() {
   const lifecycleActions = useDiagramLifecycle({
     description,
     conceptualModel,
+    logicalModel,
     setConceptualModel,
     setLogicalModel,
     setIsGenerating,
@@ -198,6 +199,7 @@ export function useDiagramEditor() {
     isConverting,
     error,
     canConvertToLogical: Boolean(conceptualModel),
+    canConvertToConceptual: Boolean(logicalModel),
     selectedAttribute,
     selectedEntityIds,
     entityPositions,

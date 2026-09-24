@@ -3,6 +3,7 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { GenerateDiagramDto } from './dto/generate-diagram.dto';
 import { ConceptualModel } from './schemas/conceptual-model.schema';
+import { LogicalModel } from './schemas/logical-model.schema';
 import { DiagramsService } from './services/diagrams.service';
 
 @ApiTags('Diagrams')
@@ -151,5 +152,23 @@ export class DiagramsController {
   })
   convertToLogical(@Body() conceptualModel: ConceptualModel) {
     return this.diagramsService.convertToLogical(conceptualModel);
+  }
+
+  @Post('convert-to-conceptual')
+  @ApiOperation({
+    summary: 'Converte um modelo lógico em modelo conceitual Chen',
+    description:
+      'Recebe um modelo lógico validado e reconstrói deterministicamente entidades, relacionamentos, cardinalidades e generalizações quando a estrutura for inequívoca.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Modelo conceitual gerado com sucesso.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Modelo lógico inválido.',
+  })
+  convertToConceptual(@Body() logicalModel: LogicalModel) {
+    return this.diagramsService.convertToConceptual(logicalModel);
   }
 }

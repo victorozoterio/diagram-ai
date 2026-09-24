@@ -35,6 +35,7 @@ export function DiagramGeneratorPage() {
     isConverting,
     error,
     canConvertToLogical,
+    canConvertToConceptual,
     selectedAttribute,
     selectedEntityIds,
     layoutVersion,
@@ -46,6 +47,7 @@ export function DiagramGeneratorPage() {
     generateConceptualDiagram,
     generateLogicalDiagram,
     convertConceptualToLogicalDiagram,
+    convertLogicalToConceptualDiagram,
     removeEntity,
     selectEntity,
     updateEntity,
@@ -113,6 +115,12 @@ export function DiagramGeneratorPage() {
     }
   }
 
+  async function convertAndOpenConceptualModel() {
+    if (await convertLogicalToConceptualDiagram()) {
+      setMode('conceptual');
+    }
+  }
+
   function generateActiveModel() {
     if (mode === 'logical') {
       return generateLogicalDiagram();
@@ -121,14 +129,17 @@ export function DiagramGeneratorPage() {
     return generateConceptualDiagram();
   }
 
+  const convertingFromConceptual = mode === 'conceptual';
+
   return (
     <main className={styles.app}>
       <EditorHeader
         isGenerating={isGenerating}
         isConverting={isConverting}
-        canConvertToLogical={canConvertToLogical}
+        canConvert={convertingFromConceptual ? canConvertToLogical : canConvertToConceptual}
+        convertLabel={convertingFromConceptual ? 'Converter para lógico' : 'Converter para conceitual'}
         onGenerate={generateActiveModel}
-        onConvert={convertAndOpenLogicalModel}
+        onConvert={convertingFromConceptual ? convertAndOpenLogicalModel : convertAndOpenConceptualModel}
         exportMenuTargetRef={setExportMenuTarget}
         mode={mode}
         onModeChange={setMode}

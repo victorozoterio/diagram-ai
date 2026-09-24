@@ -50,3 +50,19 @@ export async function convertToLogicalModel(conceptualModel: ConceptualModel): P
 
   return response.json();
 }
+
+export async function convertToConceptualModel(logicalModel: LogicalModel): Promise<ConceptualModel> {
+  const response = await fetch(`${API_URL}/diagrams/convert-to-conceptual`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(logicalModel),
+  });
+
+  if (!response.ok) {
+    throw new Error('Não foi possível converter o modelo conceitual.');
+  }
+
+  return response.json();
+}

@@ -9,6 +9,7 @@ import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schem
  */
 export function normalizeLogicalModelConstraints(model: LogicalModel): LogicalModel {
   return LogicalModelSchema.parse({
+    ...model,
     tables: model.tables.map((table) => ({
       ...table,
       columns: table.columns.map((column) => {
