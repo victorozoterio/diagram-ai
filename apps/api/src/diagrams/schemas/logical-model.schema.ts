@@ -4,9 +4,11 @@ export const LogicalColumnTypeSchema = z.enum([
   'varchar',
   'text',
   'integer',
+  'bigint',
   'decimal',
   'boolean',
   'date',
+  'datetime',
   'timestamp',
   'uuid',
   'unknown',
@@ -19,6 +21,7 @@ export const LogicalColumnSchema = z.object({
   primaryKey: z.boolean().default(false),
   foreignKey: z.boolean().default(false),
   required: z.boolean().default(false),
+  nullable: z.boolean().optional(),
   unique: z.boolean().default(false),
   references: z
     .object({

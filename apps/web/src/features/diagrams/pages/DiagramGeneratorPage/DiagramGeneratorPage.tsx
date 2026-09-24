@@ -44,6 +44,7 @@ export function DiagramGeneratorPage() {
     edgeControlPoints,
     setDescription,
     generateConceptualDiagram,
+    generateLogicalDiagram,
     convertConceptualToLogicalDiagram,
     removeEntity,
     selectEntity,
@@ -112,13 +113,21 @@ export function DiagramGeneratorPage() {
     }
   }
 
+  function generateActiveModel() {
+    if (mode === 'logical') {
+      return generateLogicalDiagram();
+    }
+
+    return generateConceptualDiagram();
+  }
+
   return (
     <main className={styles.app}>
       <EditorHeader
         isGenerating={isGenerating}
         isConverting={isConverting}
         canConvertToLogical={canConvertToLogical}
-        onGenerate={generateConceptualDiagram}
+        onGenerate={generateActiveModel}
         onConvert={convertAndOpenLogicalModel}
         exportMenuTargetRef={setExportMenuTarget}
         mode={mode}

@@ -106,7 +106,7 @@ export function createForeignKeyColumn({
 }
 
 export function foreignKeyName(referencedTable: LogicalTable): string {
-  return `${toSnakeCase(referencedTable.name)}_id`;
+  return `id_${toSnakeCase(referencedTable.name)}`;
 }
 
 export function addOrPromoteForeignKey({
@@ -122,9 +122,16 @@ export function addOrPromoteForeignKey({
 }): void {
   const expectedId = `${referencedTable.id}_id`;
   const expectedName = foreignKeyName(referencedTable);
-  const existingColumn = findForeignKeyCandidate(targetTable, referencedTable, expectedId, expectedName);
+  const existingColumn = findForeignKeyCandidate(
+    targetTable,
+    referencedTable,
+    referencedColumn,
+    expectedId,
+    expectedName,
+  );
 
   if (existingColumn) {
+    existingColumn.name = expectedName;
     existingColumn.type = referencedColumn.type;
     existingColumn.foreignKey = true;
     existingColumn.required = true;
@@ -150,6 +157,7 @@ export function addOrPromoteForeignKey({
 function findForeignKeyCandidate(
   targetTable: LogicalTable,
   referencedTable: LogicalTable,
+  referencedColumn: LogicalColumn,
   expectedId: string,
   expectedName: string,
 ): LogicalColumn | undefined {
@@ -158,6 +166,10 @@ function findForeignKeyCandidate(
   const normalizedReferencedTableName = normalizeColumnName(referencedTable.name);
 
   return targetTable.columns.find((column) => {
+    if (column.references?.tableId === referencedTable.id && column.references.columnId === referencedColumn.id) {
+      return true;
+    }
+
     if (column.id === expectedId) {
       return true;
     }

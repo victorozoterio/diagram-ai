@@ -8,6 +8,7 @@ import {
   applyMultivaluedAttributes,
   convertEntitiesToTables,
 } from './logical-model-converter/table-converters';
+import { normalizeLogicalModelConstraints } from './logical-model-normalizer';
 
 /**
  * Orquestra a conversão do modelo conceitual.
@@ -23,6 +24,6 @@ export class LogicalModelConverterService {
     applyRelationshipConversions(tables, conceptualModel.relationships);
     applyMultivaluedAttributes(tables, conceptualModel.entities);
 
-    return { tables };
+    return normalizeLogicalModelConstraints({ tables });
   }
 }

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { AiService } from '../../ai/ai.service';
 import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
-import { LogicalModel } from '../schemas/logical-model.schema';
+import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
 import { LogicalModelConverterService } from './logical-model-converter.service';
 
 @Injectable()
@@ -16,7 +16,11 @@ export class DiagramsService {
     private readonly logicalModelConverterService: LogicalModelConverterService,
   ) {}
 
-  async generate(dto: GenerateDiagramDto): Promise<ConceptualModel> {
+  async generate(dto: GenerateDiagramDto): Promise<ConceptualModel | LogicalModel> {
+    if (dto.mode === 'logical') {
+      return this.generateLogical(dto.description);
+    }
+
     let conceptualModel = await this.aiService.generateConceptualModel(dto.description);
 
     for (let attempt = 1; attempt <= this.maxValidationAttempts; attempt++) {
@@ -48,6 +52,20 @@ export class DiagramsService {
     throw new BadRequestException({
       message: 'Não foi possível gerar um modelo conceitual válido.',
     });
+  }
+
+  private async generateLogical(description: string): Promise<LogicalModel> {
+    const logicalModel = await this.aiService.generateLogicalModel(description);
+    const parsed = LogicalModelSchema.safeParse(logicalModel);
+
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'O modelo lógico gerado é inválido.',
+        errors: z.treeifyError(parsed.error),
+      });
+    }
+
+    return parsed.data;
   }
 
   convertToLogical(conceptualModel: ConceptualModel): LogicalModel {

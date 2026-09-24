@@ -9,6 +9,10 @@ export class AiService {
     return this.ollamaProvider.generateConceptualModel(description);
   }
 
+  async generateLogicalModel(description: string) {
+    return this.ollamaProvider.generateLogicalModel(description);
+  }
+
   async fixConceptualModel(params: { description: string; invalidModel: unknown; validationError: unknown }) {
     return this.ollamaProvider.fixConceptualModel(params);
   }

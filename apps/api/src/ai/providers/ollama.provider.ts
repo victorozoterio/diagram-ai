@@ -4,14 +4,18 @@ import { ConfigService } from '@nestjs/config';
 import { ENV, EnvironmentVariables } from 'src/config/environments';
 
 import type { ConceptualModel } from '../../diagrams/schemas/conceptual-model.schema';
+import type { LogicalModel } from '../../diagrams/schemas/logical-model.schema';
 
 import { buildConceptualModelPrompt } from '../prompts/conceptual-model.prompt';
+import { buildLogicalModelPrompt } from '../prompts/logical-model.prompt';
 import { GeneratedConceptualModelJsonSchema } from './ollama/conceptual-model-generation.schema';
 import { buildFixConceptualModelPrompt } from './ollama/conceptual-model-prompts';
 import {
   compactConceptualModelForRepair,
   parseConceptualModelResponse,
 } from './ollama/conceptual-model-response.parser';
+import { GeneratedLogicalModelJsonSchema } from './ollama/logical-model-generation.schema';
+import { parseLogicalModelResponse } from './ollama/logical-model-response.parser';
 import { OllamaError, serializeOllamaError } from './ollama/ollama.errors';
 import type { OllamaChatMessage, OllamaChatResponse } from './ollama/ollama.types';
 
@@ -43,6 +47,28 @@ export class OllamaProvider {
       return this.withGenerationMetadata(parseConceptualModelResponse(content, description), description);
     } catch (error) {
       throw this.providerException('Erro ao gerar modelo conceitual com Ollama.', error);
+    }
+  }
+
+  async generateLogicalModel(description: string): Promise<LogicalModel> {
+    try {
+      const content = await this.chat(
+        [
+          {
+            role: 'system',
+            content: 'Modele um esquema relacional. Retorne somente o JSON solicitado, sem explicações.',
+          },
+          {
+            role: 'user',
+            content: buildLogicalModelPrompt({ description }),
+          },
+        ],
+        GeneratedLogicalModelJsonSchema,
+      );
+
+      return parseLogicalModelResponse(content, description);
+    } catch (error) {
+      throw this.providerException('Erro ao gerar modelo lógico com Ollama.', error);
     }
   }
 
@@ -83,7 +109,10 @@ export class OllamaProvider {
     };
   }
 
-  private async chat(messages: OllamaChatMessage[]): Promise<string> {
+  private async chat(
+    messages: OllamaChatMessage[],
+    format: unknown = GeneratedConceptualModelJsonSchema,
+  ): Promise<string> {
     const controller = new AbortController();
     let timedOut = false;
     const timeout = setTimeout(() => {
@@ -92,7 +121,7 @@ export class OllamaProvider {
     }, OLLAMA_TIMEOUT_MS);
 
     try {
-      const response = await this.fetchChat(messages, controller.signal, () => timedOut);
+      const response = await this.fetchChat(messages, format, controller.signal, () => timedOut);
       return await this.readStreamingResponse(response, () => timedOut);
     } finally {
       clearTimeout(timeout);
@@ -101,6 +130,7 @@ export class OllamaProvider {
 
   private async fetchChat(
     messages: OllamaChatMessage[],
+    format: unknown,
     signal: AbortSignal,
     didTimeOut: () => boolean,
   ): Promise<Response> {
@@ -112,7 +142,7 @@ export class OllamaProvider {
         body: JSON.stringify({
           model: this.model,
           messages,
-          format: GeneratedConceptualModelJsonSchema,
+          format,
           stream: true,
           think: false,
           keep_alive: '10m',

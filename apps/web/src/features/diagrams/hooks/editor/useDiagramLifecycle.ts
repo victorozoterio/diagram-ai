@@ -1,4 +1,4 @@
-import { convertToLogicalModel, generateConceptualModel } from '@/api/diagrams.api';
+import { convertToLogicalModel, generateConceptualModel, generateLogicalModel } from '@/api/diagrams.api';
 import type { ConceptualModel, LogicalModel } from '../../types';
 import { calculateInitialConceptualLayout, calculateInitialLogicalLayout } from './auto-layout';
 import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoints, StateSetter } from './editor.types';
@@ -63,6 +63,21 @@ export function useDiagramLifecycle({
     }
   }
 
+  async function generateLogicalDiagram() {
+    setError(null);
+    setIsGenerating(true);
+
+    try {
+      const generatedModel = await generateLogicalModel(description);
+      const logicalModel = await calculateInitialLogicalLayout(normalizeLogicalModel(generatedModel));
+      setLogicalModel(logicalModel);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo lógico.');
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
   async function convertConceptualToLogicalDiagram() {
     if (!conceptualModel) {
       return false;
@@ -97,6 +112,7 @@ export function useDiagramLifecycle({
 
   return {
     generateConceptualDiagram,
+    generateLogicalDiagram,
     convertConceptualToLogicalDiagram,
     clearLogicalModel: () => setLogicalModel(null),
     clearDiagram,

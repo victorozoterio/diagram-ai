@@ -19,6 +19,22 @@ export async function generateConceptualModel(description: string): Promise<Conc
   return response.json();
 }
 
+export async function generateLogicalModel(description: string): Promise<LogicalModel> {
+  const response = await fetch(`${API_URL}/diagrams/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ description, mode: 'logical' }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Não foi possível gerar o modelo lógico.');
+  }
+
+  return response.json();
+}
+
 export async function convertToLogicalModel(conceptualModel: ConceptualModel): Promise<LogicalModel> {
   const response = await fetch(`${API_URL}/diagrams/convert-to-logical`, {
     method: 'POST',

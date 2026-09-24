@@ -12,9 +12,9 @@ export class DiagramsController {
 
   @Post('generate')
   @ApiOperation({
-    summary: 'Gera um modelo conceitual a partir de uma descrição textual',
+    summary: 'Gera um modelo conceitual ou lógico a partir de uma descrição textual',
     description:
-      'Recebe uma descrição em linguagem natural e utiliza IA para gerar um modelo conceitual contendo entidades, atributos, relacionamentos, cardinalidades e possíveis ambiguidades.',
+      'Recebe uma descrição em linguagem natural e utiliza IA para gerar o modelo correspondente ao modo informado.',
   })
   @ApiBody({
     type: GenerateDiagramDto,
