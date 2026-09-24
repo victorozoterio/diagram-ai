@@ -26,7 +26,7 @@ export function columnsFromAttribute(entityId: string, attribute: Attribute): Lo
       primaryKey: attribute.identifier,
       foreignKey: false,
       required: attribute.required,
-      unique: attribute.unique,
+      unique: attribute.identifier ? false : attribute.unique,
     },
   ];
 }
@@ -66,7 +66,7 @@ export function ensurePrimaryKey(table: LogicalTable): LogicalColumn {
     primaryKey: true,
     foreignKey: false,
     required: true,
-    unique: true,
+    unique: false,
   };
   table.columns.unshift(idColumn);
 

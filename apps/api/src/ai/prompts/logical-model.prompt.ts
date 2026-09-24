@@ -20,7 +20,7 @@ REGRAS:
 - Preencha manyToMany com cada relação N:N usando firstTable, secondTable e associationTable. Essa diretiva técnica garante a PK composta e remove PKs artificiais da tabela associativa.
 - Atributos compostos viram suas colunas componentes na mesma tabela. Atributos multivalorados viram tabela própria com FK para a tabela proprietária.
 - Generalização/especialização usa table-per-type: o supertipo mantém sua PK; cada subtipo não possui PK própria e recebe <supertipo>_id como PK e FK para a PK do supertipo, além de seus atributos específicos.
-- FK exige references com a tabela e a coluna efetivamente referenciadas. PKs e FKs estruturais são obrigatórias (nullable=false); em 1:1, a FK também é unique=true.
+- FK exige references com a tabela e a coluna efetivamente referenciadas. PKs e FKs estruturais são obrigatórias (nullable=false). PK não deve receber unique=true só por ser PK; em 1:1, somente a FK também é unique=true.
 - Para colunas comuns, nullable=true e unique=false são o padrão. Não inclua nullable ou unique em columns.
 - Declare constraints explícitas somente em constraints.unique ou constraints.notNull, com table, column e evidence contendo um trecho literal da descrição que prove a unicidade ou obrigatoriedade. Sem evidência textual explícita, deixe os arrays vazios; nunca infira UNIQUE/NOT NULL por semântica de CPF, email, título, status ou qualquer outro nome.
 - Use tipos somente entre uuid, varchar, text, integer, bigint, decimal, boolean, date, datetime ou timestamp.

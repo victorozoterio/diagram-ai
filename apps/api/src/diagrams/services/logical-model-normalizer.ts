@@ -22,7 +22,7 @@ export function normalizeLogicalModelConstraints(model: LogicalModel): LogicalMo
           foreignKey,
           required,
           nullable: !required,
-          unique: primaryKey || column.unique,
+          unique: column.unique,
         };
       }),
     })),

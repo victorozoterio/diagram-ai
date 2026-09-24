@@ -86,7 +86,7 @@ export function applyMultivaluedAttributes(tables: LogicalTable[], entities: Ent
             primaryKey: true,
             foreignKey: false,
             required: true,
-            unique: true,
+            unique: false,
           },
           createForeignKeyColumn({
             id: `${entity.id}_${attribute.id}_${entity.id}_id`,
