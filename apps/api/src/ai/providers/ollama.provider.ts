@@ -19,7 +19,7 @@ import { parseLogicalModelResponse } from './ollama/logical-model-response.parse
 import { OllamaError, serializeOllamaError } from './ollama/ollama.errors';
 import type { OllamaChatMessage, OllamaChatResponse } from './ollama/ollama.types';
 
-const OLLAMA_TIMEOUT_MS = 330_000;
+const OLLAMA_TIMEOUT_MS = 120_000;
 
 @Injectable()
 export class OllamaProvider {
