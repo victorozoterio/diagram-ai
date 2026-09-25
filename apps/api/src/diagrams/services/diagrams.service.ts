@@ -6,6 +6,7 @@ import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-mo
 import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
 import { LogicalModelConverterService } from './logical-model-converter.service';
 import { LogicalToConceptualConverterService } from './logical-to-conceptual-converter.service';
+import { SqlDialect, SqlGeneratorService } from './sql-generator.service';
 
 @Injectable()
 export class DiagramsService {
@@ -16,6 +17,7 @@ export class DiagramsService {
     private readonly aiService: AiService,
     private readonly logicalModelConverterService: LogicalModelConverterService,
     private readonly logicalToConceptualConverterService: LogicalToConceptualConverterService,
+    private readonly sqlGeneratorService: SqlGeneratorService,
   ) {}
 
   async generate(dto: GenerateDiagramDto): Promise<ConceptualModel | LogicalModel> {
@@ -94,5 +96,24 @@ export class DiagramsService {
     }
 
     return this.logicalToConceptualConverterService.convert(parsed.data);
+  }
+
+  generateSql(logicalModel: unknown, dialect: SqlDialect): string {
+    const parsed = LogicalModelSchema.safeParse(logicalModel);
+
+    if (!parsed.success) {
+      throw new BadRequestException({
+        message: 'O modelo lógico informado é inválido.',
+        errors: z.treeifyError(parsed.error),
+      });
+    }
+
+    try {
+      return this.sqlGeneratorService.generate(parsed.data, dialect);
+    } catch (error) {
+      throw new BadRequestException({
+        message: error instanceof Error ? error.message : 'Não foi possível gerar o SQL.',
+      });
+    }
   }
 }

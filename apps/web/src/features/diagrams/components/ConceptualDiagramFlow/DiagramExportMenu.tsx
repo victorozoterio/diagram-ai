@@ -1,7 +1,7 @@
 import type { Node } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { type RefObject, useCallback, useState } from 'react';
+import { type RefObject, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './DiagramExportMenu.module.css';
 
@@ -9,15 +9,20 @@ type DiagramExportMenuProps = {
   flowWrapperRef: RefObject<HTMLDivElement | null>;
   nodes: Node[];
   portalTarget?: Element | null;
+  disabled?: boolean;
 };
 
 const EXPORT_PADDING = 32;
 const EXPORT_PIXEL_RATIO = 2;
 
-export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget }: DiagramExportMenuProps) {
+export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget, disabled = false }: DiagramExportMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (disabled) setIsOpen(false);
+  }, [disabled]);
 
   const createDiagramImage = useCallback(async () => {
     const viewport = flowWrapperRef.current?.querySelector<HTMLElement>('.react-flow__viewport');
@@ -98,6 +103,7 @@ export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget }: Diagr
         type='button'
         aria-expanded={isOpen}
         aria-haspopup='menu'
+        disabled={disabled}
         onClick={() => {
           setIsOpen((open) => !open);
           setMessage('');

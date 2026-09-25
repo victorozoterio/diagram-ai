@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { GenerateDiagramDto } from './dto/generate-diagram.dto';
+import { GenerateSqlDto } from './dto/generate-sql.dto';
 import { ConceptualModel } from './schemas/conceptual-model.schema';
 import { LogicalModel } from './schemas/logical-model.schema';
 import { DiagramsService } from './services/diagrams.service';
@@ -170,5 +171,18 @@ export class DiagramsController {
   })
   convertToConceptual(@Body() logicalModel: LogicalModel) {
     return this.diagramsService.convertToConceptual(logicalModel);
+  }
+
+  @Post('generate-sql')
+  @ApiOperation({
+    summary: 'Gera SQL determinístico a partir do modelo lógico',
+  })
+  @ApiResponse({ status: 201, description: 'SQL gerado com sucesso.' })
+  @ApiResponse({ status: 400, description: 'Dialeto ou modelo lógico inválido.' })
+  generateSql(@Body() dto: GenerateSqlDto) {
+    return {
+      dialect: dto.dialect,
+      sql: this.diagramsService.generateSql(dto.model, dto.dialect),
+    };
   }
 }

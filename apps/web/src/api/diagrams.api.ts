@@ -1,6 +1,9 @@
 import type { ConceptualModel } from '../features/diagrams/types/conceptual-model';
 import type { LogicalModel } from '../features/diagrams/types/logical-model';
 
+export const SQL_DIALECTS = ['postgresql', 'mysql', 'mariadb', 'sqlserver'] as const;
+export type SqlDialect = (typeof SQL_DIALECTS)[number];
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function generateConceptualModel(description: string): Promise<ConceptualModel> {
@@ -65,4 +68,21 @@ export async function convertToConceptualModel(logicalModel: LogicalModel): Prom
   }
 
   return response.json();
+}
+
+export async function generateSql(dialect: SqlDialect, model: LogicalModel): Promise<string> {
+  const response = await fetch(`${API_URL}/diagrams/generate-sql`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ dialect, model }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Não foi possível gerar o SQL.');
+  }
+
+  const payload = (await response.json()) as { sql: string };
+  return payload.sql;
 }

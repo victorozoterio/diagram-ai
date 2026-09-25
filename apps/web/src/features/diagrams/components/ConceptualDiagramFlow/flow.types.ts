@@ -82,6 +82,7 @@ export type ConceptualDiagramFlowProps = {
   selectedEntityIds?: string[];
   layoutVersion?: number;
   exportMenuTarget?: Element | null;
+  exportDisabled?: boolean;
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
   nodeSizes?: Record<string, DiagramSize>;

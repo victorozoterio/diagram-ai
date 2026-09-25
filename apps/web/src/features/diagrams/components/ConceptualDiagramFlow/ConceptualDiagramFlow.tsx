@@ -70,7 +70,12 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
       }}
       onDrop={handleDrop}
     >
-      <DiagramExportMenu flowWrapperRef={flowWrapperRef} nodes={nodes} portalTarget={props.exportMenuTarget} />
+      <DiagramExportMenu
+        flowWrapperRef={flowWrapperRef}
+        nodes={nodes}
+        portalTarget={props.exportMenuTarget}
+        disabled={props.exportDisabled}
+      />
       <ReactFlow
         nodes={nodes}
         edges={edges}

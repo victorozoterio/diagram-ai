@@ -29,6 +29,7 @@ import styles from './LogicalModelFlow.module.css';
 type LogicalModelFlowProps = {
   model: LogicalModel;
   exportMenuTarget?: Element | null;
+  exportDisabled?: boolean;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -451,6 +452,7 @@ function columnResponsiveStyle(scale: number): CSSProperties {
 export function LogicalModelFlow({
   model,
   exportMenuTarget,
+  exportDisabled,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
@@ -696,7 +698,12 @@ export function LogicalModelFlow({
         onAddTable(flowInstance.current.screenToFlowPosition({ x: event.clientX, y: event.clientY }));
       }}
     >
-      <DiagramExportMenu flowWrapperRef={flowWrapperRef} nodes={nodes} portalTarget={exportMenuTarget} />
+      <DiagramExportMenu
+        flowWrapperRef={flowWrapperRef}
+        nodes={nodes}
+        portalTarget={exportMenuTarget}
+        disabled={exportDisabled}
+      />
       <ReactFlow
         nodes={nodes}
         edges={edges}

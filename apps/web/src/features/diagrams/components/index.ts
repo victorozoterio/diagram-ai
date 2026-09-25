@@ -10,3 +10,4 @@ export { LogicalEditorCanvas } from './LogicalEditorCanvas/LogicalEditorCanvas';
 export { LogicalEditorSidebar } from './LogicalEditorSidebar/LogicalEditorSidebar';
 export { LogicalModelFlow } from './LogicalModelFlow/LogicalModelFlow';
 export { LogicalModelViewer } from './LogicalModelViewer/LogicalModelViewer';
+export { SqlGeneratorModal } from './SqlGeneratorModal/SqlGeneratorModal';

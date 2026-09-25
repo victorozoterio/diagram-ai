@@ -6,6 +6,7 @@ import styles from './LogicalEditorCanvas.module.css';
 type LogicalEditorCanvasProps = {
   model: LogicalModel;
   exportMenuTarget?: Element | null;
+  exportDisabled?: boolean;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -14,6 +15,7 @@ type LogicalEditorCanvasProps = {
 export function LogicalEditorCanvas({
   model,
   exportMenuTarget,
+  exportDisabled,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
@@ -30,6 +32,7 @@ export function LogicalEditorCanvas({
       <LogicalModelFlow
         model={model}
         exportMenuTarget={exportMenuTarget}
+        exportDisabled={exportDisabled}
         onAddTable={onAddTable}
         onUpdateTable={onUpdateTable}
         onUpdateModel={onUpdateModel}

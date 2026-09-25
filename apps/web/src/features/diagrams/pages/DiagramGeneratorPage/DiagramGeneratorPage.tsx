@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { generateSql, type SqlDialect } from '@/api/diagrams.api';
 import type { EditorMode } from '../../components';
 import {
   ConceptualDiagramFlow,
@@ -9,6 +10,7 @@ import {
   EmptyCanvasState,
   LogicalEditorCanvas,
   LogicalEditorSidebar,
+  SqlGeneratorModal,
 } from '../../components';
 import { useDiagramEditor } from '../../hooks';
 import type { ConceptualModel, LogicalTable } from '../../types';
@@ -26,6 +28,13 @@ const emptyLogicalModel = { tables: [] };
 export function DiagramGeneratorPage() {
   const [mode, setMode] = useState<EditorMode>('conceptual');
   const [exportMenuTarget, setExportMenuTarget] = useState<HTMLDivElement | null>(null);
+  const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
+  const [isGeneratingSql, setIsGeneratingSql] = useState(false);
+  const [sqlDialect, setSqlDialect] = useState<SqlDialect>('postgresql');
+  const [sql, setSql] = useState('');
+  const [sqlError, setSqlError] = useState<string | null>(null);
+  const [sqlMessage, setSqlMessage] = useState('');
+  const sqlMessageTimeout = useRef<number | null>(null);
   const {
     description,
     conceptualModel,
@@ -34,8 +43,6 @@ export function DiagramGeneratorPage() {
     isGenerating,
     isConverting,
     error,
-    canConvertToLogical,
-    canConvertToConceptual,
     selectedAttribute,
     selectedEntityIds,
     layoutVersion,
@@ -77,6 +84,13 @@ export function DiagramGeneratorPage() {
     disconnectAttributeFromRelationship,
   } = useDiagramEditor();
   const activeConceptualModel = conceptualModel ?? emptyConceptualModel;
+  const hasConceptualContent = Boolean(
+    conceptualModel &&
+      (conceptualModel.entities.length > 0 ||
+        conceptualModel.relationships.length > 0 ||
+        (conceptualModel.standaloneAttributes?.length ?? 0) > 0),
+  );
+  const hasLogicalContent = Boolean(logicalModel && logicalModel.tables.length > 0);
 
   function addLogicalTable(position: { x: number; y: number }) {
     setLogicalModel((currentModel) => ({
@@ -121,6 +135,63 @@ export function DiagramGeneratorPage() {
     }
   }
 
+  async function loadSql(dialect: SqlDialect) {
+    if (!logicalModel) return;
+
+    setIsGeneratingSql(true);
+    setSqlError(null);
+    setSqlMessage('');
+    try {
+      setSql(await generateSql(dialect, logicalModel));
+    } catch (error) {
+      setSqlError(error instanceof Error ? error.message : 'Não foi possível gerar o SQL.');
+    } finally {
+      setIsGeneratingSql(false);
+    }
+  }
+
+  function openSqlGenerator() {
+    if (mode !== 'logical' || !logicalModel) return;
+    setIsSqlModalOpen(true);
+    void loadSql(sqlDialect);
+  }
+
+  function changeSqlDialect(dialect: SqlDialect) {
+    setSqlDialect(dialect);
+    void loadSql(dialect);
+  }
+
+  async function copySql() {
+    if (!sql) return;
+    try {
+      await navigator.clipboard.writeText(sql);
+      if (sqlMessageTimeout.current !== null) window.clearTimeout(sqlMessageTimeout.current);
+      setSqlMessage('SQL copiado.');
+      sqlMessageTimeout.current = window.setTimeout(() => {
+        setSqlMessage('');
+        sqlMessageTimeout.current = null;
+      }, 2500);
+    } catch {
+      setSqlError('Não foi possível copiar o SQL.');
+    }
+  }
+
+  function downloadSql() {
+    if (!sql) return;
+    const blob = new Blob([sql], { type: 'text/sql;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `modelo-${sqlDialect}.sql`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function changeMode(nextMode: EditorMode) {
+    setMode(nextMode);
+    if (nextMode !== 'logical') setIsSqlModalOpen(false);
+  }
+
   function generateActiveModel() {
     if (mode === 'logical') {
       return generateLogicalDiagram();
@@ -136,13 +207,17 @@ export function DiagramGeneratorPage() {
       <EditorHeader
         isGenerating={isGenerating}
         isConverting={isConverting}
-        canConvert={convertingFromConceptual ? canConvertToLogical : canConvertToConceptual}
-        convertLabel={convertingFromConceptual ? 'Converter para lógico' : 'Converter para conceitual'}
+        canConvert={convertingFromConceptual ? hasConceptualContent : hasLogicalContent}
+        convertTitle={convertingFromConceptual ? 'Converter para modelo lógico' : 'Converter para modelo conceitual'}
         onGenerate={generateActiveModel}
         onConvert={convertingFromConceptual ? convertAndOpenLogicalModel : convertAndOpenConceptualModel}
         exportMenuTargetRef={setExportMenuTarget}
         mode={mode}
-        onModeChange={setMode}
+        onModeChange={changeMode}
+        showSql={mode === 'logical'}
+        canGenerateSql={hasLogicalContent}
+        isGeneratingSql={isGeneratingSql}
+        onGenerateSql={openSqlGenerator}
       />
 
       <div className={styles.workspace}>
@@ -162,6 +237,7 @@ export function DiagramGeneratorPage() {
               <ConceptualDiagramFlow
                 model={activeConceptualModel}
                 exportMenuTarget={exportMenuTarget}
+                exportDisabled={!hasConceptualContent}
                 onRemoveEntity={removeEntity}
                 onSelectEntity={selectEntity}
                 onClearSelection={clearCanvasSelection}
@@ -205,6 +281,7 @@ export function DiagramGeneratorPage() {
             <LogicalEditorCanvas
               model={logicalModel ?? emptyLogicalModel}
               exportMenuTarget={exportMenuTarget}
+              exportDisabled={!hasLogicalContent}
               onAddTable={addLogicalTable}
               onUpdateTable={updateLogicalTable}
               onUpdateModel={updateLogicalModel}
@@ -214,6 +291,20 @@ export function DiagramGeneratorPage() {
 
         <EditorAssistant description={description} error={error} onDescriptionChange={setDescription} />
       </div>
+
+      {isSqlModalOpen && (
+        <SqlGeneratorModal
+          dialect={sqlDialect}
+          sql={sql}
+          isLoading={isGeneratingSql}
+          error={sqlError}
+          message={sqlMessage}
+          onDialectChange={changeSqlDialect}
+          onCopy={copySql}
+          onDownload={downloadSql}
+          onClose={() => setIsSqlModalOpen(false)}
+        />
+      )}
     </main>
   );
 }
