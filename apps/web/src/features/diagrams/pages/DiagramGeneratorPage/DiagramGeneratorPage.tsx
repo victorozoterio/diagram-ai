@@ -205,11 +205,9 @@ export function DiagramGeneratorPage() {
   return (
     <main className={styles.app}>
       <EditorHeader
-        isGenerating={isGenerating}
         isConverting={isConverting}
         canConvert={convertingFromConceptual ? hasConceptualContent : hasLogicalContent}
         convertTitle={convertingFromConceptual ? 'Converter para modelo lógico' : 'Converter para modelo conceitual'}
-        onGenerate={generateActiveModel}
         onConvert={convertingFromConceptual ? convertAndOpenLogicalModel : convertAndOpenConceptualModel}
         exportMenuTargetRef={setExportMenuTarget}
         mode={mode}
@@ -289,7 +287,13 @@ export function DiagramGeneratorPage() {
           )}
         </EditorCanvas>
 
-        <EditorAssistant description={description} error={error} onDescriptionChange={setDescription} />
+        <EditorAssistant
+          description={description}
+          error={error}
+          onDescriptionChange={setDescription}
+          isGenerating={isGenerating}
+          onGenerate={generateActiveModel}
+        />
       </div>
 
       {isSqlModalOpen && (

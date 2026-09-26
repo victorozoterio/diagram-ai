@@ -1,10 +1,14 @@
 .assistant {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
   min-width: 280px;
+  box-sizing: border-box;
   padding: 20px;
   border-left: 1px solid #e5e7eb;
   background: #ffffff;
+  overflow-y: auto;
 }
 
 .heading {
@@ -48,8 +52,12 @@
 }
 
 .descriptionField {
+  flex: 0 1 300px;
   width: 100%;
-  min-height: 140px;
+  height: 300px;
+  min-height: 220px;
+  max-height: 450px;
+  box-sizing: border-box;
   padding: 10px;
   margin-top: 8px;
   border: 1px solid #d1d5db;
@@ -66,16 +74,46 @@
   box-shadow: 0 0 0 3px rgb(99 102 241 / 12%);
 }
 
-.hint {
-  margin: 8px 0 0;
-  color: #9ca3af;
-  font-size: 11px;
-  line-height: 1.5;
+.generateButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 0 14px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.generateButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.generateIcon {
+  display: block;
+  line-height: 1;
+}
+
+.feedbackArea {
+  height: 56px;
+  min-height: 56px;
+  flex: 0 0 56px;
+  margin-top: 12px;
+  overflow-y: auto;
 }
 
 .error {
   padding: 8px 10px;
-  margin: 16px 0 0;
+  margin: 0;
   border-radius: 7px;
   background: #fef2f2;
   color: #b91c1c;

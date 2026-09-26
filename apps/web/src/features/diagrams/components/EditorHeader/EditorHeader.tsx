@@ -3,11 +3,9 @@ import styles from './EditorHeader.module.css';
 export type EditorMode = 'conceptual' | 'logical';
 
 type EditorHeaderProps = {
-  isGenerating: boolean;
   isConverting: boolean;
   canConvert: boolean;
   convertTitle: string;
-  onGenerate: () => void;
   onConvert: () => void;
   exportMenuTargetRef?: (element: HTMLDivElement | null) => void;
   mode: EditorMode;
@@ -19,11 +17,9 @@ type EditorHeaderProps = {
 };
 
 export function EditorHeader({
-  isGenerating,
   isConverting,
   canConvert,
   convertTitle,
-  onGenerate,
   onConvert,
   exportMenuTargetRef,
   mode,
@@ -90,9 +86,6 @@ export function EditorHeader({
             <path d='M4 4h8l-2-2M12 4l-2 2M12 12H4l2 2M4 12l2-2' />
           </svg>
           {isConverting ? 'Convertendo...' : 'Converter modelo'}
-        </button>
-        <button className={styles.primaryButton} type='button' onClick={onGenerate} disabled={isGenerating}>
-          {isGenerating ? 'Gerando...' : 'Gerar modelo'}
         </button>
       </div>
     </header>
