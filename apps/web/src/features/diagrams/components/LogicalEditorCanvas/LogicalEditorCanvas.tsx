@@ -10,6 +10,7 @@ type LogicalEditorCanvasProps = {
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
+  layoutVersion?: number;
 };
 
 export function LogicalEditorCanvas({
@@ -19,6 +20,7 @@ export function LogicalEditorCanvas({
   onAddTable,
   onUpdateTable,
   onUpdateModel,
+  layoutVersion = 0,
 }: LogicalEditorCanvasProps) {
   return (
     <section className={styles.section}>
@@ -36,6 +38,7 @@ export function LogicalEditorCanvas({
         onAddTable={onAddTable}
         onUpdateTable={onUpdateTable}
         onUpdateModel={onUpdateModel}
+        layoutVersion={layoutVersion}
       />
       {model.tables.length === 0 && (
         <EmptyCanvasState description='Gere um modelo ou arraste um elemento da biblioteca para começar.' />

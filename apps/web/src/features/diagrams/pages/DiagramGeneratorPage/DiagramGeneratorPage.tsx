@@ -46,6 +46,7 @@ export function DiagramGeneratorPage() {
     selectedAttribute,
     selectedEntityIds,
     layoutVersion,
+    logicalLayoutVersion,
     entityPositions,
     elementPositions,
     nodeSizes,
@@ -283,6 +284,7 @@ export function DiagramGeneratorPage() {
               onAddTable={addLogicalTable}
               onUpdateTable={updateLogicalTable}
               onUpdateModel={updateLogicalModel}
+              layoutVersion={logicalLayoutVersion}
             />
           )}
         </EditorCanvas>

@@ -33,6 +33,7 @@ type LogicalModelFlowProps = {
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
+  layoutVersion?: number;
 };
 
 type LogicalTableNodeData = {
@@ -456,6 +457,7 @@ export function LogicalModelFlow({
   onAddTable,
   onUpdateTable,
   onUpdateModel,
+  layoutVersion = 0,
 }: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -799,7 +801,7 @@ export function LogicalModelFlow({
         <Background />
         <Controls />
         <MiniMap />
-        <FitViewOnNodeChange nodeCount={model.tables.length} fitViewKey={0} onReady={handleViewportReady} />
+        <FitViewOnNodeChange nodeCount={model.tables.length} fitViewKey={layoutVersion} onReady={handleViewportReady} />
       </ReactFlow>
     </div>
   );

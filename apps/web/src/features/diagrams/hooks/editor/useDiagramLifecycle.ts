@@ -24,6 +24,7 @@ type LifecycleDependencies = {
   setSelectedAttribute: StateSetter<AttributeSelection>;
   setSelectedEntityIds: StateSetter<string[]>;
   setLayoutVersion: StateSetter<number>;
+  setLogicalLayoutVersion: StateSetter<number>;
 };
 
 export function useDiagramLifecycle({
@@ -42,6 +43,7 @@ export function useDiagramLifecycle({
   setSelectedAttribute,
   setSelectedEntityIds,
   setLayoutVersion,
+  setLogicalLayoutVersion,
 }: LifecycleDependencies) {
   async function generateConceptualDiagram() {
     setError(null);
@@ -65,6 +67,7 @@ export function useDiagramLifecycle({
       const generatedModel = await generateLogicalModel(description);
       const logicalModel = await calculateInitialLogicalLayout(normalizeLogicalModel(generatedModel));
       setLogicalModel(logicalModel);
+      setLogicalLayoutVersion((version) => version + 1);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo lógico.');
     } finally {
@@ -83,6 +86,7 @@ export function useDiagramLifecycle({
       const convertedModel = await convertToLogicalModel(conceptualModel);
       const logicalModel = await calculateInitialLogicalLayout(normalizeLogicalModel(convertedModel));
       setLogicalModel(logicalModel);
+      setLogicalLayoutVersion((version) => version + 1);
       return true;
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao converter o modelo lógico.');

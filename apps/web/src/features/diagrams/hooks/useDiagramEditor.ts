@@ -28,6 +28,7 @@ export function useDiagramEditor() {
   const [selectedAttribute, setSelectedAttribute] = useState<AttributeSelection>(null);
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
   const [layoutVersion, setLayoutVersion] = useState(0);
+  const [logicalLayoutVersion, setLogicalLayoutVersion] = useState(0);
   const history = useRef<DiagramHistory>({ present: null, undo: [], redo: [] });
   const skipHistoryRef = useRef(false);
   const [, setHistoryVersion] = useState(0);
@@ -163,6 +164,7 @@ export function useDiagramEditor() {
     setSelectedAttribute,
     setSelectedEntityIds,
     setLayoutVersion,
+    setLogicalLayoutVersion,
   });
 
   function updateElementPosition(elementId: string, position: DiagramPosition) {
@@ -207,6 +209,7 @@ export function useDiagramEditor() {
     nodeSizes,
     edgeControlPoints,
     layoutVersion,
+    logicalLayoutVersion,
     setDescription,
     setConceptualModel,
     setLogicalModel,
