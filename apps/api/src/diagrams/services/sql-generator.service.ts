@@ -12,19 +12,19 @@ type SqlDialectRenderer = {
 
 const DIALECTS: Record<SqlDialect, SqlDialectRenderer> = {
   postgresql: {
-    quoteIdentifier: (value) => `"${escapeIdentifier(value, '"')}"`,
+    quoteIdentifier: (value) => value,
     columnType: postgresType,
   },
   mysql: {
-    quoteIdentifier: (value) => `\`${escapeIdentifier(value, '`')}\``,
+    quoteIdentifier: (value) => value,
     columnType: mysqlType,
   },
   mariadb: {
-    quoteIdentifier: (value) => `\`${escapeIdentifier(value, '`')}\``,
+    quoteIdentifier: (value) => value,
     columnType: mysqlType,
   },
   sqlserver: {
-    quoteIdentifier: (value) => `[${escapeIdentifier(value, ']')}]`,
+    quoteIdentifier: (value) => value,
     columnType: sqlServerType,
   },
 };
@@ -107,10 +107,6 @@ function indent(value: string): string {
     .split('\n')
     .map((line) => `  ${line}`)
     .join('\n');
-}
-
-function escapeIdentifier(value: string, delimiter: string): string {
-  return value.replaceAll(delimiter, delimiter + delimiter);
 }
 
 function postgresType(type: LogicalColumnType): string {
