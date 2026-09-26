@@ -2,6 +2,7 @@ import { BaseEdge, EdgeLabelRenderer, type Node, Position, useInternalNode, useR
 import { useEffect, useRef, useState } from 'react';
 import type { DiagramPosition, EdgeControlPoints } from '../../../hooks/editor/editor.types';
 import type { EdgeReconnectConnection } from '../flow.types';
+import { smoothConnectionControlPoints } from '../nodes/connection-geometry';
 
 type EdgePointProps = {
   edgeId: string;
@@ -31,8 +32,6 @@ export function useEditableEdgePath({
   sourceY,
   targetX,
   targetY,
-  sourcePosition,
-  targetPosition,
   sourceHandleId,
   targetHandleId,
   sourceAnchor,
@@ -43,7 +42,7 @@ export function useEditableEdgePath({
   const targetNode = useInternalNode(target);
   const start = nodeAnchorPoint(sourceNode, sourceAnchor ?? anchorFromHandleId(sourceHandleId), sourceX, sourceY);
   const end = nodeAnchorPoint(targetNode, targetAnchor ?? anchorFromHandleId(targetHandleId), targetX, targetY);
-  const points = controlPoints ?? defaultControlPoints(start, end, sourcePosition, targetPosition);
+  const points = controlPoints ?? defaultControlPoints(start, end, sourceNode);
 
   return {
     path: `M ${start.x},${start.y} C ${points.controlPoint1.x},${points.controlPoint1.y} ${points.controlPoint2.x},${points.controlPoint2.y} ${end.x},${end.y}`,
@@ -61,8 +60,6 @@ export function EdgeControlPointsEditor({
   sourceY,
   targetX,
   targetY,
-  sourcePosition,
-  targetPosition,
   sourceHandleId,
   targetHandleId,
   sourceAnchor,
@@ -81,7 +78,7 @@ export function EdgeControlPointsEditor({
   const targetNode = useInternalNode(target);
   const start = nodeAnchorPoint(sourceNode, sourceAnchor ?? anchorFromHandleId(sourceHandleId), sourceX, sourceY);
   const end = nodeAnchorPoint(targetNode, targetAnchor ?? anchorFromHandleId(targetHandleId), targetX, targetY);
-  const points = controlPoints ?? defaultControlPoints(start, end, sourcePosition, targetPosition);
+  const points = controlPoints ?? defaultControlPoints(start, end, sourceNode);
   const curvePoint1 = cubicPointAt(start, points.controlPoint1, points.controlPoint2, end, 1 / 3);
   const curvePoint2 = cubicPointAt(start, points.controlPoint1, points.controlPoint2, end, 2 / 3);
   const pointsRef = useRef(points);
@@ -213,18 +210,20 @@ export function EdgeControlPointsEditor({
 function defaultControlPoints(
   source: DiagramPosition,
   target: DiagramPosition,
-  sourcePosition: Position,
-  targetPosition: Position,
+  sourceNode: ReturnType<typeof useInternalNode>,
 ): EdgeControlPoints {
-  const distance = Math.hypot(target.x - source.x, target.y - source.y);
-  const offset = Math.max(48, Math.min(180, distance * 0.35));
-  const sourceDirection = positionVector(sourcePosition);
-  const targetDirection = positionVector(targetPosition);
+  const sourceCenter = sourceNode
+    ? {
+        x: sourceNode.internals.positionAbsolute.x + (sourceNode.measured.width ?? sourceNode.width ?? 0) / 2,
+        y: sourceNode.internals.positionAbsolute.y + (sourceNode.measured.height ?? sourceNode.height ?? 0) / 2,
+      }
+    : undefined;
 
-  return {
-    controlPoint1: { x: source.x + sourceDirection.x * offset, y: source.y + sourceDirection.y * offset },
-    controlPoint2: { x: target.x + targetDirection.x * offset, y: target.y + targetDirection.y * offset },
-  };
+  return smoothConnectionControlPoints(
+    source,
+    target,
+    sourceCenter ? { x: source.x - sourceCenter.x, y: source.y - sourceCenter.y } : undefined,
+  );
 }
 
 function cubicPointAt(
@@ -300,13 +299,6 @@ function moveCurvePointTo(
         secondControlWeight,
     },
   };
-}
-
-function positionVector(position: Position) {
-  if (position === Position.Left) return { x: -1, y: 0 };
-  if (position === Position.Right) return { x: 1, y: 0 };
-  if (position === Position.Top) return { x: 0, y: -1 };
-  return { x: 0, y: 1 };
 }
 
 function anchorFromHandleId(handleId?: string) {

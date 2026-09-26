@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
 import { AttributeEdge } from './edges/AttributeEdge';
+import { ChenConnectionLine } from './edges/ChenConnectionLine';
 import { RelationshipEdge } from './edges/RelationshipEdge';
 import { FitViewOnNodeChange } from './FitViewOnNodeChange';
 import type { ConceptualDiagramFlowProps } from './flow.types';
@@ -87,6 +88,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         onNodesDelete={handleNodesDelete}
         onEdgesDelete={handleEdgesDelete}
         onConnect={handleConnect}
+        connectionLineComponent={ChenConnectionLine}
         onEdgeClick={props.onClearSelection}
         elementsSelectable
         edgesFocusable

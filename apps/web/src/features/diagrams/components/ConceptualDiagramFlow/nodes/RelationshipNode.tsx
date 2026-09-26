@@ -52,6 +52,8 @@ export function RelationshipNode({ data, selected }: { data: RelationshipNodeDat
       )}
       <ConnectionHandles
         prefix='relationship'
+        geometry={isGeneralization ? 'triangle' : 'diamond'}
+        size={data.size}
         middleHandleIds={{
           left: 'target-left',
           right: 'source-right',

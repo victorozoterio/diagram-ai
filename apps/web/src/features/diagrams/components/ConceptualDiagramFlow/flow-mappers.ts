@@ -9,6 +9,11 @@ import type {
   RelationshipNodeData,
 } from './flow.types';
 import { DEFAULT_NODE_SIZES, MIN_NODE_SIZES, type NodeSize } from './node-resize';
+import {
+  type ConnectionGeometry,
+  connectionAnchorFromHandleId,
+  connectionGeometryFromHandleId,
+} from './nodes/connection-geometry';
 
 type FlowMapperCallbacks = {
   onSelectEntity?: EntityNodeData['onSelectEntity'];
@@ -408,6 +413,10 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
             callbacks,
             sourceHandle,
             targetHandle,
+            'rectangle',
+            'triangle',
+            nodeSize(state.nodeSizes?.[relationship.supertypeId], NODE_SIZES.entity),
+            nodeSize(state.nodeSizes?.[relationshipNodeId], NODE_SIZES.generalization),
           ),
         });
       }
@@ -435,6 +444,10 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
             callbacks,
             sourceHandle,
             targetHandle,
+            'triangle',
+            'rectangle',
+            nodeSize(state.nodeSizes?.[relationshipNodeId], NODE_SIZES.generalization),
+            nodeSize(state.nodeSizes?.[subtypeId], NODE_SIZES.entity),
           ),
         });
       }
@@ -467,6 +480,14 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
             callbacks,
             startsAtRelationship ? relationshipHandle : (participant.entityHandle ?? 'entity-right'),
             startsAtRelationship ? (participant.entityHandle ?? 'entity-left') : relationshipHandle,
+            startsAtRelationship ? 'diamond' : 'rectangle',
+            startsAtRelationship ? 'rectangle' : 'diamond',
+            startsAtRelationship
+              ? nodeSize(state.nodeSizes?.[`relationship:${relationship.id}`], NODE_SIZES.relationship)
+              : nodeSize(state.nodeSizes?.[participant.entityId], NODE_SIZES.entity),
+            startsAtRelationship
+              ? nodeSize(state.nodeSizes?.[participant.entityId], NODE_SIZES.entity)
+              : nodeSize(state.nodeSizes?.[`relationship:${relationship.id}`], NODE_SIZES.relationship),
           ),
           relationship,
           entityId: participant.entityId,
@@ -501,6 +522,10 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
           callbacks,
           attribute.relationshipAttributeHandle ?? 'attribute-right',
           attribute.relationshipHandle ?? 'target-left',
+          'rectangle',
+          'diamond',
+          NODE_SIZES.attribute,
+          nodeSize(state.nodeSizes?.[`relationship:${attribute.relationshipId}`], NODE_SIZES.relationship),
         ),
       },
     ];
@@ -538,6 +563,10 @@ export function buildFlowEdges(model: ConceptualModel, state: FlowMapperState, c
           callbacks,
           handles.sourceHandle,
           relationshipHandleForSide(handles.targetHandle.replace('relationship-', '') as ConnectionSide),
+          'rectangle',
+          'diamond',
+          NODE_SIZES.attribute,
+          nodeSize(state.nodeSizes?.[relationshipNodeId], NODE_SIZES.relationship),
         ),
       };
     }),
@@ -559,12 +588,24 @@ function edgeVisualData(
   callbacks: FlowMapperCallbacks,
   sourceHandleId: string,
   targetHandleId: string,
+  sourceGeometry?: ConnectionGeometry,
+  targetGeometry?: ConnectionGeometry,
+  sourceSize: NodeSize = { width: 100, height: 100 },
+  targetSize: NodeSize = { width: 100, height: 100 },
 ) {
   return {
     sourceHandleId,
     targetHandleId,
-    sourceAnchor: anchorFromHandleId(sourceHandleId),
-    targetAnchor: anchorFromHandleId(targetHandleId),
+    sourceAnchor: anchorFromHandleId(
+      sourceHandleId,
+      sourceGeometry ?? connectionGeometryFromHandleId(sourceHandleId),
+      sourceSize,
+    ),
+    targetAnchor: anchorFromHandleId(
+      targetHandleId,
+      targetGeometry ?? connectionGeometryFromHandleId(targetHandleId),
+      targetSize,
+    ),
     controlPoints: state.edgeControlPoints?.[edgeId],
     onControlPointsChange: callbacks.onControlPointsChange,
     onControlPointsCommit: callbacks.onControlPointsCommit,
@@ -580,9 +621,23 @@ function generalizationEdgeData(
   callbacks: FlowMapperCallbacks,
   sourceHandleId: string,
   targetHandleId: string,
+  sourceGeometry: ConnectionGeometry,
+  targetGeometry: ConnectionGeometry,
+  sourceSize: NodeSize,
+  targetSize: NodeSize,
 ): RelationshipEdgeData {
   return {
-    ...edgeVisualData(edgeId, state, callbacks, sourceHandleId, targetHandleId),
+    ...edgeVisualData(
+      edgeId,
+      state,
+      callbacks,
+      sourceHandleId,
+      targetHandleId,
+      sourceGeometry,
+      targetGeometry,
+      sourceSize,
+      targetSize,
+    ),
     relationship,
     entityId,
     isGeneralization: true,
@@ -595,15 +650,8 @@ function isGeneralization(relationship: Relationship) {
   return relationship.kind === 'generalization' || relationship.kind === 'specialization';
 }
 
-function anchorFromHandleId(handleId: string) {
-  const side = handleId.match(/(?:^|-)(left|right|top|bottom)(?:-|$)/)?.[1];
-  const offsetMatch = handleId.match(/(?:^|-)((?:25|50|75))(?:$)/);
-  const offset = offsetMatch ? Number(offsetMatch[1]) / 100 : 0.5;
-
-  if (side === 'left') return { xRatio: 0, yRatio: offset };
-  if (side === 'right') return { xRatio: 1, yRatio: offset };
-  if (side === 'top') return { xRatio: offset, yRatio: 0 };
-  return { xRatio: offset, yRatio: 1 };
+function anchorFromHandleId(handleId: string, geometry: ConnectionGeometry, size: NodeSize) {
+  return connectionAnchorFromHandleId(handleId, geometry, size);
 }
 
 function relationshipHandleForSide(side: ConnectionSide): string {

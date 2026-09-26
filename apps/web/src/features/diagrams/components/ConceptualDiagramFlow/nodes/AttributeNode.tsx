@@ -41,7 +41,7 @@ export function AttributeNode({ data, selected }: { data: AttributeNodeData; sel
         onSave={(name) => data.onUpdateAttribute?.(data.entityId, attribute.id, { name })}
         onSelect={() => data.onSelectAttribute?.(data.entityId, attribute.id)}
       />
-      <ConnectionHandles prefix='attribute' />
+      <ConnectionHandles prefix='attribute' geometry='ellipse' size={data.size} />
     </div>
   );
 }
