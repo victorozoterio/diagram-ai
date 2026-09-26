@@ -103,6 +103,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         panOnScroll
         zoomOnScroll
         zoomOnPinch
+        minZoom={0.1}
         fitView
         deleteKeyCode={['Backspace', 'Delete']}
         selectionKeyCode={['Shift', 'Meta']}

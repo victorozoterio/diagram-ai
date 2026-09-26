@@ -791,6 +791,7 @@ export function LogicalModelFlow({
         panOnScroll
         zoomOnScroll
         zoomOnPinch
+        minZoom={0.1}
         selectionKeyCode={['Shift', 'Meta']}
         multiSelectionKeyCode={['Shift', 'Meta']}
         deleteKeyCode={['Backspace', 'Delete']}
