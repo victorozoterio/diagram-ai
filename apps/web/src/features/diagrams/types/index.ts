@@ -12,6 +12,14 @@ export type {
   RelationshipParticipant,
 } from './conceptual-model';
 
+export type { DiagramAiProject } from './diagram-ai-project';
+
+export {
+  createDiagramAiProject,
+  DIAGRAM_AI_FORMAT,
+  DIAGRAM_AI_FORMAT_VERSION,
+} from './diagram-ai-project';
+
 export type {
   LogicalColumn,
   LogicalColumnType,

@@ -1,5 +1,6 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
 import { useEffect } from 'react';
+import { createDiagramAiProject } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
 import { AttributeEdge } from './edges/AttributeEdge';
@@ -30,6 +31,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
   const { nodes, handleNodesChange, selectAllNodes } = useFlowNodes(props);
   const {
     flowWrapperRef,
+    flowInstance,
     setFlowInstance,
     handleBeforeDelete,
     handleNodesDelete,
@@ -76,6 +78,21 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         nodes={nodes}
         portalTarget={props.exportMenuTarget}
         disabled={props.exportDisabled}
+        getEditableProject={() =>
+          createDiagramAiProject({
+            modelType: 'conceptual',
+            semanticModel: props.model,
+            nodes,
+            edges,
+            viewport: flowInstance?.getViewport(),
+            visualState: {
+              entityPositions: props.entityPositions,
+              elementPositions: props.elementPositions,
+              nodeSizes: props.nodeSizes,
+              edgeControlPoints: props.edgeControlPoints,
+            },
+          })
+        }
       />
       <ReactFlow
         nodes={nodes}

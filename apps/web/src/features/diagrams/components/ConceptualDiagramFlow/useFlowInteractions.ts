@@ -324,6 +324,7 @@ export function useFlowInteractions({
 
   return {
     flowWrapperRef,
+    flowInstance,
     setFlowInstance,
     handleBeforeDelete,
     handleNodesDelete,

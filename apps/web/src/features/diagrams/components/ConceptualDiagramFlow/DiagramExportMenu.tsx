@@ -3,6 +3,7 @@ import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { type RefObject, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import type { DiagramAiProject } from '../../types';
 import styles from './DiagramExportMenu.module.css';
 
 type DiagramExportMenuProps = {
@@ -10,12 +11,19 @@ type DiagramExportMenuProps = {
   nodes: Node[];
   portalTarget?: Element | null;
   disabled?: boolean;
+  getEditableProject?: () => DiagramAiProject;
 };
 
 const EXPORT_PADDING = 32;
 const EXPORT_PIXEL_RATIO = 2;
 
-export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget, disabled = false }: DiagramExportMenuProps) {
+export function DiagramExportMenu({
+  flowWrapperRef,
+  nodes,
+  portalTarget,
+  disabled = false,
+  getEditableProject,
+}: DiagramExportMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [message, setMessage] = useState('');
@@ -96,6 +104,19 @@ export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget, disable
     [createDiagramImage],
   );
 
+  const exportEditableProject = useCallback(() => {
+    if (!getEditableProject) return;
+
+    setMessage('');
+    try {
+      const project = getEditableProject();
+      downloadEditableProject(project);
+      setMessage('Projeto editável baixado.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Não foi possível exportar o projeto editável.');
+    }
+  }, [getEditableProject]);
+
   const menu = (
     <div className={styles.container}>
       <button
@@ -133,6 +154,11 @@ export function DiagramExportMenu({ flowWrapperRef, nodes, portalTarget, disable
           <button type='button' role='menuitem' disabled={isExporting} onClick={() => runExport('pdf')}>
             Baixar como PDF
           </button>
+          {getEditableProject && (
+            <button type='button' role='menuitem' disabled={isExporting} onClick={exportEditableProject}>
+              Baixar projeto editável
+            </button>
+          )}
           {isExporting && <span className={styles.feedback}>Preparando imagem...</span>}
           {!isExporting && message && <span className={styles.feedback}>{message}</span>}
         </div>
@@ -301,6 +327,16 @@ function downloadDataUrl(dataUrl: string, fileName: string) {
   link.download = fileName;
   link.href = dataUrl;
   link.click();
+}
+
+function downloadEditableProject(project: DiagramAiProject) {
+  const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = `diagrama-${project.modelType}.diagramai`;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 async function copyDataUrlToClipboard(dataUrl: string) {

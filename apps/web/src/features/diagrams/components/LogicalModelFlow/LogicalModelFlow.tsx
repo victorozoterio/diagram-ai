@@ -17,7 +17,7 @@ import {
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 
-import type { LogicalColumn, LogicalModel, LogicalTable } from '../../types';
+import { createDiagramAiProject, type LogicalColumn, type LogicalModel, type LogicalTable } from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from '../ConceptualDiagramFlow/DiagramExportMenu';
 import { FitViewOnNodeChange } from '../ConceptualDiagramFlow/FitViewOnNodeChange';
@@ -705,6 +705,15 @@ export function LogicalModelFlow({
         nodes={nodes}
         portalTarget={exportMenuTarget}
         disabled={exportDisabled}
+        getEditableProject={() =>
+          createDiagramAiProject({
+            modelType: 'logical',
+            semanticModel: model,
+            nodes,
+            edges,
+            viewport: flowInstance.current?.getViewport(),
+          })
+        }
       />
       <ReactFlow
         nodes={nodes}
