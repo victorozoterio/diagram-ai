@@ -18,6 +18,8 @@ export {
   createDiagramAiProject,
   DIAGRAM_AI_FORMAT,
   DIAGRAM_AI_FORMAT_VERSION,
+  DiagramAiProjectError,
+  parseDiagramAiProject,
 } from './diagram-ai-project';
 
 export type {

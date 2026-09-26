@@ -13,7 +13,7 @@ import {
   SqlGeneratorModal,
 } from '../../components';
 import { useDiagramEditor } from '../../hooks';
-import type { ConceptualModel, LogicalTable } from '../../types';
+import type { ConceptualModel, DiagramAiProject, LogicalTable } from '../../types';
 import styles from './DiagramGeneratorPage.module.css';
 
 const emptyConceptualModel: ConceptualModel = {
@@ -40,6 +40,7 @@ export function DiagramGeneratorPage() {
     conceptualModel,
     logicalModel,
     setLogicalModel,
+    restoreDiagramProject,
     isGenerating,
     isConverting,
     error,
@@ -47,6 +48,10 @@ export function DiagramGeneratorPage() {
     selectedEntityIds,
     layoutVersion,
     logicalLayoutVersion,
+    conceptualViewport,
+    logicalViewport,
+    conceptualViewportRestoreVersion,
+    logicalViewportRestoreVersion,
     entityPositions,
     elementPositions,
     nodeSizes,
@@ -193,6 +198,12 @@ export function DiagramGeneratorPage() {
     if (nextMode !== 'logical') setIsSqlModalOpen(false);
   }
 
+  function openDiagramProject(project: DiagramAiProject) {
+    restoreDiagramProject(project);
+    setMode(project.modelType);
+    setIsSqlModalOpen(false);
+  }
+
   function generateActiveModel() {
     if (mode === 'logical') {
       return generateLogicalDiagram();
@@ -237,6 +248,9 @@ export function DiagramGeneratorPage() {
                 model={activeConceptualModel}
                 exportMenuTarget={exportMenuTarget}
                 exportDisabled={!hasConceptualContent}
+                onOpenProject={openDiagramProject}
+                restoredViewport={conceptualViewport}
+                viewportRestoreVersion={conceptualViewportRestoreVersion}
                 onRemoveEntity={removeEntity}
                 onSelectEntity={selectEntity}
                 onClearSelection={clearCanvasSelection}
@@ -281,10 +295,13 @@ export function DiagramGeneratorPage() {
               model={logicalModel ?? emptyLogicalModel}
               exportMenuTarget={exportMenuTarget}
               exportDisabled={!hasLogicalContent}
+              onOpenProject={openDiagramProject}
               onAddTable={addLogicalTable}
               onUpdateTable={updateLogicalTable}
               onUpdateModel={updateLogicalModel}
               layoutVersion={logicalLayoutVersion}
+              restoredViewport={logicalViewport}
+              viewportRestoreVersion={logicalViewportRestoreVersion}
             />
           )}
         </EditorCanvas>

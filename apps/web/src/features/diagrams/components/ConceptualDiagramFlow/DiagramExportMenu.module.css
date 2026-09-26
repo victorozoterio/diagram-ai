@@ -6,18 +6,16 @@
 .trigger {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  box-sizing: border-box;
-  min-height: 36px;
-  padding: 0 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgb(15 23 42 / 8%);
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
   color: #374151;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -30,8 +28,9 @@
 }
 
 .trigger:hover,
-.trigger:focus-visible {
-  border-color: #818cf8;
+.trigger:focus-visible,
+.trigger[aria-expanded="true"] {
+  background: #eef2ff;
   color: #4338ca;
   outline: none;
 }
@@ -41,15 +40,10 @@
   opacity: 0.5;
 }
 
-.trigger:disabled:hover {
-  border-color: #d1d5db;
-  color: #374151;
-}
-
 .menu {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  left: 0;
   display: grid;
   width: 180px;
   gap: 2px;
@@ -58,6 +52,17 @@
   border-radius: 10px;
   background: #ffffff;
   box-shadow: 0 10px 26px rgb(15 23 42 / 14%);
+}
+
+.fileInput {
+  display: none;
+}
+
+.divider {
+  display: block;
+  height: 1px;
+  margin: 4px 2px;
+  background: #e5e7eb;
 }
 
 .menu button {
@@ -69,6 +74,82 @@
   cursor: pointer;
   font-size: 12px;
   text-align: left;
+}
+
+.submenuContainer {
+  position: relative;
+}
+
+.submenuTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #374151;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+
+.submenuTrigger:hover:not(:disabled),
+.submenuTrigger:focus-visible,
+.submenuTrigger[aria-expanded="true"] {
+  background: #eef2ff;
+  color: #4338ca;
+  outline: none;
+}
+
+.submenuTrigger:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.submenuArrow {
+  margin-left: 14px;
+  color: currentColor;
+  font-size: 17px;
+  line-height: 10px;
+}
+
+.submenu {
+  position: absolute;
+  top: -6px;
+  left: 100%;
+  display: grid;
+  width: 120px;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgb(15 23 42 / 14%);
+}
+
+.submenu button {
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #374151;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+}
+
+.submenu button:hover:not(:disabled),
+.submenu button:focus-visible {
+  background: #eef2ff;
+  color: #4338ca;
+  outline: none;
+}
+
+.submenu button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .menu button:hover:not(:disabled),

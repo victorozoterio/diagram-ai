@@ -39,6 +39,29 @@ export function EditorHeader({
         </div>
       </div>
 
+      <div className={styles.menuBar}>
+        <div ref={exportMenuTargetRef} className={styles.exportSlot} />
+        <button
+          className={styles.menuItem}
+          type='button'
+          onClick={onConvert}
+          disabled={!canConvert || isConverting}
+          title={convertTitle}
+        >
+          {isConverting ? 'Convertendo...' : 'Converter'}
+        </button>
+        {showSql && (
+          <button
+            className={styles.menuItem}
+            type='button'
+            onClick={onGenerateSql}
+            disabled={!canGenerateSql || isGeneratingSql}
+          >
+            {isGeneratingSql ? 'Gerando SQL...' : 'SQL'}
+          </button>
+        )}
+      </div>
+
       <div className={styles.modeSwitcher} role='tablist' aria-label='Modo do editor'>
         <button
           className={`${styles.modeButton} ${mode === 'conceptual' ? styles.modeButtonActive : ''}`}
@@ -57,35 +80,6 @@ export function EditorHeader({
           onClick={() => onModeChange('logical')}
         >
           Lógico
-        </button>
-      </div>
-
-      <div className={styles.actions}>
-        {showSql && (
-          <button
-            className={`${styles.secondaryButton} ${styles.sqlButton}`}
-            type='button'
-            onClick={onGenerateSql}
-            disabled={!canGenerateSql || isGeneratingSql}
-          >
-            <svg className={styles.sqlIcon} viewBox='0 0 16 16' aria-hidden='true'>
-              <path d='M3 3.5h10v9H3zM3 6h10M6 3.5v2.5M10 3.5v2.5M5 9h1M8 9h1M11 9h1' />
-            </svg>
-            {isGeneratingSql ? 'Gerando SQL...' : 'SQL'}
-          </button>
-        )}
-        <div ref={exportMenuTargetRef} className={styles.exportSlot} />
-        <button
-          className={`${styles.secondaryButton} ${styles.convertButton}`}
-          type='button'
-          onClick={onConvert}
-          disabled={!canConvert || isConverting}
-          title={convertTitle}
-        >
-          <svg className={styles.convertIcon} viewBox='0 0 16 16' aria-hidden='true'>
-            <path d='M4 4h8l-2-2M12 4l-2 2M12 12H4l2 2M4 12l2-2' />
-          </svg>
-          {isConverting ? 'Convertendo...' : 'Converter modelo'}
         </button>
       </div>
     </header>

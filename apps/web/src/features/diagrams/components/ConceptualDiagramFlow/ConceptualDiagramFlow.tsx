@@ -11,6 +11,7 @@ import type { ConceptualDiagramFlowProps } from './flow.types';
 import { AttributeNode } from './nodes/AttributeNode';
 import { EntityNode } from './nodes/EntityNode';
 import { RelationshipNode } from './nodes/RelationshipNode';
+import { RestoreViewport } from './RestoreViewport';
 import { useFlowEdges } from './useFlowEdges';
 import { useFlowInteractions } from './useFlowInteractions';
 import { useFlowNodes } from './useFlowNodes';
@@ -78,6 +79,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         nodes={nodes}
         portalTarget={props.exportMenuTarget}
         disabled={props.exportDisabled}
+        onOpenProject={props.onOpenProject}
         getEditableProject={() =>
           createDiagramAiProject({
             modelType: 'conceptual',
@@ -131,6 +133,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         <Controls />
         <MiniMap pannable zoomable />
         <FitViewOnNodeChange key={props.layoutVersion} nodeCount={nodes.length} fitViewKey={props.layoutVersion ?? 0} />
+        <RestoreViewport viewport={props.restoredViewport} restoreKey={props.viewportRestoreVersion} />
       </ReactFlow>
     </div>
   );

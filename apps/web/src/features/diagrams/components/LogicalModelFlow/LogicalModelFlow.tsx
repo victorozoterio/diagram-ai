@@ -17,11 +17,18 @@ import {
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 
-import { createDiagramAiProject, type LogicalColumn, type LogicalModel, type LogicalTable } from '../../types';
+import {
+  createDiagramAiProject,
+  type DiagramAiProject,
+  type LogicalColumn,
+  type LogicalModel,
+  type LogicalTable,
+} from '../../types';
 import conceptualStyles from '../ConceptualDiagramFlow/ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from '../ConceptualDiagramFlow/DiagramExportMenu';
 import { FitViewOnNodeChange } from '../ConceptualDiagramFlow/FitViewOnNodeChange';
 import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
+import { RestoreViewport } from '../ConceptualDiagramFlow/RestoreViewport';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
 import { LogicalOrthogonalEdge } from './edges/LogicalOrthogonalEdge';
 import styles from './LogicalModelFlow.module.css';
@@ -30,10 +37,13 @@ type LogicalModelFlowProps = {
   model: LogicalModel;
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
+  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
   layoutVersion?: number;
+  restoredViewport?: { x: number; y: number; zoom: number } | null;
+  viewportRestoreVersion?: number;
 };
 
 type LogicalTableNodeData = {
@@ -454,10 +464,13 @@ export function LogicalModelFlow({
   model,
   exportMenuTarget,
   exportDisabled,
+  onOpenProject,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
   layoutVersion = 0,
+  restoredViewport,
+  viewportRestoreVersion,
 }: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -705,6 +718,7 @@ export function LogicalModelFlow({
         nodes={nodes}
         portalTarget={exportMenuTarget}
         disabled={exportDisabled}
+        onOpenProject={onOpenProject}
         getEditableProject={() =>
           createDiagramAiProject({
             modelType: 'logical',
@@ -811,6 +825,7 @@ export function LogicalModelFlow({
         <Controls />
         <MiniMap />
         <FitViewOnNodeChange nodeCount={model.tables.length} fitViewKey={layoutVersion} onReady={handleViewportReady} />
+        <RestoreViewport viewport={restoredViewport} restoreKey={viewportRestoreVersion} />
       </ReactFlow>
     </div>
   );

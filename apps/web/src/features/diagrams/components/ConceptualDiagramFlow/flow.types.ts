@@ -1,5 +1,5 @@
 import type { DiagramSize, EdgeControlPoints } from '../../hooks/editor/editor.types';
-import type { AttributeType, ConceptualModel, ElementKind, Entity, Relationship } from '../../types';
+import type { AttributeType, ConceptualModel, DiagramAiProject, ElementKind, Entity, Relationship } from '../../types';
 
 export type DiagramPosition = { x: number; y: number };
 
@@ -83,10 +83,13 @@ export type ConceptualDiagramFlowProps = {
   layoutVersion?: number;
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
+  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
   nodeSizes?: Record<string, DiagramSize>;
   edgeControlPoints?: Record<string, EdgeControlPoints>;
+  restoredViewport?: { x: number; y: number; zoom: number } | null;
+  viewportRestoreVersion?: number;
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;
   onUpdateEntityPosition?: (entityId: string, position: DiagramPosition) => void;
   onUpdateElementPosition?: (elementId: string, position: DiagramPosition) => void;

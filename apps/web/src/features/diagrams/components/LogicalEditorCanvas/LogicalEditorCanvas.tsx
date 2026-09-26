@@ -1,4 +1,4 @@
-import type { LogicalModel, LogicalTable } from '../../types';
+import type { DiagramAiProject, LogicalModel, LogicalTable } from '../../types';
 import { EmptyCanvasState } from '../EmptyCanvasState/EmptyCanvasState';
 import { LogicalModelFlow } from '../LogicalModelFlow/LogicalModelFlow';
 import styles from './LogicalEditorCanvas.module.css';
@@ -7,20 +7,26 @@ type LogicalEditorCanvasProps = {
   model: LogicalModel;
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
+  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
   layoutVersion?: number;
+  restoredViewport?: { x: number; y: number; zoom: number } | null;
+  viewportRestoreVersion?: number;
 };
 
 export function LogicalEditorCanvas({
   model,
   exportMenuTarget,
   exportDisabled,
+  onOpenProject,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
   layoutVersion = 0,
+  restoredViewport,
+  viewportRestoreVersion,
 }: LogicalEditorCanvasProps) {
   return (
     <section className={styles.section}>
@@ -35,10 +41,13 @@ export function LogicalEditorCanvas({
         model={model}
         exportMenuTarget={exportMenuTarget}
         exportDisabled={exportDisabled}
+        onOpenProject={onOpenProject}
         onAddTable={onAddTable}
         onUpdateTable={onUpdateTable}
         onUpdateModel={onUpdateModel}
         layoutVersion={layoutVersion}
+        restoredViewport={restoredViewport}
+        viewportRestoreVersion={viewportRestoreVersion}
       />
       {model.tables.length === 0 && (
         <EmptyCanvasState description='Gere um modelo ou arraste um elemento da biblioteca para começar.' />

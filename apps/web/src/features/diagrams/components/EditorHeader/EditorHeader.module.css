@@ -9,7 +9,7 @@
 }
 
 .brand,
-.actions,
+.menuBar,
 .modeSwitcher {
   display: flex;
   align-items: center;
@@ -47,8 +47,8 @@
 }
 
 .modeSwitcher {
-  grid-column: 2;
-  justify-self: start;
+  grid-column: 3;
+  justify-self: end;
   gap: 2px;
   padding: 3px;
   margin-left: 28px;
@@ -81,87 +81,40 @@
   color: #4338ca;
 }
 
-.actions {
-  align-items: center;
-  justify-content: flex-start;
-  position: relative;
-  grid-column: 3;
-  justify-self: end;
+.menuBar {
+  grid-column: 2;
+  justify-self: start;
   gap: 8px;
-  width: 300px;
-  box-sizing: border-box;
-  padding-right: 24px;
-  margin-right: -24px;
+  margin-left: 28px;
 }
 
 .exportSlot {
   display: contents;
 }
 
-.secondaryButton {
-  box-sizing: border-box;
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: 8px;
+.menuItem {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #374151;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 700;
-}
-
-.sqlButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  position: absolute;
-  right: calc(100% + 8px);
-}
-
-.convertButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
-.sqlIcon {
-  display: block;
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.2;
-}
-
-.secondaryButton {
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
-}
-
-.secondaryButton:hover:not(:disabled),
-.secondaryButton:focus-visible:not(:disabled) {
-  border-color: #818cf8;
+.menuItem:hover:not(:disabled),
+.menuItem:focus-visible:not(:disabled) {
+  background: #eef2ff;
   color: #4338ca;
   outline: none;
 }
 
-.secondaryButton:disabled {
+.menuItem:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-}
-
-.convertIcon {
-  display: block;
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.25;
 }
 
 @media (max-width: 640px) {
@@ -169,8 +122,8 @@
     padding: 0 14px;
   }
 
-  .secondaryButton {
-    display: none;
+  .menuBar {
+    margin-left: 12px;
   }
 
   .modeSwitcher {

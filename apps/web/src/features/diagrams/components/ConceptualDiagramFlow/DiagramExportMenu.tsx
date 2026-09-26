@@ -1,9 +1,9 @@
 import type { Node } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { type RefObject, useCallback, useEffect, useState } from 'react';
+import { type ChangeEvent, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { DiagramAiProject } from '../../types';
+import { type DiagramAiProject, parseDiagramAiProject } from '../../types';
 import styles from './DiagramExportMenu.module.css';
 
 type DiagramExportMenuProps = {
@@ -12,6 +12,7 @@ type DiagramExportMenuProps = {
   portalTarget?: Element | null;
   disabled?: boolean;
   getEditableProject?: () => DiagramAiProject;
+  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
 };
 
 const EXPORT_PADDING = 32;
@@ -23,14 +24,28 @@ export function DiagramExportMenu({
   portalTarget,
   disabled = false,
   getEditableProject,
+  onOpenProject,
 }: DiagramExportMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportSubmenuOpen, setIsExportSubmenuOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (disabled) setIsOpen(false);
-  }, [disabled]);
+    if (!isOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (event.target instanceof Node && !containerRef.current?.contains(event.target)) {
+        setIsOpen(false);
+        setIsExportSubmenuOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isOpen]);
 
   const createDiagramImage = useCallback(async () => {
     const viewport = flowWrapperRef.current?.querySelector<HTMLElement>('.react-flow__viewport');
@@ -117,20 +132,59 @@ export function DiagramExportMenu({
     }
   }, [getEditableProject]);
 
+  const closeMenu = useCallback(() => {
+    setIsOpen(false);
+    setIsExportSubmenuOpen(false);
+  }, []);
+
+  const runMenuExport = useCallback(
+    (action: 'download' | 'pdf') => {
+      closeMenu();
+      void runExport(action);
+    },
+    [closeMenu, runExport],
+  );
+
+  const openProjectFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const importProjectFile = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file || !onOpenProject) return;
+
+      setMessage('');
+      try {
+        if (!file.name.toLowerCase().endsWith('.diagramai')) {
+          throw new Error('Selecione um arquivo com extensão .diagramai.');
+        }
+
+        const project = parseDiagramAiProject(JSON.parse(await file.text()));
+        await onOpenProject(project);
+        setMessage('Arquivo aberto.');
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : 'Não foi possível abrir o arquivo.');
+      }
+    },
+    [onOpenProject],
+  );
+
   const menu = (
-    <div className={styles.container}>
+    <div ref={containerRef} className={styles.container}>
       <button
         className={styles.trigger}
         type='button'
         aria-expanded={isOpen}
         aria-haspopup='menu'
-        disabled={disabled}
         onClick={() => {
           setIsOpen((open) => !open);
+          setIsExportSubmenuOpen(false);
           setMessage('');
         }}
       >
-        Exportar
+        Arquivo
         <svg className={styles.chevron} viewBox='0 0 12 12' aria-hidden='true'>
           <path
             d='m3 4.5 3 3 3-3'
@@ -145,20 +199,70 @@ export function DiagramExportMenu({
 
       {isOpen && (
         <div className={styles.menu} role='menu' aria-label='Opções de exportação'>
-          <button type='button' role='menuitem' disabled={isExporting} onClick={() => runExport('clipboard')}>
+          <input
+            ref={fileInputRef}
+            className={styles.fileInput}
+            type='file'
+            accept='.diagramai,application/json'
+            onChange={importProjectFile}
+          />
+          <button type='button' role='menuitem' disabled={!onOpenProject || isExporting} onClick={openProjectFile}>
+            Abrir arquivo
+          </button>
+          <button
+            type='button'
+            role='menuitem'
+            disabled={disabled || !getEditableProject || isExporting}
+            onClick={exportEditableProject}
+          >
+            Salvar arquivo
+          </button>
+          <span className={styles.divider} aria-hidden='true' />
+          <button
+            type='button'
+            role='menuitem'
+            disabled={disabled || isExporting}
+            onClick={() => runExport('clipboard')}
+          >
             Copiar imagem
           </button>
-          <button type='button' role='menuitem' disabled={isExporting} onClick={() => runExport('download')}>
-            Baixar como PNG
-          </button>
-          <button type='button' role='menuitem' disabled={isExporting} onClick={() => runExport('pdf')}>
-            Baixar como PDF
-          </button>
-          {getEditableProject && (
-            <button type='button' role='menuitem' disabled={isExporting} onClick={exportEditableProject}>
-              Baixar projeto editável
+          <div className={styles.submenuContainer} role='presentation'>
+            <button
+              className={styles.submenuTrigger}
+              type='button'
+              role='menuitem'
+              aria-haspopup='menu'
+              aria-expanded={isExportSubmenuOpen}
+              disabled={disabled || isExporting}
+              onMouseEnter={() => setIsExportSubmenuOpen(true)}
+              onClick={() => setIsExportSubmenuOpen((open) => !open)}
+            >
+              <span>Exportar como</span>
+              <span className={styles.submenuArrow} aria-hidden='true'>
+                ›
+              </span>
             </button>
-          )}
+            {isExportSubmenuOpen && (
+              <div className={styles.submenu} role='menu' aria-label='Formatos de exportação'>
+                <button
+                  type='button'
+                  role='menuitem'
+                  disabled={disabled || isExporting}
+                  onClick={() => runMenuExport('download')}
+                >
+                  PNG
+                </button>
+                <button
+                  type='button'
+                  role='menuitem'
+                  disabled={disabled || isExporting}
+                  onClick={() => runMenuExport('pdf')}
+                >
+                  PDF
+                </button>
+              </div>
+            )}
+          </div>
           {isExporting && <span className={styles.feedback}>Preparando imagem...</span>}
           {!isExporting && message && <span className={styles.feedback}>{message}</span>}
         </div>

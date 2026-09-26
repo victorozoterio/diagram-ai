@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ConceptualModel, LogicalModel } from '../types';
+import type { ConceptualModel, DiagramAiProject, LogicalModel } from '../types';
 import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoints } from './editor/editor.types';
 import { DEFAULT_DESCRIPTION } from './editor/model-factories';
 import { useAttributeActions } from './editor/useAttributeActions';
@@ -29,6 +29,10 @@ export function useDiagramEditor() {
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [logicalLayoutVersion, setLogicalLayoutVersion] = useState(0);
+  const [conceptualViewport, setConceptualViewport] = useState<{ x: number; y: number; zoom: number } | null>(null);
+  const [logicalViewport, setLogicalViewport] = useState<{ x: number; y: number; zoom: number } | null>(null);
+  const [conceptualViewportRestoreVersion, setConceptualViewportRestoreVersion] = useState(0);
+  const [logicalViewportRestoreVersion, setLogicalViewportRestoreVersion] = useState(0);
   const history = useRef<DiagramHistory>({ present: null, undo: [], redo: [] });
   const skipHistoryRef = useRef(false);
   const [, setHistoryVersion] = useState(0);
@@ -193,6 +197,30 @@ export function useDiagramEditor() {
     setSelectedEntityIds([]);
   }
 
+  function restoreDiagramProject(project: DiagramAiProject) {
+    history.current = { present: null, undo: [], redo: [] };
+    const visualState = project.visual.state;
+
+    if (project.modelType === 'conceptual') {
+      const model = project.semanticModel as ConceptualModel;
+      const restoredVisualState = conceptualVisualState(visualState, project.visual.nodes, model);
+      setConceptualModel(model);
+      setEntityPositions(restoredVisualState.entityPositions);
+      setElementPositions(restoredVisualState.elementPositions);
+      setNodeSizes(restoredVisualState.nodeSizes);
+      setEdgeControlPoints(restoredVisualState.edgeControlPoints);
+      setSelectedAttribute(null);
+      setSelectedEntityIds([]);
+      setConceptualViewport(project.visual.viewport);
+      setConceptualViewportRestoreVersion((version) => version + 1);
+      return;
+    }
+
+    setLogicalModel(restoreLogicalModel(project.semanticModel as LogicalModel, project.visual.nodes));
+    setLogicalViewport(project.visual.viewport);
+    setLogicalViewportRestoreVersion((version) => version + 1);
+  }
+
   return {
     description,
     conceptualModel,
@@ -210,9 +238,14 @@ export function useDiagramEditor() {
     edgeControlPoints,
     layoutVersion,
     logicalLayoutVersion,
+    conceptualViewport,
+    logicalViewport,
+    conceptualViewportRestoreVersion,
+    logicalViewportRestoreVersion,
     setDescription,
     setConceptualModel,
     setLogicalModel,
+    restoreDiagramProject,
     ...lifecycleActions,
     ...entityActions,
     updateElementPosition,
@@ -261,4 +294,84 @@ function isEditableTarget(target: EventTarget | null) {
         element.isContentEditable,
     );
   });
+}
+
+function conceptualVisualState(
+  state: DiagramAiProject['visual']['state'] | undefined,
+  nodes: DiagramAiProject['visual']['nodes'],
+  model: ConceptualModel,
+) {
+  const entityPositions = readPositions(state?.entityPositions);
+  const elementPositions = readPositions(state?.elementPositions);
+  const nodeSizes = readSizes(state?.nodeSizes);
+
+  for (const node of nodes) {
+    if (model.entities.some((entity) => entity.id === node.id)) {
+      entityPositions[node.id] ??= node.position;
+    } else {
+      elementPositions[node.id] ??= node.position;
+    }
+
+    if (node.width && node.height) {
+      nodeSizes[node.id] ??= { width: node.width, height: node.height };
+    }
+  }
+
+  return {
+    entityPositions,
+    elementPositions,
+    nodeSizes,
+    edgeControlPoints: readControlPoints(state?.edgeControlPoints),
+  };
+}
+
+function restoreLogicalModel(model: LogicalModel, nodes: DiagramAiProject['visual']['nodes']): LogicalModel {
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  return {
+    ...model,
+    tables: model.tables.map((table) => {
+      const node = nodesById.get(table.id);
+      if (!node) return table;
+
+      return {
+        ...table,
+        position: node.position,
+        ...(node.width && node.height ? { size: { width: node.width, height: node.height } } : {}),
+      };
+    }),
+  };
+}
+
+function readPositions(value: unknown): Record<string, DiagramPosition> {
+  if (!isRecord(value)) return {};
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([id, position]) => {
+      if (!isRecord(position) || !isFiniteNumber(position.x) || !isFiniteNumber(position.y)) return [];
+      return [[id, { x: position.x, y: position.y }]];
+    }),
+  );
+}
+
+function readSizes(value: unknown): Record<string, DiagramSize> {
+  if (!isRecord(value)) return {};
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([id, size]) => {
+      if (!isRecord(size) || !isFiniteNumber(size.width) || !isFiniteNumber(size.height)) return [];
+      return [[id, { width: size.width, height: size.height }]];
+    }),
+  );
+}
+
+function readControlPoints(value: unknown): Record<string, EdgeControlPoints> {
+  return isRecord(value) ? (value as Record<string, EdgeControlPoints>) : {};
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
 }
