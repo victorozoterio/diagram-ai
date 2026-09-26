@@ -1,25 +1,42 @@
 import { useNodesInitialized, useReactFlow } from '@xyflow/react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-/** Ajusta a câmera quando a quantidade de elementos ou o layout inicial muda. */
-export function FitViewOnNodeChange({ nodeCount, onReady }: { nodeCount: number; onReady?: () => void }) {
+/** Ajusta a câmera somente na inicialização ou quando o layout inicial muda. */
+export function FitViewOnNodeChange({
+  nodeCount,
+  fitViewKey = 0,
+  onReady,
+}: {
+  nodeCount: number;
+  fitViewKey?: number;
+  onReady?: () => void;
+}) {
   const { fitView } = useReactFlow();
   const nodesInitialized = useNodesInitialized({ includeHiddenNodes: true });
+  const fittedKey = useRef<number | null>(null);
 
   useEffect(() => {
     if (nodeCount === 0) {
+      fittedKey.current = fitViewKey;
       onReady?.();
       return;
     }
 
     if (!nodesInitialized) return;
 
+    if (fittedKey.current === fitViewKey) {
+      onReady?.();
+      return;
+    }
+
+    fittedKey.current = fitViewKey;
+
     const frameId = requestAnimationFrame(() => {
       fitView({ padding: 0.1 });
       onReady?.();
     });
     return () => cancelAnimationFrame(frameId);
-  }, [fitView, nodeCount, nodesInitialized, onReady]);
+  }, [fitView, fitViewKey, nodeCount, nodesInitialized, onReady]);
 
   return null;
 }

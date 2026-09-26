@@ -798,7 +798,7 @@ export function LogicalModelFlow({
         <Background />
         <Controls />
         <MiniMap />
-        <FitViewOnNodeChange nodeCount={model.tables.length} onReady={handleViewportReady} />
+        <FitViewOnNodeChange nodeCount={model.tables.length} fitViewKey={0} onReady={handleViewportReady} />
       </ReactFlow>
     </div>
   );

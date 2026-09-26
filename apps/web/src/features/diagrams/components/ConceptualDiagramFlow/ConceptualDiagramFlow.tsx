@@ -110,7 +110,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         <Background gap={24} size={1} color='#94a3b8' />
         <Controls />
         <MiniMap pannable zoomable />
-        <FitViewOnNodeChange key={props.layoutVersion} nodeCount={nodes.length} />
+        <FitViewOnNodeChange key={props.layoutVersion} nodeCount={nodes.length} fitViewKey={props.layoutVersion ?? 0} />
       </ReactFlow>
     </div>
   );
