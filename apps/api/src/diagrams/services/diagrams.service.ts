@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { AiService } from '../../ai/ai.service';
+import type { AmbiguityAnalysis, ClarificationAnswer } from '../../ai/ambiguity-analysis.schema';
+import { AnalyzeAmbiguitiesDto } from '../dto/analyze-ambiguities.dto';
 import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
 import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
@@ -21,11 +23,12 @@ export class DiagramsService {
   ) {}
 
   async generate(dto: GenerateDiagramDto): Promise<ConceptualModel | LogicalModel> {
+    const clarifications = dto.clarifications as ClarificationAnswer[] | undefined;
     if (dto.mode === 'logical') {
-      return this.generateLogical(dto.description);
+      return this.generateLogical(dto.description, clarifications);
     }
 
-    let conceptualModel = await this.aiService.generateConceptualModel(dto.description);
+    let conceptualModel = await this.aiService.generateConceptualModel(dto.description, clarifications);
 
     for (let attempt = 1; attempt <= this.maxValidationAttempts; attempt++) {
       const parsed = ConceptualModelSchema.safeParse(conceptualModel);
@@ -50,6 +53,7 @@ export class DiagramsService {
         description: dto.description,
         invalidModel: conceptualModel,
         validationError,
+        clarifications,
       });
     }
 
@@ -58,8 +62,12 @@ export class DiagramsService {
     });
   }
 
-  private async generateLogical(description: string): Promise<LogicalModel> {
-    const logicalModel = await this.aiService.generateLogicalModel(description);
+  analyzeAmbiguities(dto: AnalyzeAmbiguitiesDto): Promise<AmbiguityAnalysis> {
+    return this.aiService.analyzeAmbiguities(dto.description);
+  }
+
+  private async generateLogical(description: string, clarifications?: ClarificationAnswer[]): Promise<LogicalModel> {
+    const logicalModel = await this.aiService.generateLogicalModel(description, clarifications);
     const parsed = LogicalModelSchema.safeParse(logicalModel);
 
     if (!parsed.success) {

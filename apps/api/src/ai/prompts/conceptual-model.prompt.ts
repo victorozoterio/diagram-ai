@@ -1,13 +1,18 @@
+import type { ClarificationAnswer } from '../ambiguity-analysis.schema';
+import { formatClarifications } from './clarifications.prompt';
+
 type BuildConceptualModelPromptInput = {
   description: string;
+  clarifications?: ClarificationAnswer[];
 };
 
-export function buildConceptualModelPrompt({ description }: BuildConceptualModelPromptInput): string {
+export function buildConceptualModelPrompt({ description, clarifications }: BuildConceptualModelPromptInput): string {
   return `
 Converta a descrição em um DER Chen conceitual.
 
 DESCRIÇÃO:
 ${description}
+${formatClarifications(clarifications)}
 
 REGRAS:
 - Extraia primeiro, internamente, todas as entidades, atributos, relacionamentos e cardinalidades explícitos. Não omita nenhum deles.

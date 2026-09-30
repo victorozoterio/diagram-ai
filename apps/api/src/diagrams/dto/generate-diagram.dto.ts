@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { ClarificationAnswerDto } from './clarification-answer.dto';
 
 export class GenerateDiagramDto {
   @IsString()
@@ -12,4 +14,10 @@ export class GenerateDiagramDto {
   @IsIn(['conceptual', 'logical'])
   @ApiProperty({ enum: ['conceptual', 'logical'], required: false, default: 'conceptual' })
   mode?: 'conceptual' | 'logical';
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => ClarificationAnswerDto)
+  @ApiProperty({ type: [ClarificationAnswerDto], required: false })
+  clarifications?: ClarificationAnswerDto[];
 }

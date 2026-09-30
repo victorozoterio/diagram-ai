@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { GenerateDiagramDto } from './dto/generate-diagram.dto';
+import { AnalyzeAmbiguitiesDto } from './dto/analyze-ambiguities.dto';
 import { GenerateSqlDto } from './dto/generate-sql.dto';
 import { ConceptualModel } from './schemas/conceptual-model.schema';
 import { LogicalModel } from './schemas/logical-model.schema';
@@ -31,6 +32,17 @@ export class DiagramsController {
   })
   generate(@Body() dto: GenerateDiagramDto) {
     return this.diagramsService.generate(dto);
+  }
+
+  @Post('analyze-ambiguities')
+  @ApiOperation({
+    summary: 'Identifica ambiguidades estruturais antes da geração do modelo',
+    description: 'Analisa a descrição com IA e retorna apenas perguntas que podem alterar a estrutura do modelo.',
+  })
+  @ApiBody({ type: AnalyzeAmbiguitiesDto })
+  @ApiResponse({ status: 201, description: 'Análise de ambiguidades concluída.' })
+  analyzeAmbiguities(@Body() dto: AnalyzeAmbiguitiesDto) {
+    return this.diagramsService.analyzeAmbiguities(dto);
   }
 
   @Post('convert-to-logical')

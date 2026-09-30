@@ -1,13 +1,18 @@
+import type { ClarificationAnswer } from '../ambiguity-analysis.schema';
+import { formatClarifications } from './clarifications.prompt';
+
 type BuildLogicalModelPromptInput = {
   description: string;
+  clarifications?: ClarificationAnswer[];
 };
 
-export function buildLogicalModelPrompt({ description }: BuildLogicalModelPromptInput): string {
+export function buildLogicalModelPrompt({ description, clarifications }: BuildLogicalModelPromptInput): string {
   return `
 Converta a descrição em um modelo lógico relacional diretamente.
 
 DESCRIÇÃO:
 ${description}
+${formatClarifications(clarifications)}
 
 REGRAS:
 - Retorne somente tabelas e colunas; não gere entidades, losangos, cardinalidades ou estruturas de DER Chen.

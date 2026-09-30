@@ -1,7 +1,11 @@
+import type { ClarificationAnswer } from '../../ambiguity-analysis.schema';
+import { formatClarifications } from '../../prompts/clarifications.prompt';
+
 export function buildFixConceptualModelPrompt(params: {
   description: string;
   invalidModel: unknown;
   validationError: unknown;
+  clarifications?: ClarificationAnswer[];
 }): string {
   const targetedCorrections = buildTargetedCorrections(params.validationError);
 
@@ -10,6 +14,7 @@ Corrija o modelo conceitual preservando tudo que já está correto.
 
 DESCRIÇÃO ORIGINAL:
 ${params.description}
+${formatClarifications(params.clarifications)}
 
 MODELO INVÁLIDO:
 ${JSON.stringify(params.invalidModel)}

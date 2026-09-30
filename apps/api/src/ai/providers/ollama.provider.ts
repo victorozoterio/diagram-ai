@@ -6,6 +6,14 @@ import { ENV, EnvironmentVariables } from 'src/config/environments';
 import type { ConceptualModel } from '../../diagrams/schemas/conceptual-model.schema';
 import type { LogicalModel } from '../../diagrams/schemas/logical-model.schema';
 
+import {
+  AmbiguityAnalysisJsonSchema,
+  AmbiguityAnalysisSchema,
+  type AmbiguityAnalysis,
+  type ClarificationAnswer,
+} from '../ambiguity-analysis.schema';
+import { discardResolvedCardinalityQuestions } from '../cardinality-ambiguity.guard';
+import { buildAmbiguityAnalysisPrompt } from '../prompts/ambiguity-analysis.prompt';
 import { buildConceptualModelPrompt } from '../prompts/conceptual-model.prompt';
 import { buildLogicalModelPrompt } from '../prompts/logical-model.prompt';
 import { GeneratedConceptualModelJsonSchema } from './ollama/conceptual-model-generation.schema';
@@ -31,7 +39,29 @@ export class OllamaProvider {
     this.model = this.configService.getOrThrow(ENV.OLLAMA_MODEL);
   }
 
-  async generateConceptualModel(description: string): Promise<ConceptualModel> {
+  async analyzeAmbiguities(description: string): Promise<AmbiguityAnalysis> {
+    try {
+      const content = await this.chat(
+        [
+          {
+            role: 'system',
+            content:
+              'Analise ambiguidades estruturais antes da modelagem. Relação explícita sem cardinalidade dos dois lados exige esclarecimento. Retorne somente o JSON solicitado, sem explicações.',
+          },
+          { role: 'user', content: buildAmbiguityAnalysisPrompt(description) },
+        ],
+        AmbiguityAnalysisJsonSchema,
+      );
+
+      // Log temporário para diferenciar decisão do modelo de falhas de parsing/validação.
+      console.info('[OLLAMA] análise de ambiguidades - resposta bruta', { model: this.model, content });
+      return discardResolvedCardinalityQuestions(description, AmbiguityAnalysisSchema.parse(JSON.parse(content)));
+    } catch (error) {
+      throw this.providerException('Erro ao analisar ambiguidades com Ollama.', error);
+    }
+  }
+
+  async generateConceptualModel(description: string, clarifications?: ClarificationAnswer[]): Promise<ConceptualModel> {
     try {
       const content = await this.chat([
         {
@@ -40,7 +70,7 @@ export class OllamaProvider {
         },
         {
           role: 'user',
-          content: buildConceptualModelPrompt({ description }),
+          content: buildConceptualModelPrompt({ description, clarifications }),
         },
       ]);
 
@@ -50,7 +80,7 @@ export class OllamaProvider {
     }
   }
 
-  async generateLogicalModel(description: string): Promise<LogicalModel> {
+  async generateLogicalModel(description: string, clarifications?: ClarificationAnswer[]): Promise<LogicalModel> {
     try {
       const content = await this.chat(
         [
@@ -60,7 +90,7 @@ export class OllamaProvider {
           },
           {
             role: 'user',
-            content: buildLogicalModelPrompt({ description }),
+            content: buildLogicalModelPrompt({ description, clarifications }),
           },
         ],
         GeneratedLogicalModelJsonSchema,
@@ -76,6 +106,7 @@ export class OllamaProvider {
     description: string;
     invalidModel: unknown;
     validationError: unknown;
+    clarifications?: ClarificationAnswer[];
   }): Promise<ConceptualModel> {
     try {
       const content = await this.chat([
