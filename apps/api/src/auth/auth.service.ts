@@ -23,11 +23,20 @@ export class AuthService implements OnModuleInit {
       import('better-auth/node'),
     ]);
 
+    const googleClientId = this.configService.get(ENV.GOOGLE_CLIENT_ID);
+    const googleClientSecret = this.configService.get(ENV.GOOGLE_CLIENT_SECRET);
+
     const auth = betterAuth({
       database: prismaAdapter(this.prisma, { provider: 'postgresql' }),
       ...createAuthOptions(
-        this.configService.getOrThrow(ENV.BETTER_AUTH_URL),
         this.configService.getOrThrow(ENV.BETTER_AUTH_SECRET),
+        this.configService.getOrThrow(ENV.BETTER_AUTH_URL),
+        googleClientId && googleClientSecret
+          ? {
+              clientId: googleClientId,
+              clientSecret: googleClientSecret,
+            }
+          : undefined,
       ),
     });
 
