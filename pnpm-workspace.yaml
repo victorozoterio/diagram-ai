@@ -3,4 +3,7 @@ packages:
   - "packages/*"
 
 allowBuilds:
+  '@prisma/engines': true
   '@scarf/scarf': true
+  core-js: false
+  prisma: true

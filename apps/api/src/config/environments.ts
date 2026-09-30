@@ -5,6 +5,9 @@ const envSchema = z.object({
   // Environment
   PORT: z.coerce.number().default(3000),
 
+  // Database
+  DATABASE_URL: z.url(),
+
   // Ollama
   OLLAMA_BASE_URL: z.string().min(1),
   OLLAMA_MODEL: z.string().min(1),
