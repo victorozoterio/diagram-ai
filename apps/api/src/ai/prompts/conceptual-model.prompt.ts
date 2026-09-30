@@ -24,6 +24,8 @@ REGRAS:
 - Não gere foreign keys, tabelas associativas nem entidades artificiais de ligação. Um N:N permanece relacionamento.
 - Dados cujo valor depende da ocorrência ou do par específico entre participantes pertencem ao relacionamento, em r[].a.
 - Em frases como "para cada X associado ou incluído em Y, armazenar Z", crie ou reutilize o relacionamento entre as entidades X e Y e coloque somente Z em seus atributos.
+- Quando o texto nomear a ocorrência de uma associação entre entidades apenas para informar um dado dessa ocorrência, não crie uma entidade a partir desse nome. Reutilize o relacionamento já existente e coloque o dado em r[].a; uma entidade de evento só existe se o texto lhe der identidade própria, ciclo de vida ou relações independentes.
+- Se um fato da associação tiver um nome genérico igual ou parecido ao de um fato de entidade, preserve os dois: nomeie o atributo do relacionamento com contexto que deixe claro que ele descreve a ocorrência da associação, não a entidade.
 - Quando Y possui vários X e o mesmo X pode aparecer em vários Y, a cardinalidade é N:N: ambos os participantes usam c="N".
 - Só crie atributos no relacionamento quando o texto os vincular à ocorrência da associação. Atributos declarados como pertencentes a uma entidade ficam somente nela; nunca os copie para o relacionamento.
 - Nunca use atributos terminados em "_id" em entidades ou relacionamentos.
@@ -41,6 +43,7 @@ REGRAS:
 - Cardinalidades dos participantes: 1:1 = 1 e 1; 1:N = um 1 e um N; N:N = N e N.
 - Generalização/especialização não é relacionamento binário: use k="generalization" ou k="specialization", s para o nome do único supertipo e d para a lista de um ou mais subtipos; nesse caso omita p e não use cardinalidades. Cada classificação de um mesmo supertipo gera um único item em r: agrupe todos os seus subtipos em d; nunca crie um Gen por subtipo e nunca omita s.
 - Os formatos são exclusivos: relacionamento comum usa p e nunca usa s/d; generalização usa s/d e nunca usa p. Nunca adicione k="generalization" a uma associação expressa por verbo.
+- Uma resposta explícita de cardinalidade confirma um relacionamento comum entre os conceitos citados. Mesmo quando o verbo da associação formar uma expressão composta, use os dois conceitos como participantes em p; nunca transforme essa expressão em entidade, subtipo ou supertipo.
 - Reconheça generalização somente quando houver evidência semântica de identidade de categoria: "é um", "tipo de", "categoria de", "especialização" ou divisão explícita de um conceito em tipos. A palavra "pode" isolada não basta: "X pode realizar, possuir, conter ou participar de Y" descreve associação, não generalização. Não a infira apenas por atributos semelhantes.
 - Em uma hierarquia, coloque atributos comuns somente no supertipo e atributos específicos somente nos subtipos; não duplique atributos entre eles.
 - Uma entidade relacionada no texto não pode ficar isolada. Registre incertezas reais em ambiguities.

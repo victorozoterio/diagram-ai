@@ -1,8 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-
-import { GenerateDiagramDto } from './dto/generate-diagram.dto';
 import { AnalyzeAmbiguitiesDto } from './dto/analyze-ambiguities.dto';
+import { GenerateDiagramDto } from './dto/generate-diagram.dto';
 import { GenerateSqlDto } from './dto/generate-sql.dto';
 import { ConceptualModel } from './schemas/conceptual-model.schema';
 import { LogicalModel } from './schemas/logical-model.schema';

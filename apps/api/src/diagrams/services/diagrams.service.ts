@@ -6,6 +6,7 @@ import { AnalyzeAmbiguitiesDto } from '../dto/analyze-ambiguities.dto';
 import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
 import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
+import { buildConceptualModelRepairContext } from './conceptual-model-repair-context';
 import { LogicalModelConverterService } from './logical-model-converter.service';
 import { LogicalToConceptualConverterService } from './logical-to-conceptual-converter.service';
 import { SqlDialect, SqlGeneratorService } from './sql-generator.service';
@@ -38,8 +39,11 @@ export class DiagramsService {
       }
 
       const validationError = z.treeifyError(parsed.error);
+      const repairContext = buildConceptualModelRepairContext(conceptualModel, parsed.error);
 
-      this.logger.warn(`Modelo conceitual requer correção na tentativa ${attempt}: ${JSON.stringify(validationError)}`);
+      this.logger.warn(
+        `Modelo conceitual requer correção na tentativa ${attempt}: ${JSON.stringify({ validationError, repair: repairContext })}`,
+      );
 
       if (attempt === this.maxValidationAttempts) {
         throw new BadRequestException({
@@ -52,7 +56,10 @@ export class DiagramsService {
       conceptualModel = await this.aiService.fixConceptualModel({
         description: dto.description,
         invalidModel: conceptualModel,
-        validationError,
+        validationError: {
+          tree: validationError,
+          repair: repairContext,
+        },
         clarifications,
       });
     }

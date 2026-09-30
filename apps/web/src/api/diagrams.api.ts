@@ -7,11 +7,14 @@ export type SqlDialect = (typeof SQL_DIALECTS)[number];
 export type ClarificationAnswer = {
   questionId: string;
   answers: string[];
+  questionText?: string;
+  kind?: 'cardinality' | 'structural';
 };
 
 export type AmbiguityQuestion = {
   id: string;
   text: string;
+  kind?: 'cardinality' | 'structural';
   options: string[];
   allowsMultipleSelection: boolean;
   allowsCustomAnswer: boolean;

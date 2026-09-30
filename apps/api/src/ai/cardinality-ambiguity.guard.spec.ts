@@ -10,6 +10,7 @@ function cardinalityAnalysis(first: string, second: string): AmbiguityAnalysis {
     questions: [
       {
         id: `cardinalidade_${first}_${second}`,
+        kind: 'cardinality',
         text: `Como ${first} e ${second} participam dessa relação?`,
         options: ['Uma relação (1:1)', 'Uma relação (1:N)', 'Uma relação (N:1)', 'Uma relação (N:N)'],
         allowsMultipleSelection: false,
@@ -27,6 +28,7 @@ test('mantém a pergunta quando nenhuma multiplicidade foi explicitada', () => {
 
   assert.equal(result.requiresClarification, true);
   assert.equal(result.questions.length, 1);
+  assert.equal(result.questions[0].kind, 'cardinality');
 });
 
 test('mantém a pergunta quando somente uma direção foi explicitada', () => {
@@ -64,4 +66,24 @@ test('descarta a pergunta para qualquer relação N:N explicitamente descrita', 
   );
 
   assert.deepEqual(result, { requiresClarification: false, questions: [] });
+});
+
+test('preserva todas as relações ambíguas independentes na mesma descrição', () => {
+  const analysis: AmbiguityAnalysis = {
+    requiresClarification: true,
+    questions: [
+      ...cardinalityAnalysis('colaboradores', 'unidades').questions,
+      ...cardinalityAnalysis('colaboradores', 'iniciativas').questions,
+      ...cardinalityAnalysis('iniciativas', 'unidades').questions,
+    ],
+  };
+
+  const result = discardResolvedCardinalityQuestions(
+    'Colaboradores atuam em unidades. Colaboradores participam de iniciativas. Iniciativas são vinculadas a unidades.',
+    analysis,
+  );
+
+  assert.equal(result.requiresClarification, true);
+  assert.equal(result.questions.length, 3);
+  assert.ok(result.questions.every((question) => question.kind === 'cardinality'));
 });

@@ -270,7 +270,16 @@ export function DiagramGeneratorPage() {
         .filter((answer) => answer !== '__custom_answer__')
         .concat(customAnswer ? [customAnswer] : []);
 
-      return answers.length > 0 ? [{ questionId: question.id, answers }] : [];
+      return answers.length > 0
+        ? [
+            {
+              questionId: question.id,
+              questionText: question.text,
+              kind: question.kind,
+              answers,
+            },
+          ]
+        : [];
     });
 
     setClarificationStep(null);

@@ -1,13 +1,18 @@
 import { z } from 'zod';
 
+export const AmbiguityQuestionKindSchema = z.enum(['cardinality', 'structural']);
+
 export const ClarificationAnswerSchema = z.object({
   questionId: z.string().min(1),
   answers: z.array(z.string().min(1)).min(1),
+  questionText: z.string().min(1).optional(),
+  kind: AmbiguityQuestionKindSchema.optional(),
 });
 
 export const AmbiguityQuestionSchema = z.object({
   id: z.string().min(1),
   text: z.string().min(1),
+  kind: AmbiguityQuestionKindSchema.default('structural'),
   options: z.array(z.string().min(1)).min(2),
   allowsMultipleSelection: z.boolean(),
   allowsCustomAnswer: z.boolean(),

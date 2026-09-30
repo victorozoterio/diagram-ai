@@ -151,6 +151,14 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
   model.relationships.forEach((relationship, relationshipIndex) => {
     if (isGeneralization(relationship)) {
       validateGeneralization(relationship, relationshipIndex, entityIds, context);
+      if (model.metadata.generatedBy && !hasExplicitGeneralizationEvidence(model, relationship)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['relationships', relationshipIndex, 'kind'],
+          message:
+            'Generalização exige evidência explícita de supertipo e subtipo; uma associação com cardinalidade deve ser relacionamento comum.',
+        });
+      }
       return;
     }
 
@@ -163,12 +171,10 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
     }
     validateRelationshipCardinality(relationship, relationshipIndex, context);
 
-    const participantAttributeNames = new Set(
-      relationship.participants.flatMap((participant) => {
-        const entity = model.entities.find((candidate) => candidate.id === participant.entityId);
-        return entity?.attributes.map((attribute) => normalizeSchemaName(attribute.name)) ?? [];
-      }),
-    );
+    const participantAttributes = relationship.participants.flatMap((participant) => {
+      const entity = model.entities.find((candidate) => candidate.id === participant.entityId);
+      return entity?.attributes.map((attribute) => ({ entity, attribute })) ?? [];
+    });
 
     relationship.participants.forEach((participant, participantIndex) => {
       if (!entityIds.has(participant.entityId)) {
@@ -193,7 +199,13 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
         });
       }
 
-      if (participantAttributeNames.has(normalizeSchemaName(attribute.name))) {
+      if (
+        participantAttributes.some(
+          ({ attribute: participantAttribute }) =>
+            normalizeSchemaName(participantAttribute.name) === normalizeSchemaName(attribute.name),
+        ) &&
+        !hasAssociationScopedAttributeEvidence(model, relationship)
+      ) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['relationships', relationshipIndex, 'attributes', attributeIndex],
@@ -222,8 +234,68 @@ function matchesEntityConcept(attributeName: string, entityConceptNames: Set<str
   );
 }
 
+/**
+ * Um atributo com o mesmo rótulo pode representar um fato distinto quando a
+ * descrição o vincula explicitamente a cada ocorrência da associação.
+ */
+function hasAssociationScopedAttributeEvidence(
+  model: z.infer<typeof ConceptualModelStructureSchema>,
+  relationship: z.infer<typeof RelationshipSchema>,
+): boolean {
+  const sourceText = model.metadata.sourceText;
+  if (!sourceText) return false;
+
+  const participantNames = relationship.participants
+    .map((participant) => model.entities.find((entity) => entity.id === participant.entityId)?.name)
+    .filter((name): name is string => Boolean(name));
+  if (participantNames.length < 2) return false;
+
+  return sourceText.split(/[.!?;\n]+/).some((sentence) => {
+    const normalizedSentence = normalizeSchemaName(sentence);
+    const mentionedParticipants = participantNames.filter((name) => mentionsConcept(normalizedSentence, name));
+    const hasAssociationScope =
+      /\b(para|por|em)\s+cada\b|\b(ocorrencia|associacao|participacao|vinculo|relacao)\b/.test(normalizedSentence);
+
+    return mentionedParticipants.length >= 2 && hasAssociationScope;
+  });
+}
+
+function mentionsConcept(normalizedSentence: string, conceptName: string): boolean {
+  const normalizedConcept = normalizeSchemaName(conceptName);
+  const words = normalizedConcept.split(/[^a-z0-9]+/).filter(Boolean);
+  return words.length > 0 && words.every((word) => new RegExp(`\\b${word}s?\\b`).test(normalizedSentence));
+}
+
 function isGeneralization(relationship: z.infer<typeof RelationshipSchema>): boolean {
   return relationship.kind === 'generalization' || relationship.kind === 'specialization';
+}
+
+function hasExplicitGeneralizationEvidence(
+  model: z.infer<typeof ConceptualModelStructureSchema>,
+  relationship: z.infer<typeof RelationshipSchema>,
+): boolean {
+  const sourceText = model.metadata.sourceText;
+  if (!sourceText || !relationship.supertypeId || relationship.subtypeIds.length === 0) return false;
+
+  const supertype = model.entities.find((entity) => entity.id === relationship.supertypeId)?.name;
+  const subtypes = relationship.subtypeIds
+    .map((subtypeId) => model.entities.find((entity) => entity.id === subtypeId)?.name)
+    .filter((name): name is string => Boolean(name));
+  if (!supertype || subtypes.length === 0) return false;
+
+  return sourceText.split(/[.!?;\n]+/).some((sentence) => {
+    const normalizedSentence = normalizeSchemaName(sentence);
+    const hasHierarchyLanguage =
+      /\b(e um|e uma|sao tipos de|tipo de|categoria|especializacao|subtipo|supertipo|podem ser|pode ser)\b/.test(
+        normalizedSentence,
+      );
+
+    return (
+      hasHierarchyLanguage &&
+      mentionsConcept(normalizedSentence, supertype) &&
+      subtypes.some((subtype) => mentionsConcept(normalizedSentence, subtype))
+    );
+  });
 }
 
 function validateGeneralization(

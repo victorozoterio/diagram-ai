@@ -9,7 +9,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "test": "node --test -r ts-node/register src/ai/cardinality-ambiguity.guard.spec.ts"
+    "test": "node --test -r ts-node/register -r tsconfig-paths/register src/ai/cardinality-ambiguity.guard.spec.ts src/ai/prompts/clarifications.prompt.spec.ts src/diagrams/schemas/conceptual-model.schema.spec.ts src/diagrams/services/diagrams.service.spec.ts src/ai/providers/ollama/conceptual-model-prompts.spec.ts"
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.23",

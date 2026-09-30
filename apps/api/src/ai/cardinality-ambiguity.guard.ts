@@ -18,10 +18,16 @@ export function discardResolvedCardinalityQuestions(
   description: string,
   analysis: AmbiguityAnalysis,
 ): AmbiguityAnalysis {
+  const questionsWithKinds = analysis.questions.map((question) => ({
+    ...question,
+    kind: isCardinalityQuestion(question) ? 'cardinality' : question.kind,
+  }));
   const resolvedPairs = findResolvedRelationPairs(description);
-  if (!resolvedPairs.size) return analysis;
+  if (!resolvedPairs.size) {
+    return { ...analysis, questions: questionsWithKinds };
+  }
 
-  const questions = analysis.questions.filter(
+  const questions = questionsWithKinds.filter(
     (question) => !isCardinalityQuestion(question) || !referencesResolvedPair(question, resolvedPairs),
   );
 

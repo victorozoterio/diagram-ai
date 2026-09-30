@@ -7,9 +7,9 @@ import type { ConceptualModel } from '../../diagrams/schemas/conceptual-model.sc
 import type { LogicalModel } from '../../diagrams/schemas/logical-model.schema';
 
 import {
+  type AmbiguityAnalysis,
   AmbiguityAnalysisJsonSchema,
   AmbiguityAnalysisSchema,
-  type AmbiguityAnalysis,
   type ClarificationAnswer,
 } from '../ambiguity-analysis.schema';
 import { discardResolvedCardinalityQuestions } from '../cardinality-ambiguity.guard';
