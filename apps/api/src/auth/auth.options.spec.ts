@@ -3,20 +3,29 @@ import test from 'node:test';
 import { createAuthOptions } from './auth.options';
 
 test('habilita email e senha com a configuração segura esperada', () => {
-  const options = createAuthOptions('development-secret-with-at-least-thirty-two-characters', 'http://localhost:3000');
+  const options = createAuthOptions('development-secret-with-at-least-thirty-two-characters', 'http://localhost:3000', {
+    google: { clientId: 'google-client-id', clientSecret: 'google-client-secret' },
+    github: { clientId: 'github-client-id', clientSecret: 'github-client-secret' },
+  });
 
   assert.equal(options.emailAndPassword.enabled, true);
   assert.equal(options.advanced.database.joins, true);
   assert.equal(options.baseURL, 'http://localhost:3000');
 });
 
-test('inclui Google somente quando as credenciais do provider são configuradas', () => {
+test('configura o callback do Google', () => {
   const options = createAuthOptions(
     'development-secret-with-at-least-thirty-two-characters',
     'http://localhost:3000/',
     {
-      clientId: 'google-client-id',
-      clientSecret: 'google-client-secret',
+      google: {
+        clientId: 'google-client-id',
+        clientSecret: 'google-client-secret',
+      },
+      github: {
+        clientId: 'github-client-id',
+        clientSecret: 'github-client-secret',
+      },
     },
   );
 
@@ -24,5 +33,25 @@ test('inclui Google somente quando as credenciais do provider são configuradas'
     clientId: 'google-client-id',
     clientSecret: 'google-client-secret',
     redirectURI: 'http://localhost:3000/api/auth/callback/google',
+  });
+});
+
+test('inclui GitHub com o escopo mínimo para leitura do email', () => {
+  const options = createAuthOptions('development-secret-with-at-least-thirty-two-characters', 'http://localhost:3000', {
+    google: {
+      clientId: 'google-client-id',
+      clientSecret: 'google-client-secret',
+    },
+    github: {
+      clientId: 'github-client-id',
+      clientSecret: 'github-client-secret',
+    },
+  });
+
+  assert.deepEqual(options.socialProviders?.github, {
+    clientId: 'github-client-id',
+    clientSecret: 'github-client-secret',
+    redirectURI: 'http://localhost:3000/api/auth/callback/github',
+    scope: ['user:email'],
   });
 });

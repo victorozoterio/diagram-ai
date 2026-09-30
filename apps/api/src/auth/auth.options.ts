@@ -1,28 +1,40 @@
-type GoogleCredentials = {
+type OAuthCredentials = {
   clientId: string;
   clientSecret: string;
 };
 
-export const createAuthOptions = (secret: string, baseURL: string, google?: GoogleCredentials) => ({
-  secret,
-  baseURL,
-  emailAndPassword: {
-    enabled: true,
-  },
-  advanced: {
-    database: {
-      joins: true,
+type SocialProviderCredentials = {
+  google: OAuthCredentials;
+  github: OAuthCredentials;
+};
+
+const redirectURI = (baseURL: string, provider: 'google' | 'github') =>
+  `${baseURL.replace(/\/$/, '')}/api/auth/callback/${provider}`;
+
+export const createAuthOptions = (secret: string, baseURL: string, providers: SocialProviderCredentials) => {
+  return {
+    secret,
+    baseURL,
+    emailAndPassword: {
+      enabled: true,
     },
-  },
-  ...(google
-    ? {
-        socialProviders: {
-          google: {
-            clientId: google.clientId,
-            clientSecret: google.clientSecret,
-            redirectURI: `${baseURL.replace(/\/$/, '')}/api/auth/callback/google`,
-          },
-        },
-      }
-    : {}),
-});
+    advanced: {
+      database: {
+        joins: true,
+      },
+    },
+    socialProviders: {
+      google: {
+        clientId: providers.google.clientId,
+        clientSecret: providers.google.clientSecret,
+        redirectURI: redirectURI(baseURL, 'google'),
+      },
+      github: {
+        clientId: providers.github.clientId,
+        clientSecret: providers.github.clientSecret,
+        redirectURI: redirectURI(baseURL, 'github'),
+        scope: ['user:email'],
+      },
+    },
+  };
+};
