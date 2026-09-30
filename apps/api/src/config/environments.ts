@@ -8,6 +8,10 @@ const envSchema = z.object({
   // Database
   DATABASE_URL: z.url(),
 
+  // Authentication
+  BETTER_AUTH_URL: z.url(),
+  BETTER_AUTH_SECRET: z.string().min(32),
+
   // Ollama
   OLLAMA_BASE_URL: z.string().min(1),
   OLLAMA_MODEL: z.string().min(1),
