@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { generateSql, type SqlDialect } from '@/api/diagrams.api';
+import { analyzeAmbiguities, type ClarificationAnswer, generateSql, type SqlDialect } from '@/api/diagrams.api';
 import type { EditorMode } from '../../components';
 import {
   ConceptualDiagramFlow,
@@ -12,6 +12,7 @@ import {
   LogicalEditorSidebar,
   SqlGeneratorModal,
 } from '../../components';
+import type { ClarificationStep } from '../../components/EditorAssistant/EditorAssistant';
 import { useDiagramEditor } from '../../hooks';
 import type { ConceptualModel, DiagramAiProject, LogicalTable } from '../../types';
 import styles from './DiagramGeneratorPage.module.css';
@@ -34,6 +35,9 @@ export function DiagramGeneratorPage() {
   const [sql, setSql] = useState('');
   const [sqlError, setSqlError] = useState<string | null>(null);
   const [sqlMessage, setSqlMessage] = useState('');
+  const [isAnalyzingAmbiguities, setIsAnalyzingAmbiguities] = useState(false);
+  const [clarificationStep, setClarificationStep] = useState<ClarificationStep | null>(null);
+  const [clarificationError, setClarificationError] = useState<string | null>(null);
   const sqlMessageTimeout = useRef<number | null>(null);
   const {
     description,
@@ -204,12 +208,79 @@ export function DiagramGeneratorPage() {
     setIsSqlModalOpen(false);
   }
 
-  function generateActiveModel() {
+  async function generateActiveModel(clarifications?: ClarificationAnswer[]) {
     if (mode === 'logical') {
-      return generateLogicalDiagram();
+      await generateLogicalDiagram(clarifications);
+      return;
     }
 
-    return generateConceptualDiagram();
+    await generateConceptualDiagram(clarifications);
+  }
+
+  async function startGeneration() {
+    setClarificationError(null);
+    setIsAnalyzingAmbiguities(true);
+
+    try {
+      const analysis = await analyzeAmbiguities(description);
+      if (analysis.requiresClarification && analysis.questions.length > 0) {
+        setClarificationStep({
+          questions: analysis.questions,
+          currentIndex: 0,
+          answers: {},
+          customAnswers: {},
+        });
+        return;
+      }
+    } catch (analysisError) {
+      setClarificationError(
+        analysisError instanceof Error ? analysisError.message : 'Não foi possível analisar ambiguidades na descrição.',
+      );
+      return;
+    } finally {
+      setIsAnalyzingAmbiguities(false);
+    }
+
+    await generateActiveModel();
+  }
+
+  function updateClarificationStep(step: ClarificationStep) {
+    setClarificationStep(step);
+  }
+
+  function goToPreviousClarification() {
+    setClarificationStep((currentStep) => {
+      if (!currentStep || currentStep.currentIndex === 0) return null;
+      return { ...currentStep, currentIndex: currentStep.currentIndex - 1 };
+    });
+  }
+
+  async function continueClarifications() {
+    if (!clarificationStep) return;
+
+    if (clarificationStep.currentIndex < clarificationStep.questions.length - 1) {
+      setClarificationStep({ ...clarificationStep, currentIndex: clarificationStep.currentIndex + 1 });
+      return;
+    }
+
+    const clarifications = clarificationStep.questions.flatMap((question) => {
+      const selectedAnswers = clarificationStep.answers[question.id] ?? [];
+      const customAnswer = clarificationStep.customAnswers[question.id]?.trim();
+      const answers = selectedAnswers
+        .filter((answer) => answer !== '__custom_answer__')
+        .concat(customAnswer ? [customAnswer] : []);
+
+      return answers.length > 0 ? [{ questionId: question.id, answers }] : [];
+    });
+
+    setClarificationStep(null);
+    await generateActiveModel(clarifications);
+  }
+
+  function changeDescription(nextDescription: string) {
+    setDescription(nextDescription);
+    setClarificationError(null);
+    setClarificationStep(null);
   }
 
   const convertingFromConceptual = mode === 'conceptual';
@@ -308,10 +379,15 @@ export function DiagramGeneratorPage() {
 
         <EditorAssistant
           description={description}
-          error={error}
-          onDescriptionChange={setDescription}
+          error={clarificationError ?? error}
+          onDescriptionChange={changeDescription}
           isGenerating={isGenerating}
-          onGenerate={generateActiveModel}
+          isAnalyzing={isAnalyzingAmbiguities}
+          clarificationStep={clarificationStep}
+          onGenerate={startGeneration}
+          onClarificationChange={updateClarificationStep}
+          onClarificationBack={goToPreviousClarification}
+          onClarificationContinue={continueClarifications}
         />
       </div>
 

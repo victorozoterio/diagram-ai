@@ -1,3 +1,4 @@
+import type { ClarificationAnswer } from '@/api/diagrams.api';
 import {
   convertToConceptualModel,
   convertToLogicalModel,
@@ -45,12 +46,12 @@ export function useDiagramLifecycle({
   setLayoutVersion,
   setLogicalLayoutVersion,
 }: LifecycleDependencies) {
-  async function generateConceptualDiagram() {
+  async function generateConceptualDiagram(clarifications?: ClarificationAnswer[]) {
     setError(null);
     setIsGenerating(true);
 
     try {
-      const generatedModel = await generateConceptualModel(description);
+      const generatedModel = await generateConceptualModel(description, clarifications);
       await presentConceptualModel(generatedModel);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Erro inesperado ao gerar o modelo conceitual.');
@@ -59,12 +60,12 @@ export function useDiagramLifecycle({
     }
   }
 
-  async function generateLogicalDiagram() {
+  async function generateLogicalDiagram(clarifications?: ClarificationAnswer[]) {
     setError(null);
     setIsGenerating(true);
 
     try {
-      const generatedModel = await generateLogicalModel(description);
+      const generatedModel = await generateLogicalModel(description, clarifications);
       const logicalModel = await calculateInitialLogicalLayout(normalizeLogicalModel(generatedModel));
       setLogicalModel(logicalModel);
       setLogicalLayoutVersion((version) => version + 1);

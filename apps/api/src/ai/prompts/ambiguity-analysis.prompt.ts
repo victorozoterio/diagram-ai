@@ -9,6 +9,12 @@ Identifique somente ambiguidades que podem mudar estruturalmente o modelo de dad
 - Faça uma pergunta somente se existirem duas ou mais interpretações estruturais compatíveis com o texto. Não pergunte detalhes triviais nem proponha regras de domínio fora dele.
 - Para cardinalidade, avalie A para B e B para A antes de decidir. "Um A pode ter vários B" define uma direção; o artigo "um" sozinho não define a outra. Se as duas direções estiverem explícitas, não há pergunta de cardinalidade.
 - Se uma direção estiver indefinida, faça uma única pergunta com as opções 1:1, 1:N, N:1 e N:N, allowsMultipleSelection=false e allowsCustomAnswer=true.
+- Nas quatro opções de cardinalidade, o texto e o rótulo entre parênteses devem corresponder exatamente a esta semântica, usando A e B como os participantes da relação:
+  - (1:1): cada A se relaciona com um B, e cada B se relaciona com um A.
+  - (1:N): um A pode se relacionar com vários B, e cada B se relaciona com um A.
+  - (N:1): cada A se relaciona com um B, e um B pode se relacionar com vários A.
+  - (N:N): um A pode se relacionar com vários B, e um B pode se relacionar com vários A.
+- Nunca rotule como (N:1) ou (1:N) uma opção que descreva multiplicidade de vários nos dois sentidos; essa descrição é obrigatoriamente (N:N).
 - Escreva perguntas e opções em português natural, reutilizando o verbo ou contexto do texto. Apresente a cardinalidade apenas como complemento entre parênteses.
 - Faça no máximo 5 perguntas. Sem ambiguidade estrutural relevante, use requiresClarification=false e questions=[].
 
