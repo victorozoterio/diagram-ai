@@ -8,6 +8,7 @@ type LogicalEditorCanvasProps = {
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
   onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;
   onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
@@ -25,6 +26,7 @@ export function LogicalEditorCanvas({
   exportMenuTarget,
   exportDisabled,
   onOpenProject,
+  onNavigateToDiagrams,
   onSaveProject,
   isSavingProject,
   onEditableProjectReady,
@@ -41,7 +43,7 @@ export function LogicalEditorCanvas({
       <div className={styles.heading}>
         <div>
           <span className={styles.eyebrow}>CANVAS</span>
-          <h1>Modelo lógico</h1>
+          <h1>Lógico</h1>
         </div>
         <span className={styles.hint}>Arraste para organizar</span>
       </div>
@@ -50,6 +52,7 @@ export function LogicalEditorCanvas({
         exportMenuTarget={exportMenuTarget}
         exportDisabled={exportDisabled}
         onOpenProject={onOpenProject}
+        onNavigateToDiagrams={onNavigateToDiagrams}
         onSaveProject={onSaveProject}
         isSavingProject={isSavingProject}
         onEditableProjectReady={onEditableProjectReady}

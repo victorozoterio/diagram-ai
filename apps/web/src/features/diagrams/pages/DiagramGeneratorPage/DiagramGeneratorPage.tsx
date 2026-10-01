@@ -4,6 +4,7 @@ import {
   type ClarificationAnswer,
   createDiagram,
   generateSql,
+  renameDiagram,
   type SqlDialect,
   updateDiagram,
 } from '@/api/diagrams.api';
@@ -45,19 +46,23 @@ type EditableProjectFactory = () => DiagramAiProject;
 
 type DiagramGeneratorPageProps = {
   initialDiagramId?: string;
+  initialDiagramName?: string;
   initialProject?: DiagramAiProject;
   isSessionLoading: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
+  onNavigateToDiagrams: () => void;
   user: AuthenticatedUser | null;
 };
 
 export function DiagramGeneratorPage({
   initialDiagramId,
+  initialDiagramName,
   initialProject,
   isSessionLoading,
   onSignIn,
   onSignOut,
+  onNavigateToDiagrams,
   user,
 }: DiagramGeneratorPageProps) {
   const [mode, setMode] = useState<EditorMode>('conceptual');
@@ -72,12 +77,14 @@ export function DiagramGeneratorPage({
   const [clarificationStep, setClarificationStep] = useState<ClarificationStep | null>(null);
   const [clarificationError, setClarificationError] = useState<string | null>(null);
   const [diagramIds, setDiagramIds] = useState<Partial<Record<EditorMode, string>>>({});
+  const [diagramNames, setDiagramNames] = useState<Partial<Record<EditorMode, string>>>({});
   const [saveStates, setSaveStates] = useState<Record<EditorMode, SaveState>>({
     conceptual: { dirty: false, status: null },
     logical: { dirty: false, status: null },
   });
   const sqlMessageTimeout = useRef<number | null>(null);
   const diagramIdsRef = useRef(diagramIds);
+  const diagramNamesRef = useRef(diagramNames);
   const saveStatesRef = useRef(saveStates);
   const editableProjectFactories = useRef<Partial<Record<EditorMode, EditableProjectFactory>>>({});
   const saveInFlight = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
@@ -154,6 +161,10 @@ export function DiagramGeneratorPage({
   }, [diagramIds]);
 
   useEffect(() => {
+    diagramNamesRef.current = diagramNames;
+  }, [diagramNames]);
+
+  useEffect(() => {
     saveStatesRef.current = saveStates;
   }, [saveStates]);
 
@@ -162,6 +173,17 @@ export function DiagramGeneratorPage({
       ...currentStates,
       [targetMode]: { ...currentStates[targetMode], ...changes },
     }));
+  }, []);
+
+  const setStoredDiagramName = useCallback((targetMode: EditorMode, name?: string) => {
+    const nextNames = { ...diagramNamesRef.current };
+    if (name) {
+      nextNames[targetMode] = name;
+    } else {
+      delete nextNames[targetMode];
+    }
+    diagramNamesRef.current = nextNames;
+    setDiagramNames(nextNames);
   }, []);
 
   const markProjectDirty = useCallback(
@@ -187,7 +209,7 @@ export function DiagramGeneratorPage({
       updateSaveState(targetMode, { status: 'saving' });
 
       try {
-        const name = diagramName(project);
+        const name = diagramNamesRef.current[targetMode] ?? diagramName(project);
         const diagramId = diagramIdsRef.current[targetMode];
         const savedDiagram = diagramId
           ? await updateDiagram(diagramId, name, project)
@@ -197,6 +219,7 @@ export function DiagramGeneratorPage({
           diagramIdsRef.current = { ...diagramIdsRef.current, [targetMode]: savedDiagram.id };
           setDiagramIds(diagramIdsRef.current);
         }
+        setStoredDiagramName(targetMode, savedDiagram.name);
 
         if (projectRevisions.current[targetMode] === revisionAtRequest) {
           updateSaveState(targetMode, { dirty: false, status: 'saved' });
@@ -214,7 +237,7 @@ export function DiagramGeneratorPage({
         }
       }
     },
-    [updateSaveState],
+    [setStoredDiagramName, updateSaveState],
   );
 
   useEffect(() => {
@@ -367,7 +390,7 @@ export function DiagramGeneratorPage({
   }
 
   const openDiagramProject = useCallback(
-    (project: DiagramAiProject, diagramId?: string) => {
+    (project: DiagramAiProject, diagramId?: string, diagramName?: string) => {
       if (diagramId) {
         skipNextDirtyCheck.current[project.modelType] = true;
         diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: diagramId };
@@ -377,19 +400,20 @@ export function DiagramGeneratorPage({
         diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: undefined };
         setDiagramIds(diagramIdsRef.current);
       }
+      setStoredDiagramName(project.modelType, diagramName);
       restoreDiagramProject(project);
       setMode(project.modelType);
       setIsSqlModalOpen(false);
     },
-    [restoreDiagramProject, updateSaveState],
+    [restoreDiagramProject, setStoredDiagramName, updateSaveState],
   );
 
   useEffect(() => {
     if (!initialProject || !initialDiagramId || restoredInitialDiagramId.current === initialDiagramId) return;
 
-    openDiagramProject(initialProject, initialDiagramId);
+    openDiagramProject(initialProject, initialDiagramId, initialDiagramName);
     restoredInitialDiagramId.current = initialDiagramId;
-  }, [initialDiagramId, initialProject, openDiagramProject]);
+  }, [initialDiagramId, initialDiagramName, initialProject, openDiagramProject]);
 
   async function generateActiveModel(clarifications?: ClarificationAnswer[]) {
     if (mode === 'logical') {
@@ -479,14 +503,44 @@ export function DiagramGeneratorPage({
   const activeSaveStatus = (mode === 'conceptual' ? hasConceptualContent : hasLogicalContent)
     ? saveStates[mode].status
     : undefined;
+  const activeDiagramName =
+    diagramNames[mode] ??
+    (mode === 'conceptual' ? activeConceptualModel.metadata.title?.trim() || 'Modelo conceitual' : 'Modelo lógico');
+
+  async function renameActiveDiagram(name: string) {
+    const normalizedName = name.trim();
+    if (!normalizedName) return;
+
+    const diagramId = diagramIdsRef.current[mode];
+    if (!diagramId) {
+      setStoredDiagramName(mode, normalizedName);
+      markProjectDirty(mode);
+      return;
+    }
+
+    const wasDirty = saveStatesRef.current[mode].dirty;
+    updateSaveState(mode, { status: 'saving' });
+
+    try {
+      const updatedDiagram = await renameDiagram(diagramId, normalizedName);
+      setStoredDiagramName(mode, updatedDiagram.name);
+      updateSaveState(mode, { status: wasDirty ? 'unsaved' : 'saved' });
+    } catch (renameError) {
+      updateSaveState(mode, { status: 'error' });
+      throw renameError;
+    }
+  }
 
   return (
     <main className={styles.app}>
       <EditorHeader
+        diagramName={activeDiagramName}
         isConverting={isConverting}
         canConvert={convertingFromConceptual ? hasConceptualContent : hasLogicalContent}
         convertTitle={convertingFromConceptual ? 'Converter para modelo lógico' : 'Converter para modelo conceitual'}
         onConvert={convertingFromConceptual ? convertAndOpenLogicalModel : convertAndOpenConceptualModel}
+        onNavigateToDiagrams={onNavigateToDiagrams}
+        onRenameDiagram={renameActiveDiagram}
         exportMenuTargetRef={setExportMenuTarget}
         mode={mode}
         onModeChange={changeMode}
@@ -510,7 +564,7 @@ export function DiagramGeneratorPage({
               <div className={styles.canvasHeading}>
                 <div>
                   <span className={styles.eyebrow}>CANVAS</span>
-                  <h1>Modelo conceitual</h1>
+                  <h1>Conceitual</h1>
                 </div>
                 <span className={styles.canvasHint}>Arraste para organizar</span>
               </div>
@@ -520,6 +574,7 @@ export function DiagramGeneratorPage({
                 exportMenuTarget={exportMenuTarget}
                 exportDisabled={!hasConceptualContent}
                 onOpenProject={openDiagramProject}
+                onNavigateToDiagrams={onNavigateToDiagrams}
                 onSaveProject={user ? (project) => saveProject('conceptual', project) : undefined}
                 isSavingProject={saveStates.conceptual.status === 'saving'}
                 onEditableProjectReady={(getProject) => {
@@ -573,6 +628,7 @@ export function DiagramGeneratorPage({
               exportMenuTarget={exportMenuTarget}
               exportDisabled={!hasLogicalContent}
               onOpenProject={openDiagramProject}
+              onNavigateToDiagrams={onNavigateToDiagrams}
               onSaveProject={user ? (project) => saveProject('logical', project) : undefined}
               isSavingProject={saveStates.logical.status === 'saving'}
               onEditableProjectReady={(getProject) => {

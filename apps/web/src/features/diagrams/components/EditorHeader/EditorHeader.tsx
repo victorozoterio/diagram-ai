@@ -1,14 +1,18 @@
 import { type AuthenticatedUser, AuthenticatedUserMenu } from '@/features/auth/components/AuthenticatedUserMenu';
+import { useInlineDiagramRename } from '../../hooks/useInlineDiagramRename';
 import styles from './EditorHeader.module.css';
 
 export type EditorMode = 'conceptual' | 'logical';
 export type SaveStatus = 'unsaved' | 'saving' | 'saved' | 'error';
 
 type EditorHeaderProps = {
+  diagramName: string;
   isConverting: boolean;
   canConvert: boolean;
   convertTitle: string;
   onConvert: () => void;
+  onNavigateToDiagrams: () => void;
+  onRenameDiagram: (name: string) => Promise<void>;
   exportMenuTargetRef?: (element: HTMLDivElement | null) => void;
   mode: EditorMode;
   onModeChange: (mode: EditorMode) => void;
@@ -24,10 +28,13 @@ type EditorHeaderProps = {
 };
 
 export function EditorHeader({
+  diagramName,
   isConverting,
   canConvert,
   convertTitle,
   onConvert,
+  onNavigateToDiagrams,
+  onRenameDiagram,
   exportMenuTargetRef,
   mode,
   onModeChange,
@@ -41,13 +48,35 @@ export function EditorHeader({
   user,
   saveStatus,
 }: EditorHeaderProps) {
+  const rename = useInlineDiagramRename({ diagramName, onRename: onRenameDiagram });
+
   return (
     <header className={styles.header}>
       <div className={styles.brand}>
-        <span className={styles.logoMark}>D</span>
-        <div>
-          <strong>Diagram.AI</strong>
-          <span>Editor de modelos</span>
+        <button aria-label='Meus diagramas' className={styles.logoMark} onClick={onNavigateToDiagrams} type='button'>
+          D
+        </button>
+        <div className={styles.diagramNameSlot}>
+          {rename.isEditing ? (
+            <input
+              ref={rename.inputRef}
+              aria-label='Nome do diagrama'
+              className={styles.diagramNameInput}
+              value={rename.nameDraft}
+              onBlur={rename.handleBlur}
+              onChange={(event) => rename.setNameDraft(event.target.value)}
+              onKeyDown={rename.handleKeyDown}
+            />
+          ) : (
+            <button
+              className={styles.diagramName}
+              onClick={rename.startEditing}
+              title='Renomear diagrama'
+              type='button'
+            >
+              {diagramName}
+            </button>
+          )}
         </div>
       </div>
 

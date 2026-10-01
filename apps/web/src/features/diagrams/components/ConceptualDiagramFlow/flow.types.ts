@@ -84,6 +84,7 @@ export type ConceptualDiagramFlowProps = {
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
   onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;
   onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;

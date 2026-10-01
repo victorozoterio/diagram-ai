@@ -13,6 +13,7 @@ type DiagramExportMenuProps = {
   disabled?: boolean;
   getEditableProject?: () => DiagramAiProject;
   onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;
 };
@@ -27,6 +28,7 @@ export function DiagramExportMenu({
   disabled = false,
   getEditableProject,
   onOpenProject,
+  onNavigateToDiagrams,
   onSaveProject,
   isSavingProject = false,
 }: DiagramExportMenuProps) {
@@ -222,6 +224,17 @@ export function DiagramExportMenu({
             accept='.diagramai,application/json'
             onChange={importProjectFile}
           />
+          <button
+            type='button'
+            role='menuitem'
+            onClick={() => {
+              closeMenu();
+              onNavigateToDiagrams?.();
+            }}
+          >
+            Meus diagramas
+          </button>
+          <span className={styles.divider} aria-hidden='true' />
           <button type='button' role='menuitem' disabled={!onOpenProject || isExporting} onClick={openProjectFile}>
             Abrir arquivo
           </button>

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiEdit2, FiFileText, FiMoreHorizontal, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
+import { FiFileText, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { type DiagramSummary, deleteDiagram, listDiagrams, renameDiagram } from '@/api/diagrams.api';
 import { type AuthenticatedUser, AuthenticatedUserMenu } from '@/features/auth/components/AuthenticatedUserMenu';
+import { useInlineDiagramRename } from '../../hooks/useInlineDiagramRename';
 import styles from './MyDiagramsPage.module.css';
 
 type MyDiagramsPageProps = {
@@ -16,8 +17,6 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -45,20 +44,7 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
     return diagrams.filter((diagram) => diagram.name.toLocaleLowerCase('pt-BR').includes(normalizedQuery));
   }, [diagrams, query]);
 
-  function startRename(diagram: DiagramSummary) {
-    setActionError(null);
-    setDeletingId(null);
-    setEditingId(diagram.id);
-    setEditingName(diagram.name);
-  }
-
-  async function saveRename(diagramId: string) {
-    const name = editingName.trim();
-    if (!name) {
-      setActionError('Informe um nome para o diagrama.');
-      return;
-    }
-
+  async function saveRename(diagramId: string, name: string) {
     try {
       const updatedDiagram = await renameDiagram(diagramId, name);
       setDiagrams((currentDiagrams) =>
@@ -68,7 +54,6 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
             : diagram,
         ),
       );
-      setEditingId(null);
       setActionError(null);
     } catch {
       setActionError('Não foi possível renomear o diagrama.');
@@ -135,75 +120,19 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
         ) : (
           <div className={styles.grid}>
             {filteredDiagrams.map((diagram) => (
-              <article className={styles.card} key={diagram.id}>
-                <button className={styles.cardOpen} onClick={() => onOpenDiagram(diagram.id)} type='button'>
-                  <span className={styles.cardIcon}>
-                    <FiFileText aria-hidden='true' />
-                  </span>
-                  <span className={styles.cardContent}>
-                    <strong>{diagram.name}</strong>
-                    <span>
-                      {diagram.modelType === 'logical'
-                        ? 'Lógico'
-                        : diagram.modelType === 'conceptual'
-                          ? 'Conceitual'
-                          : 'Modelo salvo'}
-                    </span>
-                    <small>{formatUpdatedAt(diagram.updatedAt)}</small>
-                  </span>
-                </button>
-
-                <details className={styles.actions}>
-                  <summary aria-label={`Ações para ${diagram.name}`}>
-                    <FiMoreHorizontal aria-hidden='true' />
-                  </summary>
-                  <div className={styles.actionsMenu} role='menu'>
-                    <button onClick={() => startRename(diagram)} type='button'>
-                      <FiEdit2 aria-hidden='true' />
-                      Renomear
-                    </button>
-                    <button className={styles.deleteAction} onClick={() => setDeletingId(diagram.id)} type='button'>
-                      <FiTrash2 aria-hidden='true' />
-                      Excluir
-                    </button>
-                  </div>
-                </details>
-
-                {editingId === diagram.id && (
-                  <form
-                    className={styles.inlineForm}
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      void saveRename(diagram.id);
-                    }}
-                  >
-                    <label>
-                      <span className={styles.srOnly}>Novo nome do diagrama</span>
-                      <input value={editingName} onChange={(event) => setEditingName(event.target.value)} />
-                    </label>
-                    <div>
-                      <button type='button' onClick={() => setEditingId(null)}>
-                        Cancelar
-                      </button>
-                      <button type='submit'>Salvar</button>
-                    </div>
-                  </form>
-                )}
-
-                {deletingId === diagram.id && (
-                  <div className={styles.confirmDelete} role='alert'>
-                    <p>Excluir “{diagram.name}”? Esta ação não pode ser desfeita.</p>
-                    <div>
-                      <button onClick={() => setDeletingId(null)} type='button'>
-                        Cancelar
-                      </button>
-                      <button onClick={() => void confirmDelete(diagram.id)} type='button'>
-                        Excluir
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </article>
+              <DiagramCard
+                diagram={diagram}
+                isDeleting={deletingId === diagram.id}
+                key={diagram.id}
+                onCancelDelete={() => setDeletingId(null)}
+                onConfirmDelete={() => void confirmDelete(diagram.id)}
+                onOpen={() => onOpenDiagram(diagram.id)}
+                onRename={(name) => saveRename(diagram.id, name)}
+                onRequestDelete={() => {
+                  setActionError(null);
+                  setDeletingId(diagram.id);
+                }}
+              />
             ))}
           </div>
         )}
@@ -215,6 +144,102 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
         )}
       </section>
     </main>
+  );
+}
+
+type DiagramCardProps = {
+  diagram: DiagramSummary;
+  isDeleting: boolean;
+  onCancelDelete: () => void;
+  onConfirmDelete: () => void;
+  onOpen: () => void;
+  onRename: (name: string) => Promise<void>;
+  onRequestDelete: () => void;
+};
+
+function DiagramCard({
+  diagram,
+  isDeleting,
+  onCancelDelete,
+  onConfirmDelete,
+  onOpen,
+  onRename,
+  onRequestDelete,
+}: DiagramCardProps) {
+  const rename = useInlineDiagramRename({ diagramName: diagram.name, onRename });
+
+  return (
+    <article className={styles.card}>
+      <button className={styles.cardOpen} onClick={onOpen} type='button'>
+        <span className={styles.cardIcon}>
+          <FiFileText aria-hidden='true' />
+        </span>
+        <span className={styles.cardContent}>
+          <span>
+            {diagram.modelType === 'logical'
+              ? 'Lógico'
+              : diagram.modelType === 'conceptual'
+                ? 'Conceitual'
+                : 'Modelo salvo'}
+          </span>
+          <small>{formatUpdatedAt(diagram.updatedAt)}</small>
+        </span>
+      </button>
+
+      <div className={styles.cardNameSlot}>
+        {rename.isEditing ? (
+          <input
+            ref={rename.inputRef}
+            aria-label='Nome do diagrama'
+            className={styles.cardNameInput}
+            value={rename.nameDraft}
+            onBlur={rename.handleBlur}
+            onChange={(event) => rename.setNameDraft(event.target.value)}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={rename.handleKeyDown}
+          />
+        ) : (
+          <button
+            className={styles.cardName}
+            onClick={(event) => {
+              event.stopPropagation();
+              rename.startEditing();
+            }}
+            title='Renomear diagrama'
+            type='button'
+          >
+            {diagram.name}
+          </button>
+        )}
+      </div>
+
+      <button
+        aria-label='Excluir diagrama'
+        className={styles.deleteButton}
+        onClick={(event) => {
+          event.stopPropagation();
+          onRequestDelete();
+        }}
+        title='Excluir diagrama'
+        type='button'
+      >
+        <FiTrash2 aria-hidden='true' />
+      </button>
+
+      {isDeleting && (
+        <div className={styles.confirmDelete} role='alert'>
+          <p>Excluir “{diagram.name}”? Esta ação não pode ser desfeita.</p>
+          <div>
+            <button onClick={onCancelDelete} type='button'>
+              Cancelar
+            </button>
+            <button onClick={onConfirmDelete} type='button'>
+              Excluir
+            </button>
+          </div>
+        </div>
+      )}
+    </article>
   );
 }
 

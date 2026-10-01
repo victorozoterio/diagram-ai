@@ -38,6 +38,7 @@ type LogicalModelFlowProps = {
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
   onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;
   onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
@@ -469,6 +470,7 @@ export function LogicalModelFlow({
   exportMenuTarget,
   exportDisabled,
   onOpenProject,
+  onNavigateToDiagrams,
   onSaveProject,
   isSavingProject,
   onEditableProjectReady,
@@ -749,6 +751,7 @@ export function LogicalModelFlow({
         portalTarget={exportMenuTarget}
         disabled={exportDisabled}
         onOpenProject={onOpenProject}
+        onNavigateToDiagrams={onNavigateToDiagrams}
         getEditableProject={() => editableProjectFactory.current()}
         onSaveProject={onSaveProject}
         isSavingProject={isSavingProject}

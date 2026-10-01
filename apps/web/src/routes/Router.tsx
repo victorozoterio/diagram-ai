@@ -16,7 +16,7 @@ type AppRoute = { name: AuthPageMode } | { name: 'diagrams' } | { name: 'editor'
 function routeFromPathname(pathname: string): AppRoute {
   if (pathname === ROUTES.AUTH.SIGN_IN) return { name: 'login' };
   if (pathname === ROUTES.AUTH.SIGN_UP) return { name: 'signup' };
-  if (pathname === ROUTES.DIAGRAMS || pathname === '/') return { name: 'diagrams' };
+  if (pathname === ROUTES.DIAGRAMS || pathname === '/diagramas') return { name: 'diagrams' };
   if (pathname === ROUTES.EDITOR) return { name: 'editor' };
 
   const editorPrefix = `${ROUTES.EDITOR}/`;
@@ -125,11 +125,13 @@ export function Router({ isSessionLoading, onAuthenticated, onSignOut, user }: R
   return (
     <DiagramGeneratorPage
       initialDiagramId={openedDiagram?.id}
+      initialDiagramName={openedDiagram?.name}
       initialProject={openedDiagram?.content}
       isSessionLoading={isSessionLoading}
       key={route.diagramId ?? 'new-diagram'}
       onSignIn={() => navigate(ROUTES.AUTH.SIGN_IN)}
       onSignOut={onSignOut}
+      onNavigateToDiagrams={() => navigate(ROUTES.DIAGRAMS)}
       user={user}
     />
   );

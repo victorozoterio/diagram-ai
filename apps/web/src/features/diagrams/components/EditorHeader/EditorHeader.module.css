@@ -19,6 +19,7 @@
 .brand {
   gap: 10px;
   grid-column: 1;
+  min-width: 0;
 }
 
 .logoMark {
@@ -27,24 +28,64 @@
   height: 34px;
   place-items: center;
   border-radius: 10px;
+  border: 0;
   background: #4f46e5;
   color: #ffffff;
+  cursor: pointer;
   font-weight: 800;
 }
 
-.brand div {
-  display: grid;
-  gap: 2px;
+.logoMark:hover,
+.logoMark:focus-visible {
+  background: #4338ca;
+  outline: 3px solid rgb(99 102 241 / 20%);
+  outline-offset: 2px;
 }
 
-.brand strong {
-  color: #111827;
+.diagramNameSlot {
+  width: clamp(120px, 13vw, 190px);
+  min-width: 0;
+}
+
+.diagramName,
+.diagramNameInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
   font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.brand div span {
-  color: #6b7280;
-  font-size: 11px;
+.diagramName {
+  display: block;
+  overflow: hidden;
+  padding: 5px 6px 5px 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #111827;
+  cursor: text;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagramName:hover,
+.diagramName:focus-visible {
+  background: #f3f4f6;
+  outline: none;
+}
+
+.diagramNameInput {
+  padding: 4px 6px;
+  border: 1px solid #818cf8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 12%);
 }
 
 .headerEnd {
@@ -112,7 +153,7 @@
   grid-column: 2;
   justify-self: start;
   gap: 8px;
-  margin-left: 28px;
+  margin-left: 20px;
 }
 
 .exportSlot {
@@ -163,5 +204,9 @@
 
   .modeButton {
     padding: 0 8px;
+  }
+
+  .diagramNameSlot {
+    width: 150px;
   }
 }
