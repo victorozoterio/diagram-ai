@@ -52,6 +52,8 @@ type DiagramGeneratorPageProps = {
   onSignIn: () => void;
   onSignOut: () => void;
   onNavigateToDiagrams: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
+  onSaveBeforeLeaveReady?: (save: (() => Promise<void>) | null) => void;
   user: AuthenticatedUser | null;
 };
 
@@ -63,6 +65,8 @@ export function DiagramGeneratorPage({
   onSignIn,
   onSignOut,
   onNavigateToDiagrams,
+  onDirtyChange,
+  onSaveBeforeLeaveReady,
   user,
 }: DiagramGeneratorPageProps) {
   const [mode, setMode] = useState<EditorMode>('conceptual');
@@ -89,6 +93,7 @@ export function DiagramGeneratorPage({
   const editableProjectFactories = useRef<Partial<Record<EditorMode, EditableProjectFactory>>>({});
   const saveInFlight = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
   const saveQueued = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
+  const saveCompletionRef = useRef<Record<EditorMode, Promise<void> | null>>({ conceptual: null, logical: null });
   const projectRevisions = useRef<Record<EditorMode, number>>({ conceptual: 0, logical: 0 });
   const observedProjectSignatures = useRef<Partial<Record<EditorMode, string>>>({});
   const skipNextDirtyCheck = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
@@ -169,10 +174,14 @@ export function DiagramGeneratorPage({
   }, [saveStates]);
 
   const updateSaveState = useCallback((targetMode: EditorMode, changes: Partial<SaveState>) => {
-    setSaveStates((currentStates) => ({
-      ...currentStates,
-      [targetMode]: { ...currentStates[targetMode], ...changes },
-    }));
+    setSaveStates((currentStates) => {
+      const nextStates = {
+        ...currentStates,
+        [targetMode]: { ...currentStates[targetMode], ...changes },
+      };
+      saveStatesRef.current = nextStates;
+      return nextStates;
+    });
   }, []);
 
   const setStoredDiagramName = useCallback((targetMode: EditorMode, name?: string) => {
@@ -198,6 +207,7 @@ export function DiagramGeneratorPage({
     async (targetMode: EditorMode, suppliedProject?: DiagramAiProject): Promise<void> => {
       if (saveInFlight.current[targetMode]) {
         saveQueued.current[targetMode] = true;
+        await saveCompletionRef.current[targetMode];
         return;
       }
 
@@ -205,6 +215,10 @@ export function DiagramGeneratorPage({
       if (!project) throw new Error('O diagrama ainda não está pronto para ser salvo.');
 
       saveInFlight.current[targetMode] = true;
+      let completeSave: () => void = () => {};
+      saveCompletionRef.current[targetMode] = new Promise<void>((resolve) => {
+        completeSave = resolve;
+      });
       const revisionAtRequest = projectRevisions.current[targetMode];
       updateSaveState(targetMode, { status: 'saving' });
 
@@ -235,10 +249,42 @@ export function DiagramGeneratorPage({
           saveQueued.current[targetMode] = false;
           void saveProject(targetMode);
         }
+        completeSave();
       }
     },
     [setStoredDiagramName, updateSaveState],
   );
+
+  const hasUnsavedChanges = saveStates.conceptual.dirty || saveStates.logical.dirty;
+
+  const saveDirtyProjects = useCallback(async () => {
+    for (const targetMode of editorModes) {
+      while (saveStatesRef.current[targetMode].dirty) {
+        await saveProject(targetMode);
+      }
+    }
+  }, [saveProject]);
+
+  useEffect(() => {
+    onDirtyChange?.(hasUnsavedChanges);
+  }, [hasUnsavedChanges, onDirtyChange]);
+
+  useEffect(() => {
+    onSaveBeforeLeaveReady?.(saveDirtyProjects);
+    return () => onSaveBeforeLeaveReady?.(null);
+  }, [onSaveBeforeLeaveReady, saveDirtyProjects]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    function preventUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+
+    window.addEventListener('beforeunload', preventUnload);
+    return () => window.removeEventListener('beforeunload', preventUnload);
+  }, [hasUnsavedChanges]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
