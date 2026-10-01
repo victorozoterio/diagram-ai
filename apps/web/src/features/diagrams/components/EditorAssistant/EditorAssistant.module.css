@@ -51,22 +51,97 @@
   font-weight: 700;
 }
 
-.descriptionField {
+.descriptionInput {
   flex: 0 1 300px;
   width: 100%;
   height: 300px;
   min-height: 220px;
   max-height: 450px;
-  box-sizing: border-box;
-  padding: 10px;
+  position: relative;
   margin-top: 8px;
+  overflow: auto;
+  resize: vertical;
+}
+
+.descriptionField {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 10px 10px 44px;
   border: 1px solid #d1d5db;
   border-radius: 9px;
   outline: none;
   color: #374151;
   font-size: 12px;
   line-height: 1.5;
-  resize: vertical;
+  resize: none;
+}
+
+.voiceControls {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.voiceButton,
+.cancelRecordingButton {
+  display: inline-flex;
+  min-height: 27px;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #4338ca;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: auto;
+}
+
+.voiceButton:hover:not(:disabled),
+.voiceButton:focus-visible:not(:disabled),
+.cancelRecordingButton:hover,
+.cancelRecordingButton:focus-visible {
+  border-color: #818cf8;
+  background: #eef2ff;
+  outline: none;
+}
+
+.voiceButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.voiceButtonRecording {
+  border-color: #4f46e5;
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.voiceButtonRecording:hover:not(:disabled),
+.voiceButtonRecording:focus-visible:not(:disabled) {
+  border-color: #4338ca;
+  background: #4338ca;
+}
+
+.cancelRecordingButton {
+  border-color: transparent;
+  color: #6b7280;
+}
+
+.recordingStatus {
+  margin-left: auto;
+  color: #6366f1;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .descriptionField:focus {

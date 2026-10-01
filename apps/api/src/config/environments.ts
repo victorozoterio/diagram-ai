@@ -20,6 +20,13 @@ const envSchema = z.object({
   // Ollama
   OLLAMA_BASE_URL: z.string().min(1),
   OLLAMA_MODEL: z.string().min(1),
+
+  // Whisper
+  WHISPER_CPP_BINARY_PATH: z.string().min(1).optional(),
+  WHISPER_CPP_MODEL_PATH: z.string().min(1).optional(),
+  WHISPER_CPP_LANGUAGE: z.string().min(1).default('pt'),
+  FFMPEG_BINARY_PATH: z.string().min(1).default('ffmpeg'),
+  SPEECH_TO_TEXT_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
 });
 
 export type EnvironmentVariables = z.infer<typeof envSchema>;

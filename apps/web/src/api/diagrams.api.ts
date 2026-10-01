@@ -44,6 +44,28 @@ const requestOptions = {
   credentials: 'include' as const,
 };
 
+export async function transcribeAudio(audio: Blob): Promise<string> {
+  const formData = new FormData();
+  formData.append('audio', audio, 'descricao.webm');
+
+  const response = await fetch(`${API_URL}/diagrams/transcribe-audio`, {
+    ...requestOptions,
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('Não foi possível transcrever o áudio. Tente novamente.');
+  }
+
+  const result = (await response.json()) as { text?: unknown };
+  if (typeof result.text !== 'string' || !result.text.trim()) {
+    throw new Error('Não foi possível identificar fala no áudio gravado.');
+  }
+
+  return result.text;
+}
+
 export async function generateConceptualModel(
   description: string,
   clarifications?: ClarificationAnswer[],

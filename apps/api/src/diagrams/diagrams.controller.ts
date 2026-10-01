@@ -1,5 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SpeechToTextService, type UploadedAudio } from '../speech/speech-to-text.service';
 import { AnalyzeAmbiguitiesDto } from './dto/analyze-ambiguities.dto';
 import { GenerateDiagramDto } from './dto/generate-diagram.dto';
 import { GenerateSqlDto } from './dto/generate-sql.dto';
@@ -10,7 +12,28 @@ import { DiagramsService } from './services/diagrams.service';
 @ApiTags('Diagrams')
 @Controller('diagrams')
 export class DiagramsController {
-  constructor(private readonly diagramsService: DiagramsService) {}
+  constructor(
+    private readonly diagramsService: DiagramsService,
+    private readonly speechToTextService: SpeechToTextService,
+  ) {}
+
+  @Post('transcribe-audio')
+  @UseInterceptors(FileInterceptor('audio', { limits: { fileSize: 25 * 1024 * 1024 } }))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Transcreve um áudio em português com whisper.cpp' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['audio'],
+      properties: {
+        audio: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Áudio transcrito com sucesso.' })
+  transcribeAudio(@UploadedFile() audio?: UploadedAudio) {
+    return this.speechToTextService.transcribe(audio);
+  }
 
   @Post('generate')
   @ApiOperation({
