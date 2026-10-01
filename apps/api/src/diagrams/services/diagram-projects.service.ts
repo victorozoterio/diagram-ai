@@ -22,16 +22,24 @@ export class DiagramProjectsService {
   }
 
   list(userId: string) {
-    return this.prisma.diagram.findMany({
-      where: { userId },
-      orderBy: { updatedAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    return this.prisma.diagram
+      .findMany({
+        where: { userId },
+        orderBy: { updatedAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+      .then((diagrams) =>
+        diagrams.map(({ content, ...diagram }) => ({
+          ...diagram,
+          modelType: diagramModelType(content),
+        })),
+      );
   }
 
   async findOne(userId: string, id: string) {
@@ -51,6 +59,11 @@ export class DiagramProjectsService {
         ...(dto.content === undefined ? {} : { content: dto.content as Prisma.InputJsonValue }),
       },
     });
+  }
+
+  async remove(userId: string, id: string) {
+    await this.findOne(userId, id);
+    await this.prisma.diagram.delete({ where: { id } });
   }
 
   private assertDiagramAiContent(content: Record<string, unknown>) {
@@ -75,4 +88,9 @@ export class DiagramProjectsService {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function diagramModelType(content: unknown) {
+  if (!isRecord(content)) return undefined;
+  return content.modelType === 'conceptual' || content.modelType === 'logical' ? content.modelType : undefined;
 }

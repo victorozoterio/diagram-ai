@@ -29,6 +29,7 @@ export type AmbiguityAnalysis = {
 export type DiagramSummary = {
   id: string;
   name: string;
+  modelType?: 'conceptual' | 'logical';
   createdAt: string;
   updatedAt: string;
 };
@@ -186,6 +187,27 @@ export async function getDiagram(id: string): Promise<SavedDiagram> {
   const response = await fetch(`${API_URL}/diagrams/projects/${encodeURIComponent(id)}`, requestOptions);
   if (!response.ok) throw new Error('Não foi possível abrir o diagrama salvo.');
   return parseSavedDiagram(await response.json());
+}
+
+export async function renameDiagram(id: string, name: string): Promise<SavedDiagram> {
+  const response = await fetch(`${API_URL}/diagrams/projects/${encodeURIComponent(id)}`, {
+    ...requestOptions,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) throw new Error('Não foi possível renomear o diagrama.');
+  return parseSavedDiagram(await response.json());
+}
+
+export async function deleteDiagram(id: string): Promise<void> {
+  const response = await fetch(`${API_URL}/diagrams/projects/${encodeURIComponent(id)}`, {
+    ...requestOptions,
+    method: 'DELETE',
+  });
+
+  if (!response.ok) throw new Error('Não foi possível excluir o diagrama.');
 }
 
 function parseSavedDiagram(value: unknown): SavedDiagram {

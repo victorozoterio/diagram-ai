@@ -1,0 +1,390 @@
+.page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.header {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.logoMark,
+.cardIcon,
+.emptyIcon {
+  display: grid;
+  place-items: center;
+}
+
+.logoMark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.content {
+  width: min(100% - 48px, 1120px);
+  margin: 0 auto;
+  padding: 54px 0 72px;
+}
+
+.heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.heading h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  letter-spacing: -0.035em;
+}
+
+.heading p {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.newDiagramButton {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.newDiagramButton:hover {
+  background: #4338ca;
+}
+
+.search {
+  display: flex;
+  width: min(100%, 360px);
+  height: 40px;
+  align-items: center;
+  gap: 9px;
+  margin: 34px 0 22px;
+  padding: 0 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #9ca3af;
+}
+
+.search:focus-within {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 12%);
+}
+
+.search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #111827;
+  font: inherit;
+  font-size: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.card:hover {
+  border-color: #c7d2fe;
+  box-shadow: 0 8px 20px rgb(79 70 229 / 8%);
+}
+
+.cardOpen {
+  display: flex;
+  width: 100%;
+  min-height: 142px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cardIcon,
+.emptyIcon {
+  flex: 0 0 auto;
+  border-radius: 9px;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.cardIcon {
+  width: 34px;
+  height: 34px;
+}
+
+.cardContent {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding-right: 20px;
+}
+
+.cardContent strong {
+  overflow: hidden;
+  color: #111827;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardContent span {
+  width: fit-content;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.cardContent small {
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+.actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.actions summary {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  list-style: none;
+}
+
+.actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.actions summary:hover,
+.actions[open] summary {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.actionsMenu {
+  position: absolute;
+  z-index: 2;
+  top: 34px;
+  right: 0;
+  display: grid;
+  width: 132px;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 14%);
+}
+
+.actionsMenu button,
+.inlineForm button,
+.confirmDelete button,
+.status button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.actionsMenu button {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px;
+  border-radius: 5px;
+  background: transparent;
+  color: #374151;
+  font-size: 11px;
+}
+
+.actionsMenu button:hover {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.actionsMenu .deleteAction:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.inlineForm,
+.confirmDelete {
+  display: grid;
+  gap: 9px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.inlineForm input {
+  width: 100%;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 0 8px;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  outline: none;
+  font: inherit;
+  font-size: 12px;
+}
+
+.inlineForm div,
+.confirmDelete div {
+  display: flex;
+  justify-content: end;
+  gap: 7px;
+}
+
+.inlineForm button,
+.confirmDelete button,
+.status button {
+  min-height: 29px;
+  padding: 0 9px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.inlineForm button[type="submit"],
+.confirmDelete button:last-child {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.confirmDelete {
+  background: #fffaf8;
+}
+
+.confirmDelete p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.status,
+.emptyState {
+  display: grid;
+  justify-items: center;
+  padding: 58px 24px;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 13px;
+  text-align: center;
+}
+
+.status {
+  gap: 12px;
+}
+
+.status p,
+.emptyState h2,
+.emptyState p {
+  margin: 0;
+}
+
+.emptyIcon {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 12px;
+}
+
+.emptyState h2 {
+  color: #374151;
+  font-size: 15px;
+}
+
+.emptyState p {
+  margin-top: 7px;
+  margin-bottom: 18px;
+  font-size: 12px;
+}
+
+.actionError {
+  margin: 16px 0 0;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 0 16px;
+  }
+
+  .content {
+    width: min(100% - 32px, 1120px);
+    padding-top: 36px;
+  }
+
+  .heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -4,6 +4,7 @@ import { type Resolver, useForm } from 'react-hook-form';
 import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { authClient } from '@/auth/auth-client';
+import { ROUTES } from '@/routes/routes';
 import { AuthFormField } from '../AuthFormField';
 import styles from './AuthPage.module.css';
 import { signInSchema } from './sign-in.schema';
@@ -31,7 +32,7 @@ const copy = {
     submit: 'Entrar',
     alternateText: 'Ainda não possui uma conta?',
     alternateAction: 'Criar conta',
-    alternatePath: '/cadastro' as const,
+    alternatePath: ROUTES.AUTH.SIGN_UP,
   },
   signup: {
     title: 'Crie sua conta',
@@ -39,7 +40,7 @@ const copy = {
     submit: 'Criar conta',
     alternateText: 'Já possui uma conta?',
     alternateAction: 'Entrar',
-    alternatePath: '/login' as const,
+    alternatePath: ROUTES.AUTH.SIGN_IN,
   },
 };
 
@@ -58,6 +59,10 @@ function loginErrorMessage(error: { status?: number } | null): LoginError {
   return error?.status === 401
     ? { kind: 'credentials', message: 'Credenciais inválidas' }
     : { kind: 'request', message: 'Erro ao fazer login. Tente novamente mais tarde.' };
+}
+
+function authenticatedCallbackUrl() {
+  return new URL(ROUTES.DIAGRAMS, window.location.origin).toString();
 }
 
 export function AuthPage({ mode, onAuthenticated, onNavigate }: AuthPageProps) {
@@ -96,12 +101,12 @@ export function AuthPage({ mode, onAuthenticated, onNavigate }: AuthPageProps) {
             name: values.name.trim(),
             email: values.email.trim(),
             password: values.password,
-            callbackURL: window.location.origin,
+            callbackURL: authenticatedCallbackUrl(),
           })
         : await authClient.signIn.email({
             email: values.email.trim(),
             password: values.password,
-            callbackURL: window.location.origin,
+            callbackURL: authenticatedCallbackUrl(),
           });
 
       if (result.error) {
@@ -129,7 +134,7 @@ export function AuthPage({ mode, onAuthenticated, onNavigate }: AuthPageProps) {
     try {
       const result = await authClient.signIn.social({
         provider,
-        callbackURL: window.location.origin,
+        callbackURL: authenticatedCallbackUrl(),
       });
 
       if (result.error) {

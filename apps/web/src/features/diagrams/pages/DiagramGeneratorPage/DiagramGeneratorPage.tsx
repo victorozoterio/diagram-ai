@@ -44,13 +44,22 @@ type SaveState = {
 type EditableProjectFactory = () => DiagramAiProject;
 
 type DiagramGeneratorPageProps = {
+  initialDiagramId?: string;
+  initialProject?: DiagramAiProject;
   isSessionLoading: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
   user: AuthenticatedUser | null;
 };
 
-export function DiagramGeneratorPage({ isSessionLoading, onSignIn, onSignOut, user }: DiagramGeneratorPageProps) {
+export function DiagramGeneratorPage({
+  initialDiagramId,
+  initialProject,
+  isSessionLoading,
+  onSignIn,
+  onSignOut,
+  user,
+}: DiagramGeneratorPageProps) {
   const [mode, setMode] = useState<EditorMode>('conceptual');
   const [exportMenuTarget, setExportMenuTarget] = useState<HTMLDivElement | null>(null);
   const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
@@ -76,6 +85,7 @@ export function DiagramGeneratorPage({ isSessionLoading, onSignIn, onSignOut, us
   const projectRevisions = useRef<Record<EditorMode, number>>({ conceptual: 0, logical: 0 });
   const observedProjectSignatures = useRef<Partial<Record<EditorMode, string>>>({});
   const skipNextDirtyCheck = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
+  const restoredInitialDiagramId = useRef<string | undefined>(undefined);
   const {
     description,
     conceptualModel,
@@ -356,20 +366,30 @@ export function DiagramGeneratorPage({ isSessionLoading, onSignIn, onSignOut, us
     if (nextMode !== 'logical') setIsSqlModalOpen(false);
   }
 
-  function openDiagramProject(project: DiagramAiProject, diagramId?: string) {
-    if (diagramId) {
-      skipNextDirtyCheck.current[project.modelType] = true;
-      diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: diagramId };
-      setDiagramIds(diagramIdsRef.current);
-      updateSaveState(project.modelType, { dirty: false, status: 'saved' });
-    } else {
-      diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: undefined };
-      setDiagramIds(diagramIdsRef.current);
-    }
-    restoreDiagramProject(project);
-    setMode(project.modelType);
-    setIsSqlModalOpen(false);
-  }
+  const openDiagramProject = useCallback(
+    (project: DiagramAiProject, diagramId?: string) => {
+      if (diagramId) {
+        skipNextDirtyCheck.current[project.modelType] = true;
+        diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: diagramId };
+        setDiagramIds(diagramIdsRef.current);
+        updateSaveState(project.modelType, { dirty: false, status: 'saved' });
+      } else {
+        diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: undefined };
+        setDiagramIds(diagramIdsRef.current);
+      }
+      restoreDiagramProject(project);
+      setMode(project.modelType);
+      setIsSqlModalOpen(false);
+    },
+    [restoreDiagramProject, updateSaveState],
+  );
+
+  useEffect(() => {
+    if (!initialProject || !initialDiagramId || restoredInitialDiagramId.current === initialDiagramId) return;
+
+    openDiagramProject(initialProject, initialDiagramId);
+    restoredInitialDiagramId.current = initialDiagramId;
+  }, [initialDiagramId, initialProject, openDiagramProject]);
 
   async function generateActiveModel(clarifications?: ClarificationAnswer[]) {
     if (mode === 'logical') {

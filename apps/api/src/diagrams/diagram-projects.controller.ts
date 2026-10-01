@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthenticatedUser, CurrentUser } from '../auth/current-user.decorator';
 import { SessionAuthGuard } from '../auth/session-auth.guard';
@@ -35,5 +35,12 @@ export class DiagramProjectsController {
   @ApiOperation({ summary: 'Atualiza um diagrama do usuário autenticado' })
   update(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateDiagramDto) {
     return this.projectsService.update(user.id, id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Exclui um diagrama do usuário autenticado' })
+  async remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    await this.projectsService.remove(user.id, id);
   }
 }
