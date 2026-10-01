@@ -2,6 +2,7 @@ import { type AuthenticatedUser, AuthenticatedUserMenu } from '@/features/auth/c
 import styles from './EditorHeader.module.css';
 
 export type EditorMode = 'conceptual' | 'logical';
+export type SaveStatus = 'unsaved' | 'saving' | 'saved' | 'error';
 
 type EditorHeaderProps = {
   isConverting: boolean;
@@ -19,6 +20,7 @@ type EditorHeaderProps = {
   onSignIn: () => void;
   onSignOut: () => void;
   user: AuthenticatedUser | null;
+  saveStatus?: SaveStatus;
 };
 
 export function EditorHeader({
@@ -37,6 +39,7 @@ export function EditorHeader({
   onSignIn,
   onSignOut,
   user,
+  saveStatus,
 }: EditorHeaderProps) {
   return (
     <header className={styles.header}>
@@ -72,6 +75,11 @@ export function EditorHeader({
       </div>
 
       <div className={styles.headerEnd}>
+        {saveStatus && (
+          <span className={`${styles.saveStatus} ${styles[`saveStatus${saveStatus}`]}`}>
+            {saveStatusLabel(saveStatus)}
+          </span>
+        )}
         <div className={styles.modeSwitcher} role='tablist' aria-label='Modo do editor'>
           <button
             className={`${styles.modeButton} ${mode === 'conceptual' ? styles.modeButtonActive : ''}`}
@@ -105,4 +113,15 @@ export function EditorHeader({
       </div>
     </header>
   );
+}
+
+function saveStatusLabel(status: SaveStatus) {
+  const labels: Record<SaveStatus, string> = {
+    unsaved: 'Alterações não salvas',
+    saving: 'Salvando...',
+    saved: 'Salvo',
+    error: 'Erro ao salvar',
+  };
+
+  return labels[status];
 }

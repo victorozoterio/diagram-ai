@@ -13,6 +13,8 @@ type DiagramExportMenuProps = {
   disabled?: boolean;
   getEditableProject?: () => DiagramAiProject;
   onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  onSaveProject?: (project: DiagramAiProject) => Promise<void>;
+  isSavingProject?: boolean;
 };
 
 const EXPORT_PADDING = 32;
@@ -25,6 +27,8 @@ export function DiagramExportMenu({
   disabled = false,
   getEditableProject,
   onOpenProject,
+  onSaveProject,
+  isSavingProject = false,
 }: DiagramExportMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -119,7 +123,7 @@ export function DiagramExportMenu({
     [createDiagramImage],
   );
 
-  const exportEditableProject = useCallback(() => {
+  const downloadEditableProjectFile = useCallback(() => {
     if (!getEditableProject) return;
 
     setMessage('');
@@ -131,6 +135,18 @@ export function DiagramExportMenu({
       setMessage(error instanceof Error ? error.message : 'Não foi possível exportar o projeto editável.');
     }
   }, [getEditableProject]);
+
+  const saveEditableProject = useCallback(async () => {
+    if (!getEditableProject || !onSaveProject) return;
+
+    setMessage('');
+    try {
+      await onSaveProject(getEditableProject());
+      setMessage('Diagrama salvo na nuvem.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Não foi possível salvar o diagrama na nuvem.');
+    }
+  }, [getEditableProject, onSaveProject]);
 
   const closeMenu = useCallback(() => {
     setIsOpen(false);
@@ -212,16 +228,24 @@ export function DiagramExportMenu({
           <button
             type='button'
             role='menuitem'
-            disabled={disabled || !getEditableProject || isExporting}
-            onClick={exportEditableProject}
+            disabled={disabled || !getEditableProject || !onSaveProject || isExporting || isSavingProject}
+            onClick={() => void saveEditableProject()}
           >
-            Salvar arquivo
+            {isSavingProject ? 'Salvando...' : 'Salvar'}
+          </button>
+          <button
+            type='button'
+            role='menuitem'
+            disabled={disabled || !getEditableProject || isExporting || isSavingProject}
+            onClick={downloadEditableProjectFile}
+          >
+            Baixar arquivo
           </button>
           <span className={styles.divider} aria-hidden='true' />
           <button
             type='button'
             role='menuitem'
-            disabled={disabled || isExporting}
+            disabled={disabled || isExporting || isSavingProject}
             onClick={() => runExport('clipboard')}
           >
             Copiar imagem
@@ -233,7 +257,7 @@ export function DiagramExportMenu({
               role='menuitem'
               aria-haspopup='menu'
               aria-expanded={isExportSubmenuOpen}
-              disabled={disabled || isExporting}
+              disabled={disabled || isExporting || isSavingProject}
               onMouseEnter={() => setIsExportSubmenuOpen(true)}
               onClick={() => setIsExportSubmenuOpen((open) => !open)}
             >
@@ -247,7 +271,7 @@ export function DiagramExportMenu({
                 <button
                   type='button'
                   role='menuitem'
-                  disabled={disabled || isExporting}
+                  disabled={disabled || isExporting || isSavingProject}
                   onClick={() => runMenuExport('download')}
                 >
                   PNG
@@ -255,7 +279,7 @@ export function DiagramExportMenu({
                 <button
                   type='button'
                   role='menuitem'
-                  disabled={disabled || isExporting}
+                  disabled={disabled || isExporting || isSavingProject}
                   onClick={() => runMenuExport('pdf')}
                 >
                   PDF

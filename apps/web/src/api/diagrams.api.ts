@@ -1,4 +1,5 @@
 import type { ConceptualModel } from '../features/diagrams/types/conceptual-model';
+import { type DiagramAiProject, parseDiagramAiProject } from '../features/diagrams/types/diagram-ai-project';
 import type { LogicalModel } from '../features/diagrams/types/logical-model';
 
 export const SQL_DIALECTS = ['postgresql', 'mysql', 'mariadb', 'sqlserver'] as const;
@@ -25,13 +26,29 @@ export type AmbiguityAnalysis = {
   questions: AmbiguityQuestion[];
 };
 
+export type DiagramSummary = {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SavedDiagram = DiagramSummary & {
+  content: DiagramAiProject;
+};
+
 const API_URL = import.meta.env.VITE_API_URL;
+
+const requestOptions = {
+  credentials: 'include' as const,
+};
 
 export async function generateConceptualModel(
   description: string,
   clarifications?: ClarificationAnswer[],
 ): Promise<ConceptualModel> {
   const response = await fetch(`${API_URL}/diagrams/generate`, {
+    ...requestOptions,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -51,6 +68,7 @@ export async function generateLogicalModel(
   clarifications?: ClarificationAnswer[],
 ): Promise<LogicalModel> {
   const response = await fetch(`${API_URL}/diagrams/generate`, {
+    ...requestOptions,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -67,6 +85,7 @@ export async function generateLogicalModel(
 
 export async function analyzeAmbiguities(description: string): Promise<AmbiguityAnalysis> {
   const response = await fetch(`${API_URL}/diagrams/analyze-ambiguities`, {
+    ...requestOptions,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -83,6 +102,7 @@ export async function analyzeAmbiguities(description: string): Promise<Ambiguity
 
 export async function convertToLogicalModel(conceptualModel: ConceptualModel): Promise<LogicalModel> {
   const response = await fetch(`${API_URL}/diagrams/convert-to-logical`, {
+    ...requestOptions,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -99,6 +119,7 @@ export async function convertToLogicalModel(conceptualModel: ConceptualModel): P
 
 export async function convertToConceptualModel(logicalModel: LogicalModel): Promise<ConceptualModel> {
   const response = await fetch(`${API_URL}/diagrams/convert-to-conceptual`, {
+    ...requestOptions,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -115,6 +136,7 @@ export async function convertToConceptualModel(logicalModel: LogicalModel): Prom
 
 export async function generateSql(dialect: SqlDialect, model: LogicalModel): Promise<string> {
   const response = await fetch(`${API_URL}/diagrams/generate-sql`, {
+    ...requestOptions,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -128,4 +150,62 @@ export async function generateSql(dialect: SqlDialect, model: LogicalModel): Pro
 
   const payload = (await response.json()) as { sql: string };
   return payload.sql;
+}
+
+export async function createDiagram(name: string, content: DiagramAiProject): Promise<SavedDiagram> {
+  const response = await fetch(`${API_URL}/diagrams/projects`, {
+    ...requestOptions,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content }),
+  });
+
+  if (!response.ok) throw new Error('Não foi possível salvar o diagrama na nuvem.');
+  return parseSavedDiagram(await response.json());
+}
+
+export async function updateDiagram(id: string, name: string, content: DiagramAiProject): Promise<SavedDiagram> {
+  const response = await fetch(`${API_URL}/diagrams/projects/${encodeURIComponent(id)}`, {
+    ...requestOptions,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, content }),
+  });
+
+  if (!response.ok) throw new Error('Não foi possível salvar as alterações na nuvem.');
+  return parseSavedDiagram(await response.json());
+}
+
+export async function listDiagrams(): Promise<DiagramSummary[]> {
+  const response = await fetch(`${API_URL}/diagrams/projects`, requestOptions);
+  if (!response.ok) throw new Error('Não foi possível listar os diagramas salvos.');
+  return response.json();
+}
+
+export async function getDiagram(id: string): Promise<SavedDiagram> {
+  const response = await fetch(`${API_URL}/diagrams/projects/${encodeURIComponent(id)}`, requestOptions);
+  if (!response.ok) throw new Error('Não foi possível abrir o diagrama salvo.');
+  return parseSavedDiagram(await response.json());
+}
+
+function parseSavedDiagram(value: unknown): SavedDiagram {
+  if (!isSavedDiagram(value)) throw new Error('O diagrama salvo possui um formato inválido.');
+
+  return {
+    ...value,
+    content: parseDiagramAiProject(value.content),
+  };
+}
+
+function isSavedDiagram(value: unknown): value is Omit<SavedDiagram, 'content'> & { content: unknown } {
+  if (!value || typeof value !== 'object') return false;
+
+  const diagram = value as Record<string, unknown>;
+  return (
+    typeof diagram.id === 'string' &&
+    typeof diagram.name === 'string' &&
+    typeof diagram.createdAt === 'string' &&
+    typeof diagram.updatedAt === 'string' &&
+    'content' in diagram
+  );
 }

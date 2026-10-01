@@ -53,6 +53,29 @@
   gap: 12px;
 }
 
+.saveStatus {
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.saveStatusunsaved {
+  color: #b45309;
+}
+
+.saveStatuserror {
+  color: #dc2626;
+}
+
+.saveStatussaving {
+  color: #4f46e5;
+}
+
+.saveStatussaved {
+  color: #059669;
+}
+
 .modeSwitcher {
   gap: 2px;
   padding: 3px;

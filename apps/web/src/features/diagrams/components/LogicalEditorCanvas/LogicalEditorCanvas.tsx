@@ -8,6 +8,10 @@ type LogicalEditorCanvasProps = {
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
   onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  onSaveProject?: (project: DiagramAiProject) => Promise<void>;
+  isSavingProject?: boolean;
+  onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
+  onVisualChange?: () => void;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -21,6 +25,10 @@ export function LogicalEditorCanvas({
   exportMenuTarget,
   exportDisabled,
   onOpenProject,
+  onSaveProject,
+  isSavingProject,
+  onEditableProjectReady,
+  onVisualChange,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
@@ -42,6 +50,10 @@ export function LogicalEditorCanvas({
         exportMenuTarget={exportMenuTarget}
         exportDisabled={exportDisabled}
         onOpenProject={onOpenProject}
+        onSaveProject={onSaveProject}
+        isSavingProject={isSavingProject}
+        onEditableProjectReady={onEditableProjectReady}
+        onVisualChange={onVisualChange}
         onAddTable={onAddTable}
         onUpdateTable={onUpdateTable}
         onUpdateModel={onUpdateModel}

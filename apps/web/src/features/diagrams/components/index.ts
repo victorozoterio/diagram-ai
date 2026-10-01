@@ -2,7 +2,7 @@ export { ConceptualDiagramFlow } from './ConceptualDiagramFlow/ConceptualDiagram
 export { ConceptualModelViewer } from './ConceptualModelViewer/ConceptualModelViewer';
 export { EditorAssistant } from './EditorAssistant/EditorAssistant';
 export { EditorCanvas } from './EditorCanvas/EditorCanvas';
-export type { EditorMode } from './EditorHeader/EditorHeader';
+export type { EditorMode, SaveStatus } from './EditorHeader/EditorHeader';
 export { EditorHeader } from './EditorHeader/EditorHeader';
 export { EditorSidebar } from './EditorSidebar/EditorSidebar';
 export { EmptyCanvasState } from './EmptyCanvasState/EmptyCanvasState';

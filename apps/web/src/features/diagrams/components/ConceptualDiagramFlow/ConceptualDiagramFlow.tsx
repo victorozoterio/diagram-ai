@@ -1,5 +1,5 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { createDiagramAiProject } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
@@ -43,6 +43,37 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
   } = useFlowInteractions(props);
   const { edges, handleEdgesChange, selectAllEdges } = useFlowEdges(props, handleReconnect);
 
+  const getEditableProject = useCallback(
+    () =>
+      createDiagramAiProject({
+        modelType: 'conceptual',
+        semanticModel: props.model,
+        nodes,
+        edges,
+        viewport: flowInstance?.getViewport(),
+        visualState: {
+          entityPositions: props.entityPositions,
+          elementPositions: props.elementPositions,
+          nodeSizes: props.nodeSizes,
+          edgeControlPoints: props.edgeControlPoints,
+        },
+      }),
+    [
+      edges,
+      flowInstance,
+      nodes,
+      props.edgeControlPoints,
+      props.elementPositions,
+      props.entityPositions,
+      props.model,
+      props.nodeSizes,
+    ],
+  );
+
+  useEffect(() => {
+    props.onEditableProjectReady?.(getEditableProject);
+  }, [getEditableProject, props.onEditableProjectReady]);
+
   useEffect(() => {
     function handleGlobalKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key.toLowerCase() !== 'a' || (!event.ctrlKey && !event.metaKey)) {
@@ -80,21 +111,9 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         portalTarget={props.exportMenuTarget}
         disabled={props.exportDisabled}
         onOpenProject={props.onOpenProject}
-        getEditableProject={() =>
-          createDiagramAiProject({
-            modelType: 'conceptual',
-            semanticModel: props.model,
-            nodes,
-            edges,
-            viewport: flowInstance?.getViewport(),
-            visualState: {
-              entityPositions: props.entityPositions,
-              elementPositions: props.elementPositions,
-              nodeSizes: props.nodeSizes,
-              edgeControlPoints: props.edgeControlPoints,
-            },
-          })
-        }
+        getEditableProject={getEditableProject}
+        onSaveProject={props.onSaveProject}
+        isSavingProject={props.isSavingProject}
       />
       <ReactFlow
         nodes={nodes}
@@ -116,6 +135,9 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         }}
         onPaneClick={props.onClearSelection}
         onInit={setFlowInstance}
+        onMoveEnd={(event) => {
+          if (event) props.onVisualChange?.();
+        }}
         connectionMode={ConnectionMode.Loose}
         selectionOnDrag
         panOnDrag={[1]}

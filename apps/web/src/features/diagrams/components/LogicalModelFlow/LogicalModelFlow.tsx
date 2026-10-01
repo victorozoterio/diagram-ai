@@ -38,6 +38,10 @@ type LogicalModelFlowProps = {
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
   onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  onSaveProject?: (project: DiagramAiProject) => Promise<void>;
+  isSavingProject?: boolean;
+  onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
+  onVisualChange?: () => void;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -465,6 +469,10 @@ export function LogicalModelFlow({
   exportMenuTarget,
   exportDisabled,
   onOpenProject,
+  onSaveProject,
+  isSavingProject,
+  onEditableProjectReady,
+  onVisualChange,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
@@ -650,6 +658,28 @@ export function LogicalModelFlow({
 
   const edges = [...referenceEdges, ...manualEdges];
 
+  const editableProjectFactory = useRef<() => DiagramAiProject>(() =>
+    createDiagramAiProject({
+      modelType: 'logical',
+      semanticModel: model,
+      nodes,
+      edges,
+      viewport: flowInstance.current?.getViewport(),
+    }),
+  );
+  editableProjectFactory.current = () =>
+    createDiagramAiProject({
+      modelType: 'logical',
+      semanticModel: model,
+      nodes,
+      edges,
+      viewport: flowInstance.current?.getViewport(),
+    });
+
+  useEffect(() => {
+    onEditableProjectReady?.(() => editableProjectFactory.current());
+  }, [onEditableProjectReady]);
+
   function updateRouteOffset(edgeId: string, routeOffset: number) {
     onUpdateModel({
       ...model,
@@ -719,15 +749,9 @@ export function LogicalModelFlow({
         portalTarget={exportMenuTarget}
         disabled={exportDisabled}
         onOpenProject={onOpenProject}
-        getEditableProject={() =>
-          createDiagramAiProject({
-            modelType: 'logical',
-            semanticModel: model,
-            nodes,
-            edges,
-            viewport: flowInstance.current?.getViewport(),
-          })
-        }
+        getEditableProject={() => editableProjectFactory.current()}
+        onSaveProject={onSaveProject}
+        isSavingProject={isSavingProject}
       />
       <ReactFlow
         nodes={nodes}
@@ -736,6 +760,9 @@ export function LogicalModelFlow({
         edgeTypes={edgeTypes}
         onInit={(instance) => {
           flowInstance.current = instance;
+        }}
+        onMoveEnd={(event) => {
+          if (event) onVisualChange?.();
         }}
         onNodeDragStop={(_, node) => {
           const selectedIds = new Set(

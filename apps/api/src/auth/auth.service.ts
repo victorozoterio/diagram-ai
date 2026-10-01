@@ -7,9 +7,24 @@ import { createAuthOptions } from './auth.options';
 
 type NodeAuthHandler = (request: IncomingMessage, response: ServerResponse) => Promise<void>;
 
+type AuthSession = {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+};
+
+type BetterAuthInstance = {
+  api: {
+    getSession: (context: { headers: Headers; query: { disableCookieCache: boolean } }) => Promise<AuthSession | null>;
+  };
+};
+
 @Injectable()
 export class AuthService implements OnModuleInit {
   private handler?: NodeAuthHandler;
+  private auth?: BetterAuthInstance;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -42,6 +57,7 @@ export class AuthService implements OnModuleInit {
       ),
     });
 
+    this.auth = auth;
     this.handler = toNodeHandler(auth);
   }
 
@@ -51,5 +67,16 @@ export class AuthService implements OnModuleInit {
     }
 
     await this.handler(request, response);
+  }
+
+  async getSession(cookie: string | undefined): Promise<AuthSession | null> {
+    if (!this.auth) {
+      throw new Error('Better Auth ainda não foi inicializado.');
+    }
+
+    const headers = new Headers();
+    if (cookie) headers.set('cookie', cookie);
+
+    return this.auth.api.getSession({ headers, query: { disableCookieCache: true } });
   }
 }
