@@ -28,6 +28,7 @@ export class AuthService implements OnModuleInit {
       ...createAuthOptions(
         this.configService.getOrThrow(ENV.BETTER_AUTH_SECRET),
         this.configService.getOrThrow(ENV.BETTER_AUTH_URL),
+        this.configService.getOrThrow(ENV.WEB_APP_URL),
         {
           google: {
             clientId: this.configService.getOrThrow(ENV.GOOGLE_CLIENT_ID),

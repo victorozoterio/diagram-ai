@@ -10,6 +10,7 @@
 
 .brand,
 .menuBar,
+.headerEnd,
 .modeSwitcher {
   display: flex;
   align-items: center;
@@ -46,12 +47,15 @@
   font-size: 11px;
 }
 
-.modeSwitcher {
+.headerEnd {
   grid-column: 3;
   justify-self: end;
+  gap: 12px;
+}
+
+.modeSwitcher {
   gap: 2px;
   padding: 3px;
-  margin-left: 28px;
   border: 1px solid #e5e7eb;
   border-radius: 9px;
   background: #f9fafb;
@@ -117,16 +121,20 @@
   opacity: 0.5;
 }
 
+.sessionPlaceholder {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f3f4f6;
+}
+
 @media (max-width: 640px) {
   .header {
     padding: 0 14px;
   }
 
   .menuBar {
-    margin-left: 12px;
-  }
-
-  .modeSwitcher {
     margin-left: 12px;
   }
 

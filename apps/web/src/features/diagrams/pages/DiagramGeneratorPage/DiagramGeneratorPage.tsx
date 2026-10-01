@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { analyzeAmbiguities, type ClarificationAnswer, generateSql, type SqlDialect } from '@/api/diagrams.api';
+import type { AuthenticatedUser } from '@/features/auth/components/AuthenticatedUserMenu';
 import type { EditorMode } from '../../components';
 import {
   ConceptualDiagramFlow,
@@ -26,7 +27,14 @@ const emptyConceptualModel: ConceptualModel = {
 
 const emptyLogicalModel = { tables: [] };
 
-export function DiagramGeneratorPage() {
+type DiagramGeneratorPageProps = {
+  isSessionLoading: boolean;
+  onSignIn: () => void;
+  onSignOut: () => void;
+  user: AuthenticatedUser | null;
+};
+
+export function DiagramGeneratorPage({ isSessionLoading, onSignIn, onSignOut, user }: DiagramGeneratorPageProps) {
   const [mode, setMode] = useState<EditorMode>('conceptual');
   const [exportMenuTarget, setExportMenuTarget] = useState<HTMLDivElement | null>(null);
   const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
@@ -308,6 +316,10 @@ export function DiagramGeneratorPage() {
         canGenerateSql={hasLogicalContent}
         isGeneratingSql={isGeneratingSql}
         onGenerateSql={openSqlGenerator}
+        isSessionLoading={isSessionLoading}
+        onSignIn={onSignIn}
+        onSignOut={onSignOut}
+        user={user}
       />
 
       <div className={styles.workspace}>

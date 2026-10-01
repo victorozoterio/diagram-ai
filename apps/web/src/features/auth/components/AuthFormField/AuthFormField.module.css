@@ -1,0 +1,58 @@
+.formField {
+  display: grid;
+  gap: 2px;
+}
+
+.formField label {
+  color: #374151;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  color: #111827;
+  background: #ffffff;
+  font-size: 13px;
+}
+
+.input:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 12%);
+}
+
+.inputInvalid,
+.inputInvalid:hover,
+.inputInvalid:focus {
+  border-color: #dc2626;
+}
+
+.inputInvalid:focus {
+  box-shadow: 0 0 0 3px rgb(220 38 38 / 12%);
+}
+
+.errorArea {
+  display: flex;
+  min-height: 17px;
+  align-items: center;
+}
+
+.error {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #dc2626;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.error svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}

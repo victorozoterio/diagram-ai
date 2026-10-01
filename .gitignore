@@ -37,3 +37,4 @@ coverage/
 # cache
 .turbo/
 .cache/
+.pnpm-store/

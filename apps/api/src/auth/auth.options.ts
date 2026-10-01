@@ -11,10 +11,16 @@ type SocialProviderCredentials = {
 const redirectURI = (baseURL: string, provider: 'google' | 'github') =>
   `${baseURL.replace(/\/$/, '')}/api/auth/callback/${provider}`;
 
-export const createAuthOptions = (secret: string, baseURL: string, providers: SocialProviderCredentials) => {
+export const createAuthOptions = (
+  secret: string,
+  baseURL: string,
+  trustedOrigin: string,
+  providers: SocialProviderCredentials,
+) => {
   return {
     secret,
     baseURL,
+    trustedOrigins: [trustedOrigin],
     emailAndPassword: {
       enabled: true,
     },

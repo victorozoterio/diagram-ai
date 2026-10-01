@@ -28,7 +28,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.enableCors({
-    origin: ['http://localhost:5173'],
+    origin: [process.env.WEB_APP_URL],
     credentials: true,
   });
   setupSwagger(app);
