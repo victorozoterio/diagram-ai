@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiFileText, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
+import { FiAlertTriangle, FiFileText, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { type DiagramSummary, deleteDiagram, listDiagrams, renameDiagram } from '@/api/diagrams.api';
 import { type AuthenticatedUser, AuthenticatedUserMenu } from '@/features/auth/components/AuthenticatedUserMenu';
 import { useInlineDiagramRename } from '../../hooks/useInlineDiagramRename';
@@ -17,7 +17,9 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [diagramPendingDeletion, setDiagramPendingDeletion] = useState<DiagramSummary | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const loadDiagrams = useCallback(async () => {
@@ -60,14 +62,41 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
     }
   }
 
-  async function confirmDelete(diagramId: string) {
+  const cancelDelete = useCallback(() => {
+    if (isDeleting) return;
+
+    setDiagramPendingDeletion(null);
+    setDeleteError(null);
+  }, [isDeleting]);
+
+  useEffect(() => {
+    if (!diagramPendingDeletion) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        cancelDelete();
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [cancelDelete, diagramPendingDeletion]);
+
+  async function confirmDelete() {
+    if (!diagramPendingDeletion || isDeleting) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
     try {
-      await deleteDiagram(diagramId);
-      setDiagrams((currentDiagrams) => currentDiagrams.filter((diagram) => diagram.id !== diagramId));
-      setDeletingId(null);
+      await deleteDiagram(diagramPendingDeletion.id);
+      setDiagrams((currentDiagrams) => currentDiagrams.filter((diagram) => diagram.id !== diagramPendingDeletion.id));
+      setDiagramPendingDeletion(null);
       setActionError(null);
     } catch {
-      setActionError('Não foi possível excluir o diagrama.');
+      setDeleteError('Não foi possível excluir o diagrama. Tente novamente.');
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -122,15 +151,13 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
             {filteredDiagrams.map((diagram) => (
               <DiagramCard
                 diagram={diagram}
-                isDeleting={deletingId === diagram.id}
                 key={diagram.id}
-                onCancelDelete={() => setDeletingId(null)}
-                onConfirmDelete={() => void confirmDelete(diagram.id)}
                 onOpen={() => onOpenDiagram(diagram.id)}
                 onRename={(name) => saveRename(diagram.id, name)}
                 onRequestDelete={() => {
                   setActionError(null);
-                  setDeletingId(diagram.id);
+                  setDeleteError(null);
+                  setDiagramPendingDeletion(diagram);
                 }}
               />
             ))}
@@ -143,29 +170,28 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
           </p>
         )}
       </section>
+
+      {diagramPendingDeletion && (
+        <DeleteDiagramModal
+          diagramName={diagramPendingDeletion.name}
+          error={deleteError}
+          isDeleting={isDeleting}
+          onCancel={cancelDelete}
+          onConfirm={() => void confirmDelete()}
+        />
+      )}
     </main>
   );
 }
 
 type DiagramCardProps = {
   diagram: DiagramSummary;
-  isDeleting: boolean;
-  onCancelDelete: () => void;
-  onConfirmDelete: () => void;
   onOpen: () => void;
   onRename: (name: string) => Promise<void>;
   onRequestDelete: () => void;
 };
 
-function DiagramCard({
-  diagram,
-  isDeleting,
-  onCancelDelete,
-  onConfirmDelete,
-  onOpen,
-  onRename,
-  onRequestDelete,
-}: DiagramCardProps) {
+function DiagramCard({ diagram, onOpen, onRename, onRequestDelete }: DiagramCardProps) {
   const rename = useInlineDiagramRename({ diagramName: diagram.name, onRename });
 
   return (
@@ -225,21 +251,51 @@ function DiagramCard({
       >
         <FiTrash2 aria-hidden='true' />
       </button>
-
-      {isDeleting && (
-        <div className={styles.confirmDelete} role='alert'>
-          <p>Excluir “{diagram.name}”? Esta ação não pode ser desfeita.</p>
-          <div>
-            <button onClick={onCancelDelete} type='button'>
-              Cancelar
-            </button>
-            <button onClick={onConfirmDelete} type='button'>
-              Excluir
-            </button>
-          </div>
-        </div>
-      )}
     </article>
+  );
+}
+
+type DeleteDiagramModalProps = {
+  diagramName: string;
+  error: string | null;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+
+function DeleteDiagramModal({ diagramName, error, isDeleting, onCancel, onConfirm }: DeleteDiagramModalProps) {
+  return (
+    <div
+      aria-modal='true'
+      className={styles.deleteOverlay}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onCancel();
+      }}
+      role='dialog'
+      aria-labelledby='delete-diagram-title'
+    >
+      <div className={styles.deleteModal}>
+        <span className={styles.deleteModalIcon}>
+          <FiAlertTriangle aria-hidden='true' />
+        </span>
+        <h2 id='delete-diagram-title'>Excluir diagrama</h2>
+        <p>Tem certeza que deseja excluir “{diagramName}”?</p>
+        <p className={styles.deleteModalHelper}>Esta ação não poderá ser desfeita.</p>
+        {error && (
+          <p className={styles.deleteModalError} role='alert'>
+            {error}
+          </p>
+        )}
+        <div className={styles.deleteModalActions}>
+          <button disabled={isDeleting} onClick={onCancel} type='button'>
+            Cancelar
+          </button>
+          <button className={styles.deleteConfirmButton} disabled={isDeleting} onClick={onConfirm} type='button'>
+            {isDeleting ? 'Excluindo...' : 'Excluir'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
