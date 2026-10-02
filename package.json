@@ -17,12 +17,15 @@
     "start:api": "pnpm --filter @diagram-ai/api start",
     "start:api:prod": "pnpm --filter @diagram-ai/api start:prod",
     "dev:web": "pnpm --filter @diagram-ai/web dev",
-    "build:web": "pnpm --filter @diagram-ai/web build"
+    "build:web": "pnpm --filter @diagram-ai/web build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
     "@commitlint/cli": "^21.1.0",
     "@commitlint/config-conventional": "^21.1.0",
+    "@playwright/test": "^1.63.0",
     "husky": "^9.1.7"
   },
   "commitlint": {

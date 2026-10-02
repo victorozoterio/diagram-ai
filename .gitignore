@@ -34,6 +34,10 @@ pnpm-debug.log*
 coverage/
 **/coverage/
 
+# Playwright
+playwright-report/
+test-results/
+
 # cache
 .turbo/
 .cache/
