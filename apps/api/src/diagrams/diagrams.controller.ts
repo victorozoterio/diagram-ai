@@ -1,6 +1,7 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SessionAuthGuard } from '../auth/session-auth.guard';
 import { SpeechToTextService, type UploadedAudio } from '../speech/speech-to-text.service';
 import { AnalyzeAmbiguitiesDto } from './dto/analyze-ambiguities.dto';
 import { GenerateDiagramDto } from './dto/generate-diagram.dto';
@@ -10,6 +11,8 @@ import { LogicalModel } from './schemas/logical-model.schema';
 import { DiagramsService } from './services/diagrams.service';
 
 @ApiTags('Diagrams')
+@ApiCookieAuth('better-auth.session_token')
+@UseGuards(SessionAuthGuard)
 @Controller('diagrams')
 export class DiagramsController {
   constructor(
