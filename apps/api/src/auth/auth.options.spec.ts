@@ -19,6 +19,29 @@ test('habilita email e senha com a configuração segura esperada', () => {
   assert.deepEqual(options.trustedOrigins, ['http://localhost:5173']);
 });
 
+test('não configura providers sociais sem pares de credenciais', () => {
+  const options = createAuthOptions(
+    'development-secret-with-at-least-thirty-two-characters',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    {},
+  );
+
+  assert.equal('socialProviders' in options, false);
+});
+
+test('configura somente o provider com credenciais disponíveis', () => {
+  const options = createAuthOptions(
+    'development-secret-with-at-least-thirty-two-characters',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    { google: { clientId: 'google-client-id', clientSecret: 'google-client-secret' } },
+  );
+
+  assert.ok(options.socialProviders?.google);
+  assert.equal(options.socialProviders?.github, undefined);
+});
+
 test('configura o callback do Google', () => {
   const options = createAuthOptions(
     'development-secret-with-at-least-thirty-two-characters',

@@ -21,10 +21,13 @@ type BetterAuthInstance = {
   };
 };
 
+export type SocialProvider = 'google' | 'github';
+
 @Injectable()
 export class AuthService implements OnModuleInit {
   private handler?: NodeAuthHandler;
   private auth?: BetterAuthInstance;
+  private enabledSocialProviders: SocialProvider[] = [];
 
   constructor(
     private readonly prisma: PrismaService,
@@ -38,27 +41,20 @@ export class AuthService implements OnModuleInit {
       import('better-auth/node'),
     ]);
 
+    const socialProviders = this.configuredSocialProviders();
     const auth = betterAuth({
       database: prismaAdapter(this.prisma, { provider: 'postgresql' }),
       ...createAuthOptions(
         this.configService.getOrThrow(ENV.BETTER_AUTH_SECRET),
         this.configService.getOrThrow(ENV.BETTER_AUTH_URL),
         this.configService.getOrThrow(ENV.WEB_APP_URL),
-        {
-          google: {
-            clientId: this.configService.getOrThrow(ENV.GOOGLE_CLIENT_ID),
-            clientSecret: this.configService.getOrThrow(ENV.GOOGLE_CLIENT_SECRET),
-          },
-          github: {
-            clientId: this.configService.getOrThrow(ENV.GITHUB_CLIENT_ID),
-            clientSecret: this.configService.getOrThrow(ENV.GITHUB_CLIENT_SECRET),
-          },
-        },
+        socialProviders,
       ),
     });
 
     this.auth = auth;
     this.handler = toNodeHandler(auth);
+    this.enabledSocialProviders = Object.keys(socialProviders) as SocialProvider[];
   }
 
   async handle(request: IncomingMessage, response: ServerResponse): Promise<void> {
@@ -78,5 +74,28 @@ export class AuthService implements OnModuleInit {
     if (cookie) headers.set('cookie', cookie);
 
     return this.auth.api.getSession({ headers, query: { disableCookieCache: true } });
+  }
+
+  getEnabledSocialProviders(): SocialProvider[] {
+    return [...this.enabledSocialProviders];
+  }
+
+  private configuredSocialProviders(): Partial<Record<SocialProvider, { clientId: string; clientSecret: string }>> {
+    const google = this.providerCredentials(ENV.GOOGLE_CLIENT_ID, ENV.GOOGLE_CLIENT_SECRET);
+    const github = this.providerCredentials(ENV.GITHUB_CLIENT_ID, ENV.GITHUB_CLIENT_SECRET);
+
+    return {
+      ...(google ? { google } : {}),
+      ...(github ? { github } : {}),
+    };
+  }
+
+  private providerCredentials(
+    clientIdKey: typeof ENV.GOOGLE_CLIENT_ID | typeof ENV.GITHUB_CLIENT_ID,
+    clientSecretKey: typeof ENV.GOOGLE_CLIENT_SECRET | typeof ENV.GITHUB_CLIENT_SECRET,
+  ) {
+    const clientId = this.configService.get(clientIdKey, { infer: true });
+    const clientSecret = this.configService.get(clientSecretKey, { infer: true });
+    return clientId && clientSecret ? { clientId, clientSecret } : undefined;
   }
 }

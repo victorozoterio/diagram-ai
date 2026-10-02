@@ -13,7 +13,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "test": "node --test -r ts-node/register -r tsconfig-paths/register src/ai/cardinality-ambiguity.guard.spec.ts src/ai/prompts/clarifications.prompt.spec.ts src/auth/auth.options.spec.ts src/diagrams/schemas/conceptual-model.schema.spec.ts src/diagrams/services/diagrams.service.spec.ts src/ai/providers/ollama/conceptual-model-prompts.spec.ts"
+    "test": "node --test -r ts-node/register -r tsconfig-paths/register src/ai/cardinality-ambiguity.guard.spec.ts src/ai/prompts/clarifications.prompt.spec.ts src/auth/auth.options.spec.ts src/config/environments.spec.ts src/diagrams/schemas/conceptual-model.schema.spec.ts src/diagrams/services/diagrams.service.spec.ts src/ai/providers/ollama/conceptual-model-prompts.spec.ts"
   },
   "dependencies": {
     "@better-auth/prisma-adapter": "1.7.6",

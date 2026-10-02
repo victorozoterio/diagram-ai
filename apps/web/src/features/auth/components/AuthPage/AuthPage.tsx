@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { type Resolver, useForm } from 'react-hook-form';
 import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
-import { authClient } from '@/auth/auth-client';
+import { authClient, getEnabledSocialProviders, type SocialProvider } from '@/auth/auth-client';
 import { ROUTES } from '@/routes/routes';
 import { AuthFormField } from '../AuthFormField';
 import styles from './AuthPage.module.css';
@@ -17,8 +17,6 @@ type AuthPageProps = {
   onAuthenticated: () => Promise<void>;
   onNavigate: (path: typeof copy.login.alternatePath | typeof copy.signup.alternatePath) => void;
 };
-
-type SocialProvider = 'google' | 'github';
 
 type LoginError = {
   kind: 'credentials' | 'request';
@@ -80,12 +78,26 @@ export function AuthPage({ mode, onAuthenticated, onNavigate }: AuthPageProps) {
   const [loginError, setLoginError] = useState<LoginError | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [socialProvider, setSocialProvider] = useState<SocialProvider | null>(null);
+  const [enabledSocialProviders, setEnabledSocialProviders] = useState<SocialProvider[]>([]);
   const isSignup = mode === 'signup';
   const content = copy[mode];
   const { errors, isSubmitting, touchedFields } = form.formState;
   const passwordError = errors.password?.message;
   const passwordMessage = passwordError ? undefined : !isSignup ? loginError?.message : undefined;
   const hasCredentialError = !isSignup && loginError?.kind === 'credentials';
+  const hasSocialProviders = enabledSocialProviders.length > 0;
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    void getEnabledSocialProviders().then((providers) => {
+      if (isCurrent) setEnabledSocialProviders(providers);
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   function clearAuthenticationErrors() {
     setLoginError(null);
@@ -220,30 +232,38 @@ export function AuthPage({ mode, onAuthenticated, onNavigate }: AuthPageProps) {
           </button>
         </form>
 
-        <div className={styles.divider} aria-hidden='true'>
-          <span>ou</span>
-        </div>
+        {hasSocialProviders && (
+          <>
+            <div className={styles.divider} aria-hidden='true'>
+              <span>ou</span>
+            </div>
 
-        <div className={styles.socialActions}>
-          <button
-            className={styles.socialButton}
-            disabled={isSubmitting || socialProvider !== null}
-            onClick={() => void signInWith('google')}
-            type='button'
-          >
-            <FcGoogle aria-hidden='true' className={styles.providerIcon} />
-            {socialProvider === 'google' ? 'Redirecionando...' : 'Continuar com Google'}
-          </button>
-          <button
-            className={styles.socialButton}
-            disabled={isSubmitting || socialProvider !== null}
-            onClick={() => void signInWith('github')}
-            type='button'
-          >
-            <FaGithub aria-hidden='true' className={styles.providerIcon} />
-            {socialProvider === 'github' ? 'Redirecionando...' : 'Continuar com GitHub'}
-          </button>
-        </div>
+            <div className={styles.socialActions}>
+              {enabledSocialProviders.includes('google') && (
+                <button
+                  className={styles.socialButton}
+                  disabled={isSubmitting || socialProvider !== null}
+                  onClick={() => void signInWith('google')}
+                  type='button'
+                >
+                  <FcGoogle aria-hidden='true' className={styles.providerIcon} />
+                  {socialProvider === 'google' ? 'Redirecionando...' : 'Continuar com Google'}
+                </button>
+              )}
+              {enabledSocialProviders.includes('github') && (
+                <button
+                  className={styles.socialButton}
+                  disabled={isSubmitting || socialProvider !== null}
+                  onClick={() => void signInWith('github')}
+                  type='button'
+                >
+                  <FaGithub aria-hidden='true' className={styles.providerIcon} />
+                  {socialProvider === 'github' ? 'Redirecionando...' : 'Continuar com GitHub'}
+                </button>
+              )}
+            </div>
+          </>
+        )}
 
         <p className={styles.alternate}>
           {content.alternateText}{' '}

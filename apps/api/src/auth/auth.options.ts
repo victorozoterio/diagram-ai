@@ -4,8 +4,8 @@ type OAuthCredentials = {
 };
 
 type SocialProviderCredentials = {
-  google: OAuthCredentials;
-  github: OAuthCredentials;
+  google?: OAuthCredentials;
+  github?: OAuthCredentials;
 };
 
 const redirectURI = (baseURL: string, provider: 'google' | 'github') =>
@@ -17,6 +17,28 @@ export const createAuthOptions = (
   trustedOrigin: string,
   providers: SocialProviderCredentials,
 ) => {
+  const socialProviders = {
+    ...(providers.google
+      ? {
+          google: {
+            clientId: providers.google.clientId,
+            clientSecret: providers.google.clientSecret,
+            redirectURI: redirectURI(baseURL, 'google'),
+          },
+        }
+      : {}),
+    ...(providers.github
+      ? {
+          github: {
+            clientId: providers.github.clientId,
+            clientSecret: providers.github.clientSecret,
+            redirectURI: redirectURI(baseURL, 'github'),
+            scope: ['user:email'],
+          },
+        }
+      : {}),
+  };
+
   return {
     secret,
     baseURL,
@@ -29,18 +51,6 @@ export const createAuthOptions = (
         joins: true,
       },
     },
-    socialProviders: {
-      google: {
-        clientId: providers.google.clientId,
-        clientSecret: providers.google.clientSecret,
-        redirectURI: redirectURI(baseURL, 'google'),
-      },
-      github: {
-        clientId: providers.github.clientId,
-        clientSecret: providers.github.clientSecret,
-        redirectURI: redirectURI(baseURL, 'github'),
-        scope: ['user:email'],
-      },
-    },
+    ...(Object.keys(socialProviders).length > 0 ? { socialProviders } : {}),
   };
 };
