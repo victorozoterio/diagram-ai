@@ -37,3 +37,25 @@ Retorne somente JSON aceito pelo schema: {"tables":[{"name":"...","columns":[{"n
 Omita flags falsas e omita references quando a coluna não for FK. Use arrays vazios quando não houver constraints explícitas. Não gere ids internos: o backend os cria.
 `.trim();
 }
+
+export function buildFixLogicalModelPrompt({
+  description,
+  invalidModel,
+  validationError,
+  clarifications,
+}: BuildLogicalModelPromptInput & {
+  invalidModel: unknown;
+  validationError: unknown;
+}): string {
+  return `
+Corrija o modelo lógico inválido abaixo. Preserve todas as tabelas, colunas e relações que já estiverem corretas e altere somente o necessário para resolver os erros informados.
+
+MODELO INVÁLIDO:
+${JSON.stringify(invalidModel)}
+
+ERROS DE VALIDAÇÃO:
+${JSON.stringify(validationError)}
+
+${buildLogicalModelPrompt({ description, clarifications })}
+`.trim();
+}

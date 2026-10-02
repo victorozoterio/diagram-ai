@@ -9,9 +9,9 @@ import { normalizeLogicalModelConstraints } from '../../../diagrams/services/log
 import { GeneratedLogicalModelSchema } from './logical-model-generation.schema';
 import { OllamaError } from './ollama.errors';
 
-export function parseLogicalModelResponse(content: string, description: string): LogicalModel {
+export function parseLogicalModelResponse(content: unknown, description: string): LogicalModel {
   try {
-    const generatedModel = GeneratedLogicalModelSchema.parse(JSON.parse(content));
+    const generatedModel = GeneratedLogicalModelSchema.parse(parseContent(content));
     const tableIds = uniqueIdentifiers(generatedModel.tables.map((table) => table.name));
     const tableIdByName = new Map(
       generatedModel.tables.map((table, index) => [normalizeName(table.name), tableIds[index]]),
@@ -68,6 +68,11 @@ export function parseLogicalModelResponse(content: string, description: string):
       cause: error,
     });
   }
+}
+
+function parseContent(content: unknown): unknown {
+  if (typeof content !== 'string') return content;
+  return JSON.parse(content);
 }
 
 function applyExplicitConstraints(

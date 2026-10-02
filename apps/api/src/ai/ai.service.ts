@@ -18,6 +18,15 @@ export class AiService {
     return this.ollamaProvider.generateLogicalModel(description, clarifications);
   }
 
+  async fixLogicalModel(params: {
+    description: string;
+    invalidModel: unknown;
+    validationError: unknown;
+    clarifications?: ClarificationAnswer[];
+  }) {
+    return this.ollamaProvider.fixLogicalModel(params);
+  }
+
   async fixConceptualModel(params: {
     description: string;
     invalidModel: unknown;

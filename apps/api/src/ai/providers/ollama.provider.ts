@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { ENV, EnvironmentVariables } from 'src/config/environments';
 
 import type { ConceptualModel } from '../../diagrams/schemas/conceptual-model.schema';
-import type { LogicalModel } from '../../diagrams/schemas/logical-model.schema';
 
 import {
   type AmbiguityAnalysis,
@@ -15,7 +14,7 @@ import {
 import { discardResolvedCardinalityQuestions } from '../cardinality-ambiguity.guard';
 import { buildAmbiguityAnalysisPrompt } from '../prompts/ambiguity-analysis.prompt';
 import { buildConceptualModelPrompt } from '../prompts/conceptual-model.prompt';
-import { buildLogicalModelPrompt } from '../prompts/logical-model.prompt';
+import { buildFixLogicalModelPrompt, buildLogicalModelPrompt } from '../prompts/logical-model.prompt';
 import { GeneratedConceptualModelJsonSchema } from './ollama/conceptual-model-generation.schema';
 import { buildFixConceptualModelPrompt } from './ollama/conceptual-model-prompts';
 import {
@@ -23,7 +22,6 @@ import {
   parseConceptualModelResponse,
 } from './ollama/conceptual-model-response.parser';
 import { GeneratedLogicalModelJsonSchema } from './ollama/logical-model-generation.schema';
-import { parseLogicalModelResponse } from './ollama/logical-model-response.parser';
 import { OllamaError, serializeOllamaError } from './ollama/ollama.errors';
 import type { OllamaChatMessage, OllamaChatResponse } from './ollama/ollama.types';
 
@@ -80,7 +78,7 @@ export class OllamaProvider {
     }
   }
 
-  async generateLogicalModel(description: string, clarifications?: ClarificationAnswer[]): Promise<LogicalModel> {
+  async generateLogicalModel(description: string, clarifications?: ClarificationAnswer[]): Promise<unknown> {
     try {
       const content = await this.chat(
         [
@@ -96,9 +94,36 @@ export class OllamaProvider {
         GeneratedLogicalModelJsonSchema,
       );
 
-      return parseLogicalModelResponse(content, description);
+      return parseLogicalModelCandidate(content);
     } catch (error) {
       throw this.providerException('Erro ao gerar modelo lógico com Ollama.', error);
+    }
+  }
+
+  async fixLogicalModel(params: {
+    description: string;
+    invalidModel: unknown;
+    validationError: unknown;
+    clarifications?: ClarificationAnswer[];
+  }): Promise<unknown> {
+    try {
+      const content = await this.chat(
+        [
+          {
+            role: 'system',
+            content: 'Corrija o esquema relacional. Retorne somente o JSON solicitado, sem explicações.',
+          },
+          {
+            role: 'user',
+            content: buildFixLogicalModelPrompt(params),
+          },
+        ],
+        GeneratedLogicalModelJsonSchema,
+      );
+
+      return parseLogicalModelCandidate(content);
+    } catch (error) {
+      throw this.providerException('Erro ao corrigir modelo lógico com Ollama.', error);
     }
   }
 
@@ -281,6 +306,14 @@ export class OllamaProvider {
       },
       { cause: error instanceof Error ? error : undefined },
     );
+  }
+}
+
+function parseLogicalModelCandidate(content: string): unknown {
+  try {
+    return JSON.parse(content);
+  } catch {
+    return content;
   }
 }
 

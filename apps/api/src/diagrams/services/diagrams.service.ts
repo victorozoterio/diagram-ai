@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { AiService } from '../../ai/ai.service';
 import type { AmbiguityAnalysis, ClarificationAnswer } from '../../ai/ambiguity-analysis.schema';
+import { parseLogicalModelResponse } from '../../ai/providers/ollama/logical-model-response.parser';
 import { AnalyzeAmbiguitiesDto } from '../dto/analyze-ambiguities.dto';
 import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
@@ -10,6 +11,8 @@ import { buildConceptualModelRepairContext } from './conceptual-model-repair-con
 import { LogicalModelConverterService } from './logical-model-converter.service';
 import { LogicalToConceptualConverterService } from './logical-to-conceptual-converter.service';
 import { SqlDialect, SqlGeneratorService } from './sql-generator.service';
+
+type ValidationResult<TModel> = { success: true; data: TModel } | { success: false; validationError: unknown };
 
 @Injectable()
 export class DiagramsService {
@@ -29,43 +32,30 @@ export class DiagramsService {
       return this.generateLogical(dto.description, clarifications);
     }
 
-    let conceptualModel = await this.aiService.generateConceptualModel(dto.description, clarifications);
+    return this.generateWithRepair({
+      label: 'conceitual',
+      invalidMessage: 'O modelo conceitual gerado é inválido.',
+      initialCandidate: () => this.aiService.generateConceptualModel(dto.description, clarifications),
+      validate: (conceptualModel) => {
+        const parsed = ConceptualModelSchema.safeParse(conceptualModel);
+        if (parsed.success) return { success: true, data: parsed.data };
 
-    for (let attempt = 1; attempt <= this.maxValidationAttempts; attempt++) {
-      const parsed = ConceptualModelSchema.safeParse(conceptualModel);
-
-      if (parsed.success) {
-        return parsed.data;
-      }
-
-      const validationError = z.treeifyError(parsed.error);
-      const repairContext = buildConceptualModelRepairContext(conceptualModel, parsed.error);
-
-      this.logger.warn(
-        `Modelo conceitual requer correção na tentativa ${attempt}: ${JSON.stringify({ validationError, repair: repairContext })}`,
-      );
-
-      if (attempt === this.maxValidationAttempts) {
-        throw new BadRequestException({
-          message: 'O modelo conceitual gerado é inválido.',
-          attempts: attempt,
-          errors: validationError,
-        });
-      }
-
-      conceptualModel = await this.aiService.fixConceptualModel({
-        description: dto.description,
-        invalidModel: conceptualModel,
-        validationError: {
-          tree: validationError,
-          repair: repairContext,
-        },
-        clarifications,
-      });
-    }
-
-    throw new BadRequestException({
-      message: 'Não foi possível gerar um modelo conceitual válido.',
+        const tree = z.treeifyError(parsed.error);
+        return {
+          success: false,
+          validationError: {
+            tree,
+            repair: buildConceptualModelRepairContext(conceptualModel, parsed.error),
+          },
+        };
+      },
+      repair: (conceptualModel, validationError) =>
+        this.aiService.fixConceptualModel({
+          description: dto.description,
+          invalidModel: conceptualModel,
+          validationError,
+          clarifications,
+        }),
     });
   }
 
@@ -74,17 +64,63 @@ export class DiagramsService {
   }
 
   private async generateLogical(description: string, clarifications?: ClarificationAnswer[]): Promise<LogicalModel> {
-    const logicalModel = await this.aiService.generateLogicalModel(description, clarifications);
-    const parsed = LogicalModelSchema.safeParse(logicalModel);
+    return this.generateWithRepair({
+      label: 'lógico',
+      invalidMessage: 'O modelo lógico gerado é inválido.',
+      initialCandidate: () => this.aiService.generateLogicalModel(description, clarifications),
+      validate: (candidate) => this.validateLogicalCandidate(candidate, description),
+      repair: (invalidModel, validationError) =>
+        this.aiService.fixLogicalModel({
+          description,
+          invalidModel,
+          validationError,
+          clarifications,
+        }),
+    });
+  }
 
-    if (!parsed.success) {
-      throw new BadRequestException({
-        message: 'O modelo lógico gerado é inválido.',
-        errors: z.treeifyError(parsed.error),
-      });
+  private async generateWithRepair<TCandidate, TModel>(params: {
+    label: 'conceitual' | 'lógico';
+    invalidMessage: string;
+    initialCandidate: () => Promise<TCandidate>;
+    validate: (candidate: TCandidate) => ValidationResult<TModel>;
+    repair: (candidate: TCandidate, validationError: unknown) => Promise<TCandidate>;
+  }): Promise<TModel> {
+    let candidate = await params.initialCandidate();
+
+    for (let attempt = 1; attempt <= this.maxValidationAttempts; attempt++) {
+      const validation = params.validate(candidate);
+      if (validation.success) return validation.data;
+
+      this.logger.warn(
+        `Modelo ${params.label} requer correção na tentativa ${attempt}: ${JSON.stringify(validation.validationError)}`,
+      );
+
+      if (attempt === this.maxValidationAttempts) {
+        throw new BadRequestException({
+          message: params.invalidMessage,
+          attempts: attempt,
+          errors: validation.validationError,
+        });
+      }
+
+      candidate = await params.repair(candidate, validation.validationError);
     }
 
-    return parsed.data;
+    throw new BadRequestException({ message: params.invalidMessage });
+  }
+
+  private validateLogicalCandidate(candidate: unknown, description: string): ValidationResult<LogicalModel> {
+    try {
+      const logicalModel = parseLogicalModelResponse(candidate, description);
+      const parsed = LogicalModelSchema.safeParse(logicalModel);
+
+      return parsed.success
+        ? { success: true, data: parsed.data }
+        : { success: false, validationError: z.treeifyError(parsed.error) };
+    } catch (error) {
+      return { success: false, validationError: validationErrorFrom(error) };
+    }
   }
 
   convertToLogical(conceptualModel: ConceptualModel): LogicalModel {
@@ -131,4 +167,19 @@ export class DiagramsService {
       });
     }
   }
+}
+
+function validationErrorFrom(error: unknown): unknown {
+  if (error instanceof z.ZodError) {
+    return z.treeifyError(error);
+  }
+
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      ...(error.cause instanceof z.ZodError ? { cause: z.treeifyError(error.cause) } : {}),
+    };
+  }
+
+  return { message: String(error) };
 }

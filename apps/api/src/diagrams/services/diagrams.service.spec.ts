@@ -80,3 +80,44 @@ test('reenvia o modelo inválido e o conflito estruturado ao repair antes de ace
   assert.ok('relationships' in result);
   assert.equal(result.relationships[0].attributes[0].name, 'data_inicio_associacao');
 });
+
+test('repara a resposta lógica inválida antes de devolver o modelo normalizado', async () => {
+  const invalidModel = {
+    tables: [],
+    oneToMany: [],
+    oneToOne: [],
+    manyToMany: [],
+    constraints: { unique: [], notNull: [] },
+  };
+  const correctedModel = {
+    tables: [
+      {
+        name: 'cliente',
+        columns: [{ name: 'id_cliente', type: 'uuid', primaryKey: true }],
+      },
+    ],
+    oneToMany: [],
+    oneToOne: [],
+    manyToMany: [],
+    constraints: { unique: [], notNull: [] },
+  };
+  let repairs = 0;
+
+  const aiService = {
+    generateLogicalModel: async () => invalidModel,
+    fixLogicalModel: async (params: { invalidModel: unknown; validationError: unknown }) => {
+      repairs += 1;
+      assert.equal(params.invalidModel, invalidModel);
+      assert.ok(params.validationError && typeof params.validationError === 'object');
+      assert.match(String((params.validationError as { message?: string }).message), /modelo lógico/i);
+      return correctedModel;
+    },
+  } as unknown as AiService;
+
+  const service = new DiagramsService(aiService, {} as never, {} as never, {} as never);
+  const result = await service.generate({ description: 'Cada cliente possui um cadastro.', mode: 'logical' });
+
+  assert.equal(repairs, 1);
+  assert.ok('tables' in result);
+  assert.equal(result.tables[0].name, 'cliente');
+});
