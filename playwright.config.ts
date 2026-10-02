@@ -5,6 +5,7 @@ const webURL = 'http://127.0.0.1:5174';
 
 export default defineConfig({
   testDir: './e2e',
+  globalTeardown: './e2e/global-teardown.ts',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
@@ -22,13 +23,8 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'pnpm --filter @diagram-ai/api start:dev',
-      env: {
-        BETTER_AUTH_URL: apiURL,
-        PORT: '3100',
-        WEB_APP_URL: webURL,
-      },
-      reuseExistingServer: !process.env.CI,
+      command: 'node --env-file=apps/api/.env.e2e apps/api/scripts/e2e-start-api.mjs',
+      reuseExistingServer: false,
       timeout: 120_000,
       url: `${apiURL}/api/auth/providers`,
     },
@@ -37,7 +33,7 @@ export default defineConfig({
       env: {
         VITE_API_URL: apiURL,
       },
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120_000,
       url: `${webURL}/login`,
     },

@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 const apiURL = 'http://127.0.0.1:3100';
 const webURL = 'http://127.0.0.1:5174';
 const testUser = {
-  email: `e2e-login-${Date.now()}-${Math.random().toString(36).slice(2)}@example.test`,
+  email: 'e2e-login@diagram-ai.test',
   name: 'Usuário E2E',
   password: 'DiagramAiE2E-2026!',
 };

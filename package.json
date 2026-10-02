@@ -18,8 +18,8 @@
     "start:api:prod": "pnpm --filter @diagram-ai/api start:prod",
     "dev:web": "pnpm --filter @diagram-ai/web dev",
     "build:web": "pnpm --filter @diagram-ai/web build",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e": "node --env-file=apps/api/.env.e2e apps/api/scripts/e2e-prepare.mjs && playwright test",
+    "test:e2e:ui": "node --env-file=apps/api/.env.e2e apps/api/scripts/e2e-prepare.mjs && playwright test --ui"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
