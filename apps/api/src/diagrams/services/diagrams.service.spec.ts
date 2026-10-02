@@ -1,5 +1,4 @@
-import { strict as assert } from 'node:assert';
-import { test } from 'node:test';
+import { expect, it, vi } from 'vitest';
 
 import type { AiService } from '../../ai/ai.service';
 import type { ConceptualModel } from '../schemas/conceptual-model.schema';
@@ -45,43 +44,43 @@ function model(relationshipAttributeName: string): ConceptualModel {
   };
 }
 
-test('reenvia o modelo inválido e o conflito estruturado ao repair antes de aceitar a correção', async () => {
+it('reenvia o modelo inválido e o conflito estruturado ao repair antes de aceitar a correção', async () => {
   const invalidModel = model('data_inicio');
   const correctedModel = model('data_inicio_associacao');
-  let repairs = 0;
-
+  const fixConceptualModel = vi.fn(async (params: { invalidModel: ConceptualModel; validationError: unknown }) => {
+    expect(params.invalidModel).toBe(invalidModel);
+    expect(params.validationError && typeof params.validationError === 'object').toBe(true);
+    const repairPayload = params.validationError as {
+      tree: unknown;
+      repair: { duplicateRelationshipAttributes: unknown };
+    };
+    expect(repairPayload.tree).toBeDefined();
+    expect(repairPayload.repair.duplicateRelationshipAttributes).toEqual([
+      {
+        relationship: 'associa',
+        relationshipAttribute: 'data_inicio',
+        participantAttributes: [{ entity: 'origem', attribute: 'data_inicio' }],
+        rule: 'O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento.',
+      },
+    ]);
+    return correctedModel;
+  });
   const aiService = {
-    generateConceptualModel: async () => invalidModel,
-    fixConceptualModel: async (params: { invalidModel: ConceptualModel; validationError: unknown }) => {
-      repairs += 1;
-      assert.equal(params.invalidModel, invalidModel);
-      assert.ok(params.validationError && typeof params.validationError === 'object');
-      const repairPayload = params.validationError as {
-        tree: unknown;
-        repair: { duplicateRelationshipAttributes: unknown };
-      };
-      assert.ok(repairPayload.tree);
-      assert.deepEqual(repairPayload.repair.duplicateRelationshipAttributes, [
-        {
-          relationship: 'associa',
-          relationshipAttribute: 'data_inicio',
-          participantAttributes: [{ entity: 'origem', attribute: 'data_inicio' }],
-          rule: 'O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento.',
-        },
-      ]);
-      return correctedModel;
-    },
+    generateConceptualModel: vi.fn(async () => invalidModel),
+    fixConceptualModel,
   } as unknown as AiService;
 
   const service = new DiagramsService(aiService, {} as never, {} as never, {} as never);
   const result = await service.generate({ description: 'Descrição de teste.', mode: 'conceptual' });
 
-  assert.equal(repairs, 1);
-  assert.ok('relationships' in result);
-  assert.equal(result.relationships[0].attributes[0].name, 'data_inicio_associacao');
+  expect(fixConceptualModel).toHaveBeenCalledTimes(1);
+  if (!('relationships' in result)) {
+    throw new Error('O modelo corrigido deveria conter relacionamentos.');
+  }
+  expect(result.relationships[0].attributes[0].name).toBe('data_inicio_associacao');
 });
 
-test('repara a resposta lógica inválida antes de devolver o modelo normalizado', async () => {
+it('repara a resposta lógica inválida antes de devolver o modelo normalizado', async () => {
   const invalidModel = {
     tables: [],
     oneToMany: [],
@@ -101,23 +100,23 @@ test('repara a resposta lógica inválida antes de devolver o modelo normalizado
     manyToMany: [],
     constraints: { unique: [], notNull: [] },
   };
-  let repairs = 0;
-
+  const fixLogicalModel = vi.fn(async (params: { invalidModel: unknown; validationError: unknown }) => {
+    expect(params.invalidModel).toBe(invalidModel);
+    expect(params.validationError && typeof params.validationError === 'object').toBe(true);
+    expect(String((params.validationError as { message?: string }).message)).toMatch(/modelo lógico/i);
+    return correctedModel;
+  });
   const aiService = {
-    generateLogicalModel: async () => invalidModel,
-    fixLogicalModel: async (params: { invalidModel: unknown; validationError: unknown }) => {
-      repairs += 1;
-      assert.equal(params.invalidModel, invalidModel);
-      assert.ok(params.validationError && typeof params.validationError === 'object');
-      assert.match(String((params.validationError as { message?: string }).message), /modelo lógico/i);
-      return correctedModel;
-    },
+    generateLogicalModel: vi.fn(async () => invalidModel),
+    fixLogicalModel,
   } as unknown as AiService;
 
   const service = new DiagramsService(aiService, {} as never, {} as never, {} as never);
   const result = await service.generate({ description: 'Cada cliente possui um cadastro.', mode: 'logical' });
 
-  assert.equal(repairs, 1);
-  assert.ok('tables' in result);
-  assert.equal(result.tables[0].name, 'cliente');
+  expect(fixLogicalModel).toHaveBeenCalledTimes(1);
+  if (!('tables' in result)) {
+    throw new Error('O modelo corrigido deveria conter tabelas.');
+  }
+  expect(result.tables[0].name).toBe('cliente');
 });

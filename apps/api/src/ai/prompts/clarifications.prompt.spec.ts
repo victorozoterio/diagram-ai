@@ -1,9 +1,8 @@
-import { strict as assert } from 'node:assert';
-import { test } from 'node:test';
+import { expect, it } from 'vitest';
 
 import { buildConceptualModelPrompt } from './conceptual-model.prompt';
 
-test('representa uma resposta de cardinalidade como relacionamento regular no prompt conceitual', () => {
+it('representa uma resposta de cardinalidade como relacionamento regular no prompt conceitual', () => {
   const prompt = buildConceptualModelPrompt({
     description: 'Pessoas colaboram com iniciativas.',
     clarifications: [
@@ -16,8 +15,8 @@ test('representa uma resposta de cardinalidade como relacionamento regular no pr
     ],
   });
 
-  assert.match(prompt, /CARDINALIDADE CONFIRMADA/);
-  assert.match(prompt, /Pergunta: Como pessoas e iniciativas se relacionam\?/);
-  assert.match(prompt, /represente-a em r com p/);
-  assert.match(prompt, /nunca cria uma entidade, atributo composto ou generalização\/especialização/);
+  expect(prompt).toMatch(/CARDINALIDADE CONFIRMADA/);
+  expect(prompt).toMatch(/Pergunta: Como pessoas e iniciativas se relacionam\?/);
+  expect(prompt).toMatch(/represente-a em r com p/);
+  expect(prompt).toMatch(/nunca cria uma entidade, atributo composto ou generalização\/especialização/);
 });

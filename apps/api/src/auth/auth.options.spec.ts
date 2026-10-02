@@ -1,8 +1,7 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { expect, it } from 'vitest';
 import { createAuthOptions } from './auth.options';
 
-test('habilita email e senha com a configuração segura esperada', () => {
+it('habilita email e senha com a configuração segura esperada', () => {
   const options = createAuthOptions(
     'development-secret-with-at-least-thirty-two-characters',
     'http://localhost:3000',
@@ -13,13 +12,13 @@ test('habilita email e senha com a configuração segura esperada', () => {
     },
   );
 
-  assert.equal(options.emailAndPassword.enabled, true);
-  assert.equal(options.advanced.database.joins, true);
-  assert.equal(options.baseURL, 'http://localhost:3000');
-  assert.deepEqual(options.trustedOrigins, ['http://localhost:5173']);
+  expect(options.emailAndPassword.enabled).toBe(true);
+  expect(options.advanced.database.joins).toBe(true);
+  expect(options.baseURL).toBe('http://localhost:3000');
+  expect(options.trustedOrigins).toEqual(['http://localhost:5173']);
 });
 
-test('não configura providers sociais sem pares de credenciais', () => {
+it('não configura providers sociais sem pares de credenciais', () => {
   const options = createAuthOptions(
     'development-secret-with-at-least-thirty-two-characters',
     'http://localhost:3000',
@@ -27,10 +26,10 @@ test('não configura providers sociais sem pares de credenciais', () => {
     {},
   );
 
-  assert.equal('socialProviders' in options, false);
+  expect('socialProviders' in options).toBe(false);
 });
 
-test('configura somente o provider com credenciais disponíveis', () => {
+it('configura somente o provider com credenciais disponíveis', () => {
   const options = createAuthOptions(
     'development-secret-with-at-least-thirty-two-characters',
     'http://localhost:3000',
@@ -38,11 +37,11 @@ test('configura somente o provider com credenciais disponíveis', () => {
     { google: { clientId: 'google-client-id', clientSecret: 'google-client-secret' } },
   );
 
-  assert.ok(options.socialProviders?.google);
-  assert.equal(options.socialProviders?.github, undefined);
+  expect(options.socialProviders?.google).toBeTruthy();
+  expect(options.socialProviders?.github).toBeUndefined();
 });
 
-test('configura o callback do Google', () => {
+it('configura o callback do Google', () => {
   const options = createAuthOptions(
     'development-secret-with-at-least-thirty-two-characters',
     'http://localhost:3000/',
@@ -59,14 +58,14 @@ test('configura o callback do Google', () => {
     },
   );
 
-  assert.deepEqual(options.socialProviders?.google, {
+  expect(options.socialProviders?.google).toEqual({
     clientId: 'google-client-id',
     clientSecret: 'google-client-secret',
     redirectURI: 'http://localhost:3000/api/auth/callback/google',
   });
 });
 
-test('inclui GitHub com o escopo mínimo para leitura do email', () => {
+it('inclui GitHub com o escopo mínimo para leitura do email', () => {
   const options = createAuthOptions(
     'development-secret-with-at-least-thirty-two-characters',
     'http://localhost:3000',
@@ -83,7 +82,7 @@ test('inclui GitHub com o escopo mínimo para leitura do email', () => {
     },
   );
 
-  assert.deepEqual(options.socialProviders?.github, {
+  expect(options.socialProviders?.github).toEqual({
     clientId: 'github-client-id',
     clientSecret: 'github-client-secret',
     redirectURI: 'http://localhost:3000/api/auth/callback/github',

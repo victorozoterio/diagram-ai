@@ -1,5 +1,4 @@
-import { strict as assert } from 'node:assert';
-import { test } from 'node:test';
+import { expect, it } from 'vitest';
 
 import { type ConceptualModel, ConceptualModelSchema } from './conceptual-model.schema';
 
@@ -63,41 +62,41 @@ function technicalIdentifier(entity: string) {
   };
 }
 
-test('rejeita a duplicidade real de atributo entre entidade e relacionamento', () => {
+it('rejeita a duplicidade real de atributo entre entidade e relacionamento', () => {
   const result = ConceptualModelSchema.safeParse(conceptualModel());
 
-  assert.equal(result.success, false);
+  expect(result.success).toBe(false);
   if (!result.success) {
-    assert.ok(
+    expect(
       result.error.issues.some(
         (issue) =>
           issue.message === 'O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento.',
       ),
-    );
+    ).toBe(true);
   }
 });
 
-test('preserva atributos de mesmo nome quando a descrição os vincula a ocorrências distintas', () => {
+it('preserva atributos de mesmo nome quando a descrição os vincula a ocorrências distintas', () => {
   const result = ConceptualModelSchema.safeParse(
     conceptualModel('Para cada atuação de um colaborador em uma atividade, registre a data em que o trabalho começou.'),
   );
 
-  assert.equal(result.success, true);
+  expect(result.success).toBe(true);
 });
 
-test('mantém atributo semanticamente dependente da associação no relacionamento', () => {
+it('mantém atributo semanticamente dependente da associação no relacionamento', () => {
   const model = conceptualModel(
     'Para cada atuação de um colaborador em uma atividade, registre a data em que o trabalho começou.',
   );
   const result = ConceptualModelSchema.safeParse(model);
 
-  assert.equal(result.success, true);
+  expect(result.success).toBe(true);
   if (result.success) {
-    assert.equal(result.data.relationships[0].attributes[0].name, 'data_inicio');
+    expect(result.data.relationships[0].attributes[0].name).toBe('data_inicio');
   }
 });
 
-test('rejeita Gen gerado por IA quando o texto só descreve uma associação', () => {
+it('rejeita Gen gerado por IA quando o texto só descreve uma associação', () => {
   const model: ConceptualModel = {
     metadata: {
       generatedBy: 'ollama',
@@ -130,19 +129,19 @@ test('rejeita Gen gerado por IA quando o texto só descreve uma associação', (
 
   const result = ConceptualModelSchema.safeParse(model);
 
-  assert.equal(result.success, false);
+  expect(result.success).toBe(false);
   if (!result.success) {
-    assert.ok(
+    expect(
       result.error.issues.some(
         (issue) =>
           issue.message ===
           'Generalização exige evidência explícita de supertipo e subtipo; uma associação com cardinalidade deve ser relacionamento comum.',
       ),
-    );
+    ).toBe(true);
   }
 });
 
-test('aceita Gen gerado por IA quando há evidência explícita de classificação', () => {
+it('aceita Gen gerado por IA quando há evidência explícita de classificação', () => {
   const model: ConceptualModel = {
     metadata: {
       generatedBy: 'ollama',
@@ -170,5 +169,5 @@ test('aceita Gen gerado por IA quando há evidência explícita de classificaç�
     ],
   };
 
-  assert.equal(ConceptualModelSchema.safeParse(model).success, true);
+  expect(ConceptualModelSchema.safeParse(model).success).toBe(true);
 });

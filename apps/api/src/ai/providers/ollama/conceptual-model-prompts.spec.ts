@@ -1,5 +1,4 @@
-import { strict as assert } from 'node:assert';
-import { test } from 'node:test';
+import { expect, it } from 'vitest';
 import { type ConceptualModel, ConceptualModelSchema } from '../../../diagrams/schemas/conceptual-model.schema';
 import { buildConceptualModelRepairContext } from '../../../diagrams/services/conceptual-model-repair-context';
 import { buildFixConceptualModelPrompt } from './conceptual-model-prompts';
@@ -44,11 +43,11 @@ function invalidModel(): ConceptualModel {
   };
 }
 
-test('o repair recebe o modelo inválido e o conflito de atributo identificado', () => {
+it('o repair recebe o modelo inválido e o conflito de atributo identificado', () => {
   const model = invalidModel();
   const validation = ConceptualModelSchema.safeParse(model);
 
-  assert.equal(validation.success, false);
+  expect(validation.success).toBe(false);
   if (validation.success) return;
 
   const prompt = buildFixConceptualModelPrompt({
@@ -60,8 +59,8 @@ test('o repair recebe o modelo inválido e o conflito de atributo identificado',
     },
   });
 
-  assert.match(prompt, /MODELO INVÁLIDO/);
-  assert.match(prompt, /"data_inicio"/);
-  assert.match(prompt, /No relacionamento "associa", o atributo "data_inicio" conflita com origem\.data_inicio/);
-  assert.match(prompt, /renomeie somente o atributo do relacionamento/);
+  expect(prompt).toMatch(/MODELO INVÁLIDO/);
+  expect(prompt).toMatch(/"data_inicio"/);
+  expect(prompt).toMatch(/No relacionamento "associa", o atributo "data_inicio" conflita com origem\.data_inicio/);
+  expect(prompt).toMatch(/renomeie somente o atributo do relacionamento/);
 });

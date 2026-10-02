@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { expect, it } from 'vitest';
 import { validateEnvironment } from './environments';
 
 function baseEnvironment() {
@@ -12,20 +11,18 @@ function baseEnvironment() {
   };
 }
 
-test('aceita autenticação somente por e-mail e senha sem credenciais sociais', () => {
+it('aceita autenticação somente por e-mail e senha sem credenciais sociais', () => {
   const environment = validateEnvironment(baseEnvironment());
 
-  assert.equal(environment.GOOGLE_CLIENT_ID, undefined);
-  assert.equal(environment.GITHUB_CLIENT_ID, undefined);
+  expect(environment.GOOGLE_CLIENT_ID).toBeUndefined();
+  expect(environment.GITHUB_CLIENT_ID).toBeUndefined();
 });
 
-test('exige o par completo de credenciais para cada provider OAuth', () => {
-  assert.throws(
-    () => validateEnvironment({ ...baseEnvironment(), GOOGLE_CLIENT_ID: 'google-client-id' }),
+it('exige o par completo de credenciais para cada provider OAuth', () => {
+  expect(() => validateEnvironment({ ...baseEnvironment(), GOOGLE_CLIENT_ID: 'google-client-id' })).toThrow(
     /Google: GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET devem ser configuradas juntas/,
   );
-  assert.throws(
-    () => validateEnvironment({ ...baseEnvironment(), GITHUB_CLIENT_SECRET: 'github-client-secret' }),
+  expect(() => validateEnvironment({ ...baseEnvironment(), GITHUB_CLIENT_SECRET: 'github-client-secret' })).toThrow(
     /GitHub: GITHUB_CLIENT_ID e GITHUB_CLIENT_SECRET devem ser configuradas juntas/,
   );
 });
