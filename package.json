@@ -5,6 +5,7 @@
   "author": "Victor Ozoterio",
   "private": true,
   "license": "UNLICENSED",
+  "packageManager": "pnpm@11.7.0",
   "scripts": {
     "prepare": "husky",
     "format": "biome format --write .",
