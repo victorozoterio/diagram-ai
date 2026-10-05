@@ -76,6 +76,22 @@
   text-align: left;
 }
 
+.menuAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.menuAction kbd {
+  color: #9ca3af;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .submenuContainer {
   position: relative;
 }

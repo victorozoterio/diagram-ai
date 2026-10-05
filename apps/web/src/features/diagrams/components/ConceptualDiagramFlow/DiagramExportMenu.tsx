@@ -3,6 +3,7 @@ import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { type ChangeEvent, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useEditorKeyboardShortcuts } from '../../hooks/useEditorKeyboardShortcuts';
 import { type DiagramAiProject, parseDiagramAiProject } from '../../types';
 import styles from './DiagramExportMenu.module.css';
 
@@ -155,6 +156,16 @@ export function DiagramExportMenu({
     setIsExportSubmenuOpen(false);
   }, []);
 
+  const canSaveProject = !disabled && !!getEditableProject && !!onSaveProject && !isExporting && !isSavingProject;
+  const canDownloadProject = !disabled && !!getEditableProject && !isExporting && !isSavingProject;
+
+  useEditorKeyboardShortcuts({
+    canDownload: canDownloadProject,
+    canSave: canSaveProject,
+    onDownload: downloadEditableProjectFile,
+    onSave: () => void saveEditableProject(),
+  });
+
   const runMenuExport = useCallback(
     (action: 'download' | 'pdf') => {
       closeMenu();
@@ -239,20 +250,24 @@ export function DiagramExportMenu({
             Abrir arquivo
           </button>
           <button
+            className={styles.menuAction}
             type='button'
             role='menuitem'
-            disabled={disabled || !getEditableProject || !onSaveProject || isExporting || isSavingProject}
+            disabled={!canSaveProject}
             onClick={() => void saveEditableProject()}
           >
-            {isSavingProject ? 'Salvando...' : 'Salvar'}
+            <span>{isSavingProject ? 'Salvando...' : 'Salvar'}</span>
+            <kbd>Ctrl+S</kbd>
           </button>
           <button
+            className={styles.menuAction}
             type='button'
             role='menuitem'
-            disabled={disabled || !getEditableProject || isExporting || isSavingProject}
+            disabled={!canDownloadProject}
             onClick={downloadEditableProjectFile}
           >
-            Baixar arquivo
+            <span>Baixar arquivo</span>
+            <kbd>Ctrl+Shift+S</kbd>
           </button>
           <span className={styles.divider} aria-hidden='true' />
           <button
