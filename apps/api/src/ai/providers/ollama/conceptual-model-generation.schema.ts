@@ -25,7 +25,11 @@ const GeneratedEntitySchema = z.object({
 
 const GeneratedParticipantSchema = z.object({
   e: z.string().min(1),
-  c: z.enum(['1', 'N']).describe('Use N para cada lado explicitamente múltiplo.'),
+  c: z
+    .enum(['1', 'N'])
+    .describe(
+      'Cardinalidade exibida ao lado desta entidade no DER. Em "A possui vários B e cada B pertence a um A", A usa "1" e B usa "N"; não inverta os participantes.',
+    ),
 });
 
 const GeneratedRegularRelationshipSchema = z.object({

@@ -8,6 +8,7 @@ import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
 import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
 import { buildConceptualModelRepairContext } from './conceptual-model-repair-context';
+import { applyExplicitCardinalityClarifications } from './explicit-cardinality-clarifications';
 import { LogicalModelConverterService } from './logical-model-converter.service';
 import { LogicalToConceptualConverterService } from './logical-to-conceptual-converter.service';
 import { SqlDialect, SqlGeneratorService } from './sql-generator.service';
@@ -35,9 +36,23 @@ export class DiagramsService {
     return this.generateWithRepair({
       label: 'conceitual',
       invalidMessage: 'O modelo conceitual gerado é inválido.',
-      initialCandidate: () => this.aiService.generateConceptualModel(dto.description, clarifications),
-      validate: (conceptualModel) => {
-        const parsed = ConceptualModelSchema.safeParse(conceptualModel);
+      initialCandidate: async () =>
+        applyExplicitCardinalityClarifications(
+          await this.aiService.generateConceptualModel(dto.description, clarifications),
+          clarifications,
+        ),
+      validate: (candidate) => {
+        if (candidate.unresolved.length > 0) {
+          return {
+            success: false,
+            validationError: {
+              cardinalityConstraints: candidate.unresolved,
+              message: 'A IA não representou o relacionamento exigido pela cardinalidade confirmada.',
+            },
+          };
+        }
+
+        const parsed = ConceptualModelSchema.safeParse(candidate.model);
         if (parsed.success) return { success: true, data: parsed.data };
 
         const tree = z.treeifyError(parsed.error);
@@ -45,17 +60,20 @@ export class DiagramsService {
           success: false,
           validationError: {
             tree,
-            repair: buildConceptualModelRepairContext(conceptualModel, parsed.error),
+            repair: buildConceptualModelRepairContext(candidate.model, parsed.error),
           },
         };
       },
-      repair: (conceptualModel, validationError) =>
-        this.aiService.fixConceptualModel({
-          description: dto.description,
-          invalidModel: conceptualModel,
-          validationError,
+      repair: async (candidate, validationError) =>
+        applyExplicitCardinalityClarifications(
+          await this.aiService.fixConceptualModel({
+            description: dto.description,
+            invalidModel: candidate.model,
+            validationError,
+            clarifications,
+          }),
           clarifications,
-        }),
+        ),
     });
   }
 

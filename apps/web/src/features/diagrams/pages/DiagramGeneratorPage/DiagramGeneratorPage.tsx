@@ -9,6 +9,7 @@ import {
   updateDiagram,
 } from '@/api/diagrams.api';
 import type { AuthenticatedUser } from '@/features/auth/components/AuthenticatedUserMenu';
+import { selectedCardinalityConstraint } from '../../clarification-cardinality';
 import type { EditorMode, SaveStatus } from '../../components';
 import {
   ConceptualDiagramFlow,
@@ -522,6 +523,7 @@ export function DiagramGeneratorPage({
       const answers = selectedAnswers
         .filter((answer) => answer !== '__custom_answer__')
         .concat(customAnswer ? [customAnswer] : []);
+      const cardinality = selectedCardinalityConstraint(question, answers);
 
       return answers.length > 0
         ? [
@@ -530,6 +532,7 @@ export function DiagramGeneratorPage({
               questionText: question.text,
               kind: question.kind,
               answers,
+              ...(cardinality ? { cardinality } : {}),
             },
           ]
         : [];

@@ -4,7 +4,11 @@ import type { AiService } from '../../ai/ai.service';
 import type { ConceptualModel } from '../schemas/conceptual-model.schema';
 import { DiagramsService } from './diagrams.service';
 
-function model(relationshipAttributeName: string): ConceptualModel {
+function model(
+  relationshipAttributeName: string,
+  firstCardinality: '1' | 'N' = 'N',
+  secondCardinality: '1' | 'N' = 'N',
+): ConceptualModel {
   const attribute = (name: string, type: 'uuid' | 'date' = 'date') => ({
     id: name,
     name,
@@ -30,11 +34,11 @@ function model(relationshipAttributeName: string): ConceptualModel {
       {
         id: 'associa_1',
         name: 'associa',
-        type: 'N:N',
+        type: firstCardinality === 'N' && secondCardinality === 'N' ? 'N:N' : '1:N',
         kind: 'relationship',
         participants: [
-          { entityId: 'origem', cardinality: 'N' },
-          { entityId: 'destino', cardinality: 'N' },
+          { entityId: 'origem', cardinality: firstCardinality },
+          { entityId: 'destino', cardinality: secondCardinality },
         ],
         attributes: [attribute(relationshipAttributeName)],
         subtypeIds: [],
@@ -78,6 +82,41 @@ it('reenvia o modelo inválido e o conflito estruturado ao repair antes de aceit
     throw new Error('O modelo corrigido deveria conter relacionamentos.');
   }
   expect(result.relationships[0].attributes[0].name).toBe('data_inicio_associacao');
+});
+
+it('aplica a cardinalidade explicitamente confirmada ao modelo conceitual retornado pela IA', async () => {
+  const invertedModel = model('data_associacao', 'N', '1');
+  const aiService = {
+    generateConceptualModel: vi.fn(async () => invertedModel),
+  } as unknown as AiService;
+
+  const service = new DiagramsService(aiService, {} as never, {} as never, {} as never);
+  const result = await service.generate({
+    description: 'Uma origem possui vários destinos e cada destino pertence a uma origem.',
+    mode: 'conceptual',
+    clarifications: [
+      {
+        questionId: 'cardinalidade_origem_destino',
+        kind: 'cardinality',
+        answers: ['Uma origem possui vários destinos, e cada destino pertence a uma única origem (1:N)'],
+        cardinality: {
+          participants: [
+            { entity: 'origem', cardinality: '1' },
+            { entity: 'destino', cardinality: 'N' },
+          ],
+        },
+      },
+    ],
+  });
+
+  if (!('relationships' in result)) {
+    throw new Error('O modelo conceitual deveria conter relacionamentos.');
+  }
+
+  expect(result.relationships[0].participants).toEqual([
+    { entityId: 'origem', cardinality: '1' },
+    { entityId: 'destino', cardinality: 'N' },
+  ]);
 });
 
 it('repara a resposta lógica inválida antes de devolver o modelo normalizado', async () => {

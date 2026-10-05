@@ -10,6 +10,7 @@ function cardinalityAnalysis(first: string, second: string): AmbiguityAnalysis {
       {
         id: `cardinalidade_${first}_${second}`,
         kind: 'cardinality',
+        participants: [first, second],
         text: `Como ${first} e ${second} participam dessa relação?`,
         options: ['Uma relação (1:1)', 'Uma relação (1:N)', 'Uma relação (N:1)', 'Uma relação (N:N)'],
         allowsMultipleSelection: false,

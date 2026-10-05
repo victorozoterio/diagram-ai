@@ -20,3 +20,27 @@ it('representa uma resposta de cardinalidade como relacionamento regular no prom
   expect(prompt).toMatch(/represente-a em r com p/);
   expect(prompt).toMatch(/nunca cria uma entidade, atributo composto ou generalização\/especialização/);
 });
+
+it('instrui a preservar a orientação semântica de uma cardinalidade 1:N confirmada', () => {
+  const prompt = buildConceptualModelPrompt({
+    description: 'Uma origem possui vários destinos e cada destino pertence a uma origem.',
+    clarifications: [
+      {
+        questionId: 'cardinalidade_origem_destino',
+        questionText: 'Como origens e destinos se relacionam?',
+        kind: 'cardinality',
+        answers: ['Cada origem possui vários destinos, e cada destino pertence a uma única origem (1:N)'],
+        cardinality: {
+          participants: [
+            { entity: 'origem', cardinality: '1' },
+            { entity: 'destino', cardinality: 'N' },
+          ],
+        },
+      },
+    ],
+  });
+
+  expect(prompt).toContain('p=[{"e":"A","c":"1"},{"e":"B","c":"N"}]');
+  expect(prompt).toContain('Nunca troque os valores 1 e N entre os participantes');
+  expect(prompt).toContain('p=[{"e":"origem","c":"1"},{"e":"destino","c":"N"}]');
+});

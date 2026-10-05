@@ -10,12 +10,16 @@ export type ClarificationAnswer = {
   answers: string[];
   questionText?: string;
   kind?: 'cardinality' | 'structural';
+  cardinality?: {
+    participants: [{ entity: string; cardinality: '1' | 'N' }, { entity: string; cardinality: '1' | 'N' }];
+  };
 };
 
 export type AmbiguityQuestion = {
   id: string;
   text: string;
   kind?: 'cardinality' | 'structural';
+  participants?: [string, string];
   options: string[];
   allowsMultipleSelection: boolean;
   allowsCustomAnswer: boolean;

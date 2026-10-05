@@ -9,10 +9,8 @@ const WORD = String.raw`\p{L}+`;
 const MANY_WORD = String.raw`(?:vários|varios|muitas|muitos|diversos|diversas|mais\s+de\s+um(?:a)?)`;
 
 /**
- * Removes cardinality questions that contradict multiplicities explicitly
- * stated in the description. The LLM remains responsible for finding
- * ambiguities; this guard only enforces that an already-complete relation is
- * not presented as undecided.
+ * Remove perguntas de cardinalidade que contradizem multiplicidades
+ * explicitamente definidas na descrição.
  */
 export function discardResolvedCardinalityQuestions(
   description: string,

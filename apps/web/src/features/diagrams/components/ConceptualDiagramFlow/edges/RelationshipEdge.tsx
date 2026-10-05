@@ -1,5 +1,6 @@
 import { BaseEdge, type Edge, EdgeLabelRenderer, type EdgeProps } from '@xyflow/react';
 import type { RelationshipEdgeData } from '../flow.types';
+import { relationshipCardinalityForEntity } from '../relationship-cardinality';
 import { EdgeControlPointsEditor, useEditableEdgePath } from './editable-edge';
 import styles from './RelationshipEdge.module.css';
 
@@ -31,7 +32,7 @@ export function RelationshipEdge({
     targetPosition,
     ...data,
   });
-  const participant = data?.relationship.participants.find((item) => item.entityId === data.entityId);
+  const participantCardinality = data ? relationshipCardinalityForEntity(data.relationship, data.entityId) : undefined;
   const isGeneralization = data?.isGeneralization === true;
 
   const edgeStyle = {
@@ -51,7 +52,7 @@ export function RelationshipEdge({
   return (
     <>
       <BaseEdge id={id} path={edgePath} style={edgeStyle} />
-      {!isGeneralization && participant && (
+      {!isGeneralization && participantCardinality && (
         <EdgeLabelRenderer>
           <button
             className={`${styles.cardinality} nodrag nopan`}
@@ -62,7 +63,7 @@ export function RelationshipEdge({
             onClick={() => data.onCycleRelationshipCardinality(data.relationship.id, data.entityId)}
             title='Alternar cardinalidade'
           >
-            {participant.cardinality}
+            {participantCardinality}
           </button>
         </EdgeLabelRenderer>
       )}
