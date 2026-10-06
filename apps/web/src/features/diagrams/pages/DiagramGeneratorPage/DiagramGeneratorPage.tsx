@@ -493,10 +493,7 @@ export function DiagramGeneratorPage({
         return;
       }
     } catch (analysisError) {
-      setClarificationError(
-        analysisError instanceof Error ? analysisError.message : 'Não foi possível analisar ambiguidades na descrição.',
-      );
-      return;
+      console.warn('Falha na análise de ambiguidades; gerando o modelo sem esclarecimentos.', analysisError);
     } finally {
       setIsAnalyzingAmbiguities(false);
     }

@@ -119,6 +119,20 @@ it('aplica a cardinalidade explicitamente confirmada ao modelo conceitual retorn
   ]);
 });
 
+it('trata uma falha da análise de ambiguidades como ausência de perguntas', async () => {
+  const aiService = {
+    analyzeAmbiguities: vi.fn(async () => {
+      throw new Error('JSON inválido retornado pelo Ollama');
+    }),
+  } as unknown as AiService;
+  const service = new DiagramsService(aiService, {} as never, {} as never, {} as never);
+
+  await expect(service.analyzeAmbiguities({ description: 'Um A se relaciona com B.' })).resolves.toEqual({
+    requiresClarification: false,
+    questions: [],
+  });
+});
+
 it('repara a resposta lógica inválida antes de devolver o modelo normalizado', async () => {
   const invalidModel = {
     tables: [],

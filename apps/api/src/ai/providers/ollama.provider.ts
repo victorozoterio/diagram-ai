@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ENV, EnvironmentVariables } from 'src/config/environments';
@@ -8,8 +8,8 @@ import type { ConceptualModel } from '../../diagrams/schemas/conceptual-model.sc
 import {
   type AmbiguityAnalysis,
   AmbiguityAnalysisJsonSchema,
-  AmbiguityAnalysisSchema,
   type ClarificationAnswer,
+  normalizeAmbiguityAnalysis,
 } from '../ambiguity-analysis.schema';
 import { discardResolvedCardinalityQuestions } from '../cardinality-ambiguity.guard';
 import { buildAmbiguityAnalysisPrompt } from '../prompts/ambiguity-analysis.prompt';
@@ -26,11 +26,13 @@ import { OllamaError, serializeOllamaError } from './ollama/ollama.errors';
 import type { OllamaChatMessage, OllamaChatResponse } from './ollama/ollama.types';
 
 const OLLAMA_TIMEOUT_MS = 120_000;
+const NO_AMBIGUITIES: AmbiguityAnalysis = { requiresClarification: false, questions: [] };
 
 @Injectable()
 export class OllamaProvider {
   private readonly baseUrl: string;
   private readonly model: string;
+  private readonly logger = new Logger(OllamaProvider.name);
 
   constructor(private readonly configService: ConfigService<EnvironmentVariables, true>) {
     this.baseUrl = this.configService.getOrThrow(ENV.OLLAMA_BASE_URL);
@@ -44,18 +46,31 @@ export class OllamaProvider {
           {
             role: 'system',
             content:
-              'Analise ambiguidades estruturais antes da modelagem. Relação explícita sem cardinalidade dos dois lados exige esclarecimento. Retorne somente o JSON solicitado, sem explicações.',
+              'Analise ambiguidades estruturais antes da modelagem. Peça cardinalidade apenas quando ao menos uma direção da relação não estiver explícita; A com vários B e cada B com um A já define 1:N e não exige pergunta. Retorne somente o JSON solicitado, sem explicações.',
           },
           { role: 'user', content: buildAmbiguityAnalysisPrompt(description) },
         ],
         AmbiguityAnalysisJsonSchema,
       );
 
-      // Log temporário para diferenciar decisão do modelo de falhas de parsing/validação.
-      console.info('[OLLAMA] análise de ambiguidades - resposta bruta', { model: this.model, content });
-      return discardResolvedCardinalityQuestions(description, AmbiguityAnalysisSchema.parse(JSON.parse(content)));
+      this.logger.debug(`Resposta bruta da análise de ambiguidades para ${this.model}: ${content}`);
+      const normalized = normalizeAmbiguityAnalysis(JSON.parse(content));
+      if (normalized.discardedQuestionCount > 0) {
+        this.logger.warn(
+          `A análise de ambiguidades descartou ${normalized.discardedQuestionCount} pergunta(s) inválida(s): ${JSON.stringify(normalized.discardedQuestions)}`,
+        );
+      }
+      if (normalized.repairedQuestionCount > 0) {
+        this.logger.warn(
+          `A análise de ambiguidades normalizou ${normalized.repairedQuestionCount} pergunta(s) antes de apresentá-las ao usuário.`,
+        );
+      }
+      return discardResolvedCardinalityQuestions(description, normalized.analysis);
     } catch (error) {
-      throw this.providerException('Erro ao analisar ambiguidades com Ollama.', error);
+      this.logger.warn(
+        `Falha na análise de ambiguidades; a geração seguirá sem esclarecimentos. ${JSON.stringify(serializeOllamaError(error))}`,
+      );
+      return NO_AMBIGUITIES;
     }
   }
 

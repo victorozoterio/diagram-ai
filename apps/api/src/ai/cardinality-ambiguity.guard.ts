@@ -6,6 +6,7 @@ type CardinalityFact = {
 };
 
 const WORD = String.raw`\p{L}+`;
+const SUBJECT = String.raw`(?!(?:e|um|uma|cada)\b)${WORD}`;
 const MANY_WORD = String.raw`(?:vários|varios|muitas|muitos|diversos|diversas|mais\s+de\s+um(?:a)?)`;
 
 /**
@@ -55,7 +56,7 @@ function extractCardinalityFacts(description: string): CardinalityFact[] {
 
   // "Um autor pode escrever vários livros" defines author -> book.
   const manyPattern = new RegExp(
-    String.raw`\b(?:um|uma|cada)\s+(${WORD})\s+(?:(?:pode|podem)\s+)?(?:${WORD}\s+){0,5}?${MANY_WORD}\s+(${WORD})`,
+    String.raw`\b(?:e\s+)?(?:(?:um|uma|cada)\s+)?(${SUBJECT})\s+(?:(?:pode|podem)\s+)?(?:${WORD}\s+){0,5}?${MANY_WORD}\s+(${WORD})`,
     'gu',
   );
 
@@ -63,7 +64,7 @@ function extractCardinalityFacts(description: string): CardinalityFact[] {
   // The alternatives deliberately require a singular quantifier immediately
   // before the target, so a phrase containing "vários" is never read as one.
   const onePattern = new RegExp(
-    String.raw`\b(?:um|uma|cada)\s+(${WORD})\s+(?:(?:pode|podem)\s+)?(?:pertence\s+a|e\s+de|e\s+associado\s+a|tem|possui|ter|possuir)\s+(?:apenas\s+)?(?:um|uma)\s+(${WORD})`,
+    String.raw`\b(?:e\s+)?(?:(?:um|uma|cada)\s+)?(${SUBJECT})\s+(?:(?:pode|podem)\s+)?(?:pertence\s+(?:a|somente\s+a)|e\s+de|e\s+associado\s+a|tem|possui|ter|possuir)\s+(?:(?:apenas|somente)\s+)?(?:um|uma)\s+(${WORD})`,
     'gu',
   );
 
@@ -88,6 +89,10 @@ function isCardinalityQuestion(question: AmbiguityAnalysis['questions'][number])
 }
 
 function referencesResolvedPair(question: AmbiguityAnalysis['questions'][number], resolvedPairs: Set<string>): boolean {
+  if (question.participants && resolvedPairs.has(pairKey(question.participants[0], question.participants[1]))) {
+    return true;
+  }
+
   const terms = new Set(
     normalizeText([question.id, question.text, ...question.options].join(' '))
       .match(/\p{L}+/gu)

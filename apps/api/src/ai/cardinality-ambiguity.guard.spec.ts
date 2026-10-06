@@ -41,6 +41,20 @@ it('mantém a pergunta quando somente uma direção foi explicitada', () => {
   expect(result.questions).toHaveLength(1);
 });
 
+it('mantém a pergunta para uma relação realmente ambígua', () => {
+  const result = discardResolvedCardinalityQuestions('Um A se relaciona com B.', cardinalityAnalysis('a', 'b'));
+
+  expect(result.requiresClarification).toBe(true);
+  expect(result.questions).toHaveLength(1);
+});
+
+it('mantém a pergunta quando a relação usa um verbo de participação sem cardinalidade', () => {
+  const result = discardResolvedCardinalityQuestions('Um A participa de B.', cardinalityAnalysis('a', 'b'));
+
+  expect(result.requiresClarification).toBe(true);
+  expect(result.questions).toHaveLength(1);
+});
+
 it('descarta a pergunta quando uma relação N:N já está completa', () => {
   const result = discardResolvedCardinalityQuestions(
     'Um autor pode escrever vários livros e um livro pode ser escrito por vários autores.',
@@ -54,6 +68,24 @@ it('descarta a pergunta quando uma relação 1:N já está completa', () => {
   const result = discardResolvedCardinalityQuestions(
     'Um cliente pode realizar vários pedidos e cada pedido pertence a apenas um cliente.',
     cardinalityAnalysis('cliente', 'pedido'),
+  );
+
+  expect(result).toEqual({ requiresClarification: false, questions: [] });
+});
+
+it('descarta uma pergunta quando a relação 1:N está explicitamente definida de forma genérica', () => {
+  const result = discardResolvedCardinalityQuestions(
+    'Um A possui vários B e cada B pertence a apenas um A.',
+    cardinalityAnalysis('a', 'b'),
+  );
+
+  expect(result).toEqual({ requiresClarification: false, questions: [] });
+});
+
+it('descarta uma pergunta quando a relação 1:N usa "somente" e não artigos definidos', () => {
+  const result = discardResolvedCardinalityQuestions(
+    'A pode ter muitos B; B pertence somente a um A.',
+    cardinalityAnalysis('a', 'b'),
   );
 
   expect(result).toEqual({ requiresClarification: false, questions: [] });

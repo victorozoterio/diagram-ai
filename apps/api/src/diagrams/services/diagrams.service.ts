@@ -77,8 +77,15 @@ export class DiagramsService {
     });
   }
 
-  analyzeAmbiguities(dto: AnalyzeAmbiguitiesDto): Promise<AmbiguityAnalysis> {
-    return this.aiService.analyzeAmbiguities(dto.description);
+  async analyzeAmbiguities(dto: AnalyzeAmbiguitiesDto): Promise<AmbiguityAnalysis> {
+    try {
+      return await this.aiService.analyzeAmbiguities(dto.description);
+    } catch (error) {
+      this.logger.warn(
+        `Falha inesperada na análise de ambiguidades; a geração seguirá sem esclarecimentos. ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return { requiresClarification: false, questions: [] };
+    }
   }
 
   private async generateLogical(description: string, clarifications?: ClarificationAnswer[]): Promise<LogicalModel> {
