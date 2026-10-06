@@ -116,6 +116,7 @@ export function DiagramGeneratorPage({
     logicalViewport,
     conceptualViewportRestoreVersion,
     logicalViewportRestoreVersion,
+    updateViewport,
     entityPositions,
     elementPositions,
     nodeSizes,
@@ -369,13 +370,13 @@ export function DiagramGeneratorPage({
 
   async function convertAndOpenLogicalModel() {
     if (await convertConceptualToLogicalDiagram()) {
-      setMode('logical');
+      changeMode('logical');
     }
   }
 
   async function convertAndOpenConceptualModel() {
     if (await convertLogicalToConceptualDiagram()) {
-      setMode('conceptual');
+      changeMode('conceptual');
     }
   }
 
@@ -432,6 +433,11 @@ export function DiagramGeneratorPage({
   }
 
   function changeMode(nextMode: EditorMode) {
+    if (nextMode === mode) return;
+
+    const currentProject = editableProjectFactories.current[mode]?.();
+    if (currentProject) updateViewport(mode, currentProject.visual.viewport);
+
     setMode(nextMode);
     if (nextMode !== 'logical') setIsSqlModalOpen(false);
   }
@@ -630,6 +636,7 @@ export function DiagramGeneratorPage({
                   editableProjectFactories.current.conceptual = getProject;
                 }}
                 onVisualChange={() => markProjectDirty('conceptual')}
+                onViewportChange={(viewport) => updateViewport('conceptual', viewport)}
                 restoredViewport={conceptualViewport}
                 viewportRestoreVersion={conceptualViewportRestoreVersion}
                 onRemoveEntity={removeEntity}
@@ -684,6 +691,7 @@ export function DiagramGeneratorPage({
                 editableProjectFactories.current.logical = getProject;
               }}
               onVisualChange={() => markProjectDirty('logical')}
+              onViewportChange={(viewport) => updateViewport('logical', viewport)}
               onAddTable={addLogicalTable}
               onUpdateTable={updateLogicalTable}
               onUpdateModel={updateLogicalModel}

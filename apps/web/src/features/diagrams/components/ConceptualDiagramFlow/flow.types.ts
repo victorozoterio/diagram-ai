@@ -89,6 +89,7 @@ export type ConceptualDiagramFlowProps = {
   isSavingProject?: boolean;
   onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
   onVisualChange?: () => void;
+  onViewportChange?: (viewport: { x: number; y: number; zoom: number }) => void;
   entityPositions?: Record<string, DiagramPosition>;
   elementPositions?: Record<string, DiagramPosition>;
   nodeSizes?: Record<string, DiagramSize>;

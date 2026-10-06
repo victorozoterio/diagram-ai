@@ -43,6 +43,7 @@ type LogicalModelFlowProps = {
   isSavingProject?: boolean;
   onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
   onVisualChange?: () => void;
+  onViewportChange?: (viewport: { x: number; y: number; zoom: number }) => void;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -475,6 +476,7 @@ export function LogicalModelFlow({
   isSavingProject,
   onEditableProjectReady,
   onVisualChange,
+  onViewportChange,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
@@ -764,8 +766,11 @@ export function LogicalModelFlow({
         onInit={(instance) => {
           flowInstance.current = instance;
         }}
-        onMoveEnd={(event) => {
-          if (event) onVisualChange?.();
+        onMoveEnd={(event, viewport) => {
+          if (!event) return;
+
+          onViewportChange?.(viewport);
+          onVisualChange?.();
         }}
         onNodeDragStop={(_, node) => {
           const selectedIds = new Set(
@@ -854,8 +859,17 @@ export function LogicalModelFlow({
         <Background />
         <Controls />
         <MiniMap />
-        <FitViewOnNodeChange nodeCount={model.tables.length} fitViewKey={layoutVersion} onReady={handleViewportReady} />
-        <RestoreViewport viewport={restoredViewport} restoreKey={viewportRestoreVersion} />
+        <FitViewOnNodeChange
+          nodeCount={model.tables.length}
+          fitViewKey={layoutVersion}
+          onReady={restoredViewport ? undefined : handleViewportReady}
+          skipFitView={Boolean(restoredViewport)}
+        />
+        <RestoreViewport
+          viewport={restoredViewport}
+          restoreKey={viewportRestoreVersion}
+          onRestored={restoredViewport ? handleViewportReady : undefined}
+        />
       </ReactFlow>
     </div>
   );

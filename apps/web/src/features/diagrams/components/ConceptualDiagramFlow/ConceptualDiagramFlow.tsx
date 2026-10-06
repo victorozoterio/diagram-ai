@@ -136,8 +136,11 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         }}
         onPaneClick={props.onClearSelection}
         onInit={setFlowInstance}
-        onMoveEnd={(event) => {
-          if (event) props.onVisualChange?.();
+        onMoveEnd={(event, viewport) => {
+          if (!event) return;
+
+          props.onViewportChange?.(viewport);
+          props.onVisualChange?.();
         }}
         connectionMode={ConnectionMode.Loose}
         selectionOnDrag
@@ -146,7 +149,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         zoomOnScroll
         zoomOnPinch
         minZoom={0.1}
-        fitView
+        fitView={!props.restoredViewport}
         deleteKeyCode={['Backspace', 'Delete']}
         selectionKeyCode={['Shift', 'Meta']}
         multiSelectionKeyCode={['Shift', 'Meta']}
@@ -155,7 +158,12 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         <Background gap={24} size={1} color='#94a3b8' />
         <Controls />
         <MiniMap pannable zoomable />
-        <FitViewOnNodeChange key={props.layoutVersion} nodeCount={nodes.length} fitViewKey={props.layoutVersion ?? 0} />
+        <FitViewOnNodeChange
+          key={props.layoutVersion}
+          nodeCount={nodes.length}
+          fitViewKey={props.layoutVersion ?? 0}
+          skipFitView={Boolean(props.restoredViewport)}
+        />
         <RestoreViewport viewport={props.restoredViewport} restoreKey={props.viewportRestoreVersion} />
       </ReactFlow>
     </div>

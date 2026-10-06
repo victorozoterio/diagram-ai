@@ -6,10 +6,12 @@ export function FitViewOnNodeChange({
   nodeCount,
   fitViewKey = 0,
   onReady,
+  skipFitView = false,
 }: {
   nodeCount: number;
   fitViewKey?: number;
   onReady?: () => void;
+  skipFitView?: boolean;
 }) {
   const { fitView } = useReactFlow();
   const nodesInitialized = useNodesInitialized({ includeHiddenNodes: true });
@@ -24,6 +26,12 @@ export function FitViewOnNodeChange({
 
     if (!nodesInitialized) return;
 
+    if (skipFitView) {
+      fittedKey.current = fitViewKey;
+      onReady?.();
+      return;
+    }
+
     if (fittedKey.current === fitViewKey) {
       onReady?.();
       return;
@@ -36,7 +44,7 @@ export function FitViewOnNodeChange({
       onReady?.();
     });
     return () => cancelAnimationFrame(frameId);
-  }, [fitView, fitViewKey, nodeCount, nodesInitialized, onReady]);
+  }, [fitView, fitViewKey, nodeCount, nodesInitialized, onReady, skipFitView]);
 
   return null;
 }

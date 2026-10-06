@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ConceptualModel, DiagramAiProject, LogicalModel } from '../types';
 import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoints } from './editor/editor.types';
+import {
+  type DiagramViewport,
+  type EditorModeViewports,
+  EMPTY_MODE_VIEWPORTS,
+  withModeViewport,
+} from './editor/mode-viewports';
 import { DEFAULT_DESCRIPTION } from './editor/model-factories';
 import { useAttributeActions } from './editor/useAttributeActions';
 import { useDiagramLifecycle } from './editor/useDiagramLifecycle';
@@ -29,13 +35,27 @@ export function useDiagramEditor() {
   const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
   const [layoutVersion, setLayoutVersion] = useState(0);
   const [logicalLayoutVersion, setLogicalLayoutVersion] = useState(0);
-  const [conceptualViewport, setConceptualViewport] = useState<{ x: number; y: number; zoom: number } | null>(null);
-  const [logicalViewport, setLogicalViewport] = useState<{ x: number; y: number; zoom: number } | null>(null);
-  const [conceptualViewportRestoreVersion, setConceptualViewportRestoreVersion] = useState(0);
-  const [logicalViewportRestoreVersion, setLogicalViewportRestoreVersion] = useState(0);
+  const [viewports, setViewports] = useState<EditorModeViewports>(EMPTY_MODE_VIEWPORTS);
+  const [viewportRestoreVersions, setViewportRestoreVersions] = useState<Record<keyof EditorModeViewports, number>>({
+    conceptual: 0,
+    logical: 0,
+  });
   const history = useRef<DiagramHistory>({ present: null, undo: [], redo: [] });
   const skipHistoryRef = useRef(false);
   const [, setHistoryVersion] = useState(0);
+
+  const updateViewport = useCallback((mode: keyof EditorModeViewports, viewport: DiagramViewport) => {
+    setViewports((currentViewports) => withModeViewport(currentViewports, mode, viewport));
+  }, []);
+
+  const restoreViewport = useCallback((mode: keyof EditorModeViewports, viewport: DiagramViewport) => {
+    setViewports((currentViewports) => withModeViewport(currentViewports, mode, viewport));
+    setViewportRestoreVersions((currentVersions) => ({ ...currentVersions, [mode]: currentVersions[mode] + 1 }));
+  }, []);
+
+  const clearViewport = useCallback((mode: keyof EditorModeViewports) => {
+    setViewports((currentViewports) => withModeViewport(currentViewports, mode, null));
+  }, []);
 
   const currentSnapshot = useCallback(
     (): DiagramSnapshot => ({
@@ -169,6 +189,7 @@ export function useDiagramEditor() {
     setSelectedEntityIds,
     setLayoutVersion,
     setLogicalLayoutVersion,
+    clearViewport,
   });
 
   function updateElementPosition(elementId: string, position: DiagramPosition) {
@@ -211,14 +232,12 @@ export function useDiagramEditor() {
       setEdgeControlPoints(restoredVisualState.edgeControlPoints);
       setSelectedAttribute(null);
       setSelectedEntityIds([]);
-      setConceptualViewport(project.visual.viewport);
-      setConceptualViewportRestoreVersion((version) => version + 1);
+      restoreViewport('conceptual', project.visual.viewport);
       return;
     }
 
     setLogicalModel(restoreLogicalModel(project.semanticModel as LogicalModel, project.visual.nodes));
-    setLogicalViewport(project.visual.viewport);
-    setLogicalViewportRestoreVersion((version) => version + 1);
+    restoreViewport('logical', project.visual.viewport);
   }
 
   return {
@@ -238,11 +257,12 @@ export function useDiagramEditor() {
     edgeControlPoints,
     layoutVersion,
     logicalLayoutVersion,
-    conceptualViewport,
-    logicalViewport,
-    conceptualViewportRestoreVersion,
-    logicalViewportRestoreVersion,
+    conceptualViewport: viewports.conceptual,
+    logicalViewport: viewports.logical,
+    conceptualViewportRestoreVersion: viewportRestoreVersions.conceptual,
+    logicalViewportRestoreVersion: viewportRestoreVersions.logical,
     setDescription,
+    updateViewport,
     setConceptualModel,
     setLogicalModel,
     restoreDiagramProject,

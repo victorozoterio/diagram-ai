@@ -26,6 +26,7 @@ type LifecycleDependencies = {
   setSelectedEntityIds: StateSetter<string[]>;
   setLayoutVersion: StateSetter<number>;
   setLogicalLayoutVersion: StateSetter<number>;
+  clearViewport: (mode: 'conceptual' | 'logical') => void;
 };
 
 export function useDiagramLifecycle({
@@ -45,6 +46,7 @@ export function useDiagramLifecycle({
   setSelectedEntityIds,
   setLayoutVersion,
   setLogicalLayoutVersion,
+  clearViewport,
 }: LifecycleDependencies) {
   async function generateConceptualDiagram(clarifications?: ClarificationAnswer[]) {
     setError(null);
@@ -67,6 +69,7 @@ export function useDiagramLifecycle({
     try {
       const generatedModel = await generateLogicalModel(description, clarifications);
       const logicalModel = await calculateInitialLogicalLayout(normalizeLogicalModel(generatedModel));
+      clearViewport('logical');
       setLogicalModel(logicalModel);
       setLogicalLayoutVersion((version) => version + 1);
     } catch (error) {
@@ -86,6 +89,7 @@ export function useDiagramLifecycle({
     try {
       const convertedModel = await convertToLogicalModel(conceptualModel);
       const logicalModel = await calculateInitialLogicalLayout(normalizeLogicalModel(convertedModel));
+      clearViewport('logical');
       setLogicalModel(logicalModel);
       setLogicalLayoutVersion((version) => version + 1);
       return true;
@@ -123,6 +127,7 @@ export function useDiagramLifecycle({
     } catch {
       // O modelo continua disponível caso o mecanismo de layout não responda.
     }
+    clearViewport('conceptual');
     setConceptualModel(model);
     setSelectedAttribute(null);
     setSelectedEntityIds([]);
@@ -134,6 +139,8 @@ export function useDiagramLifecycle({
   }
 
   function clearDiagram() {
+    clearViewport('conceptual');
+    clearViewport('logical');
     setConceptualModel(null);
     setLogicalModel(null);
     setError(null);
