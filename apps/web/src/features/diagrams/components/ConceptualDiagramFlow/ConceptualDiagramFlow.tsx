@@ -3,29 +3,14 @@ import { useCallback, useEffect } from 'react';
 import { createDiagramAiProject } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
-import { AttributeEdge } from './edges/AttributeEdge';
 import { ChenConnectionLine } from './edges/ChenConnectionLine';
-import { RelationshipEdge } from './edges/RelationshipEdge';
 import { FitViewOnNodeChange } from './FitViewOnNodeChange';
 import type { ConceptualDiagramFlowProps } from './flow.types';
-import { AttributeNode } from './nodes/AttributeNode';
-import { EntityNode } from './nodes/EntityNode';
-import { RelationshipNode } from './nodes/RelationshipNode';
+import { conceptualEdgeTypes, conceptualNodeTypes } from './flow-renderers';
 import { RestoreViewport } from './RestoreViewport';
 import { useFlowEdges } from './useFlowEdges';
 import { useFlowInteractions } from './useFlowInteractions';
 import { useFlowNodes } from './useFlowNodes';
-
-const nodeTypes = {
-  entity: EntityNode,
-  attribute: AttributeNode,
-  relationship: RelationshipNode,
-};
-
-const edgeTypes = {
-  attribute: AttributeEdge,
-  relationship: RelationshipEdge,
-};
 
 /** Camada visual do editor: adapta o modelo conceitual para o React Flow. */
 export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
@@ -119,8 +104,8 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
+        nodeTypes={conceptualNodeTypes}
+        edgeTypes={conceptualEdgeTypes}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onBeforeDelete={handleBeforeDelete}

@@ -233,18 +233,8 @@
   height: 132px;
   overflow: hidden;
   border-bottom: 1px solid #eef2ff;
-  background: #f8fafc radial-gradient(#c7d2fe 1px, transparent 1px);
-  background-size: 14px 14px;
-}
-
-.previewNode {
-  position: absolute;
-  box-sizing: border-box;
-  min-width: 8px;
-  min-height: 6px;
-  border: 1px solid #818cf8;
-  border-radius: 2px;
-  background: rgb(255 255 255 / 88%);
+  background: #f8fafc;
+  pointer-events: none;
 }
 
 .previewEmpty {

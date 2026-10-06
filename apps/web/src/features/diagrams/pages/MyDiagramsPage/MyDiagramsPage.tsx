@@ -1,8 +1,24 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ConnectionMode,
+  type Edge,
+  getViewportForBounds,
+  type Node,
+  ReactFlow,
+  ReactFlowProvider,
+  useNodesInitialized,
+  useReactFlow,
+  useStore,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { FiAlertTriangle, FiFileText, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { type DiagramSummary, deleteDiagram, listDiagrams, renameDiagram } from '@/api/diagrams.api';
 import { type AuthenticatedUser, AuthenticatedUserMenu } from '@/features/auth/components/AuthenticatedUserMenu';
+import { buildFlowEdges, buildFlowNodes } from '../../components/ConceptualDiagramFlow/flow-mappers';
+import { conceptualEdgeTypes, conceptualNodeTypes } from '../../components/ConceptualDiagramFlow/flow-renderers';
+import { logicalEdgeTypes, logicalNodeTypes } from '../../components/LogicalModelFlow/LogicalModelFlow';
 import { useInlineDiagramRename } from '../../hooks/useInlineDiagramRename';
+import type { ConceptualModel, DiagramAiDocument, DiagramAiProject } from '../../types';
 import styles from './MyDiagramsPage.module.css';
 
 type MyDiagramsPageProps = {
@@ -11,6 +27,12 @@ type MyDiagramsPageProps = {
   onSignOut: () => void;
   user: AuthenticatedUser;
 };
+
+/** Mantém a semântica dos handles do editor, que podem atuar nos dois sentidos. */
+export const PREVIEW_CONNECTION_MODE = ConnectionMode.Loose;
+const PREVIEW_MIN_ZOOM = 0.001;
+const PREVIEW_MAX_ZOOM = 2;
+const PREVIEW_PADDING = 0.16;
 
 export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }: MyDiagramsPageProps) {
   const [diagrams, setDiagrams] = useState<DiagramSummary[]>([]);
@@ -196,10 +218,18 @@ function DiagramCard({ diagram, onOpen, onRename, onRequestDelete }: DiagramCard
 
   return (
     <article className={styles.card}>
-      <button className={styles.cardOpen} onClick={onOpen} type='button'>
+      {/* biome-ignore lint/a11y/useSemanticElements: os nodes reais do React Flow incluem controles interativos internos. */}
+      <div
+        className={styles.cardOpen}
+        onClick={onOpen}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') onOpen();
+        }}
+        role='button'
+        tabIndex={0}
+      >
         <DiagramPreview diagram={diagram} />
-      </button>
-
+      </div>
       <div className={styles.cardNameSlot}>
         {rename.isEditing ? (
           <input
@@ -227,7 +257,6 @@ function DiagramCard({ diagram, onOpen, onRename, onRequestDelete }: DiagramCard
         )}
       </div>
       <small className={styles.cardUpdatedAt}>{formatUpdatedAt(diagram.updatedAt)}</small>
-
       <button
         aria-label='Excluir diagrama'
         className={styles.deleteButton}
@@ -245,33 +274,97 @@ function DiagramCard({ diagram, onOpen, onRename, onRequestDelete }: DiagramCard
 }
 
 function DiagramPreview({ diagram }: { diagram: DiagramSummary }) {
-  const project = diagram.content;
-  const snapshot = project.models[project.lastSavedMode] ?? project.models.conceptual ?? project.models.logical;
-  const nodes = snapshot?.visual.nodes ?? [];
+  const snapshot = selectPreviewSnapshot(diagram.content);
+  const { nodes, edges } = useMemo(() => previewFlowElements(snapshot), [snapshot]);
   if (nodes.length === 0) return <span className={styles.previewEmpty}>Diagrama vazio</span>;
-
-  const minX = Math.min(...nodes.map((node) => node.position.x));
-  const minY = Math.min(...nodes.map((node) => node.position.y));
-  const maxX = Math.max(...nodes.map((node) => node.position.x + (node.width ?? 140)));
-  const maxY = Math.max(...nodes.map((node) => node.position.y + (node.height ?? 64)));
-  const scale = Math.min(0.7, 210 / Math.max(1, maxX - minX + 32), 96 / Math.max(1, maxY - minY + 32));
+  const isConceptual = snapshot?.modelType === 'conceptual';
 
   return (
-    <span className={styles.preview} aria-hidden='true'>
-      {nodes.map((node) => (
-        <span
-          className={styles.previewNode}
-          key={node.id}
-          style={{
-            width: `${(node.width ?? 140) * scale}px`,
-            height: `${(node.height ?? 64) * scale}px`,
-            left: `${16 + (node.position.x - minX) * scale}px`,
-            top: `${12 + (node.position.y - minY) * scale}px`,
-          }}
-        />
-      ))}
-    </span>
+    <div className={styles.preview} aria-hidden='true'>
+      <ReactFlowProvider>
+        <ReactFlow
+          edges={edges}
+          edgeTypes={isConceptual ? conceptualEdgeTypes : logicalEdgeTypes}
+          elementsSelectable={false}
+          connectionMode={PREVIEW_CONNECTION_MODE}
+          minZoom={PREVIEW_MIN_ZOOM}
+          nodes={nodes}
+          nodeTypes={isConceptual ? conceptualNodeTypes : logicalNodeTypes}
+          nodesConnectable={false}
+          nodesDraggable={false}
+          panOnDrag={false}
+          panOnScroll={false}
+          proOptions={{ hideAttribution: true }}
+          zoomOnDoubleClick={false}
+          zoomOnPinch={false}
+          zoomOnScroll={false}
+        >
+          <PreviewViewport nodeCount={nodes.length} />
+        </ReactFlow>
+      </ReactFlowProvider>
+    </div>
   );
+}
+
+export function previewFlowElements(snapshot: DiagramAiProject | undefined): { nodes: Node[]; edges: Edge[] } {
+  if (!snapshot) return { nodes: [], edges: [] };
+  const nodes = snapshot.visual.nodes as Node[];
+  const edges = snapshot.visual.edges as Edge[];
+  if (snapshot.modelType !== 'conceptual') return { nodes, edges };
+
+  const state = (snapshot.visual.state ?? {}) as {
+    entityPositions?: Record<string, { x: number; y: number }>;
+    elementPositions?: Record<string, { x: number; y: number }>;
+    nodeSizes?: Record<string, { width: number; height: number }>;
+    edgeControlPoints?: Record<
+      string,
+      { controlPoint1: { x: number; y: number }; controlPoint2: { x: number; y: number } }
+    >;
+  };
+  const model = snapshot.semanticModel as ConceptualModel;
+  return {
+    // Os nodes visuais já foram criados pelo mesmo mapper no editor e foram
+    // persistidos com posições, dimensões e dados compatíveis com seus renderizadores.
+    // Recriá-los aqui substituía esse estado visual e causou a regressão da preview.
+    nodes: nodes.length > 0 ? nodes : buildFlowNodes(model, state, {}),
+    // As edges visuais preservam handles, âncoras e pontos de controle
+    // definidos no canvas. A reconstrução é apenas compatibilidade para
+    // documentos conceituais antigos que não tenham edges serializadas.
+    edges: edges.length > 0 ? edges : buildFlowEdges(model, state, {}),
+  };
+}
+
+export function selectPreviewSnapshot(document: DiagramAiDocument): DiagramAiProject | undefined {
+  return document.models[document.lastSavedMode] ?? document.models.conceptual ?? document.models.logical;
+}
+
+/** Enquadra a miniatura somente após o React Flow medir todos os nodes montados. */
+function PreviewViewport({ nodeCount }: { nodeCount: number }) {
+  const nodesInitialized = useNodesInitialized({ includeHiddenNodes: true });
+  const width = useStore((state) => state.width);
+  const height = useStore((state) => state.height);
+  const { getNodes, getNodesBounds, setViewport, viewportInitialized } = useReactFlow();
+
+  useLayoutEffect(() => {
+    if (!nodesInitialized || !viewportInitialized || width <= 0 || height <= 0) return;
+
+    const nodes = getNodes();
+    if (nodes.length !== nodeCount || nodes.length === 0) return;
+
+    const bounds = getNodesBounds(nodes);
+    const viewport = previewViewportForBounds(bounds, width, height);
+    void setViewport(viewport, { duration: 0 });
+  }, [getNodes, getNodesBounds, height, nodeCount, nodesInitialized, setViewport, viewportInitialized, width]);
+
+  return null;
+}
+
+export function previewViewportForBounds(
+  bounds: { x: number; y: number; width: number; height: number },
+  width: number,
+  height: number,
+) {
+  return getViewportForBounds(bounds, width, height, PREVIEW_MIN_ZOOM, PREVIEW_MAX_ZOOM, PREVIEW_PADDING);
 }
 
 type DeleteDiagramModalProps = {

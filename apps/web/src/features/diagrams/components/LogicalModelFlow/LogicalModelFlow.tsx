@@ -105,7 +105,7 @@ function normalRequiredHeight(table: LogicalTable) {
     : EMPTY_TABLE_MIN_HEIGHT;
 }
 
-function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeData>>) {
+export function TableNode({ data, selected, width }: NodeProps<Node<LogicalTableNodeData>>) {
   const { table, tables, highlightedColumnIds, onUpdateTable, editingTableId, onResize, onResizeEnd } = data;
   const updateNodeInternals = useUpdateNodeInternals();
   const isEditing = editingTableId === table.id;
@@ -380,11 +380,11 @@ function FieldConnectionHandles({ columnId }: { columnId: string }) {
   );
 }
 
-const nodeTypes = {
+export const logicalNodeTypes = {
   table: TableNode,
 };
 
-const edgeTypes = {
+export const logicalEdgeTypes = {
   logicalOrthogonal: LogicalOrthogonalEdge,
 };
 
@@ -761,8 +761,8 @@ export function LogicalModelFlow({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
+        nodeTypes={logicalNodeTypes}
+        edgeTypes={logicalEdgeTypes}
         onInit={(instance) => {
           flowInstance.current = instance;
         }}
