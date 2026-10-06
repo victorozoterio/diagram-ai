@@ -12,13 +12,15 @@ export type {
   RelationshipParticipant,
 } from './conceptual-model';
 
-export type { DiagramAiProject } from './diagram-ai-project';
+export type { DiagramAiDocument, DiagramAiEditorMode, DiagramAiProject } from './diagram-ai-project';
 
 export {
+  createDiagramAiDocument,
   createDiagramAiProject,
   DIAGRAM_AI_FORMAT,
   DIAGRAM_AI_FORMAT_VERSION,
   DiagramAiProjectError,
+  parseDiagramAiDocument,
   parseDiagramAiProject,
 } from './diagram-ai-project';
 

@@ -1,5 +1,5 @@
 import type { ConceptualModel } from '../features/diagrams/types/conceptual-model';
-import { type DiagramAiProject, parseDiagramAiProject } from '../features/diagrams/types/diagram-ai-project';
+import { type DiagramAiDocument, parseDiagramAiDocument } from '../features/diagrams/types/diagram-ai-project';
 import type { LogicalModel } from '../features/diagrams/types/logical-model';
 
 export const SQL_DIALECTS = ['postgresql', 'mysql', 'mariadb', 'sqlserver'] as const;
@@ -33,14 +33,12 @@ export type AmbiguityAnalysis = {
 export type DiagramSummary = {
   id: string;
   name: string;
-  modelType?: 'conceptual' | 'logical';
+  content: DiagramAiDocument;
   createdAt: string;
   updatedAt: string;
 };
 
-export type SavedDiagram = DiagramSummary & {
-  content: DiagramAiProject;
-};
+export type SavedDiagram = DiagramSummary;
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -179,7 +177,7 @@ export async function generateSql(dialect: SqlDialect, model: LogicalModel): Pro
   return payload.sql;
 }
 
-export async function createDiagram(name: string, content: DiagramAiProject): Promise<SavedDiagram> {
+export async function createDiagram(name: string, content: DiagramAiDocument): Promise<SavedDiagram> {
   const response = await fetch(`${API_URL}/diagrams/projects`, {
     ...requestOptions,
     method: 'POST',
@@ -191,7 +189,7 @@ export async function createDiagram(name: string, content: DiagramAiProject): Pr
   return parseSavedDiagram(await response.json());
 }
 
-export async function updateDiagram(id: string, name: string, content: DiagramAiProject): Promise<SavedDiagram> {
+export async function updateDiagram(id: string, name: string, content: DiagramAiDocument): Promise<SavedDiagram> {
   const response = await fetch(`${API_URL}/diagrams/projects/${encodeURIComponent(id)}`, {
     ...requestOptions,
     method: 'PATCH',
@@ -206,7 +204,9 @@ export async function updateDiagram(id: string, name: string, content: DiagramAi
 export async function listDiagrams(): Promise<DiagramSummary[]> {
   const response = await fetch(`${API_URL}/diagrams/projects`, requestOptions);
   if (!response.ok) throw new Error('Não foi possível listar os diagramas salvos.');
-  return response.json();
+  const payload = await response.json();
+  if (!Array.isArray(payload)) throw new Error('A lista de diagramas possui um formato inválido.');
+  return payload.map(parseSavedDiagram);
 }
 
 export async function getDiagram(id: string): Promise<SavedDiagram> {
@@ -241,7 +241,7 @@ function parseSavedDiagram(value: unknown): SavedDiagram {
 
   return {
     ...value,
-    content: parseDiagramAiProject(value.content),
+    content: parseDiagramAiDocument(value.content),
   };
 }
 

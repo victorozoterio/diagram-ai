@@ -34,12 +34,7 @@ export class DiagramProjectsService {
           updatedAt: true,
         },
       })
-      .then((diagrams) =>
-        diagrams.map(({ content, ...diagram }) => ({
-          ...diagram,
-          modelType: diagramModelType(content),
-        })),
-      );
+      .then((diagrams) => diagrams);
   }
 
   async findOne(userId: string, id: string) {
@@ -69,11 +64,14 @@ export class DiagramProjectsService {
   private assertDiagramAiContent(content: Record<string, unknown>) {
     if (
       content.format !== 'diagram-ai' ||
-      content.version !== 1 ||
+      (content.version !== 1 && content.version !== 2) ||
       typeof content.exportedAt !== 'string' ||
-      (content.modelType !== 'conceptual' && content.modelType !== 'logical') ||
-      !isRecord(content.semanticModel) ||
-      !isRecord(content.visual)
+      (content.version === 1 &&
+        ((content.modelType !== 'conceptual' && content.modelType !== 'logical') ||
+          !isRecord(content.semanticModel) ||
+          !isRecord(content.visual))) ||
+      (content.version === 2 &&
+        ((content.lastSavedMode !== 'conceptual' && content.lastSavedMode !== 'logical') || !isRecord(content.models)))
     ) {
       throw new BadRequestException('O conteúdo deve ser um projeto Diagram.AI compatível.');
     }
@@ -88,9 +86,4 @@ export class DiagramProjectsService {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function diagramModelType(content: unknown) {
-  if (!isRecord(content)) return undefined;
-  return content.modelType === 'conceptual' || content.modelType === 'logical' ? content.modelType : undefined;
 }

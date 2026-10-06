@@ -24,7 +24,13 @@ import {
 } from '../../components';
 import type { ClarificationStep } from '../../components/EditorAssistant/EditorAssistant';
 import { useDiagramEditor } from '../../hooks';
-import type { ConceptualModel, DiagramAiProject, LogicalTable } from '../../types';
+import {
+  type ConceptualModel,
+  createDiagramAiDocument,
+  type DiagramAiDocument,
+  type DiagramAiProject,
+  type LogicalTable,
+} from '../../types';
 import styles from './DiagramGeneratorPage.module.css';
 
 const emptyConceptualModel: ConceptualModel = {
@@ -48,7 +54,7 @@ type EditableProjectFactory = () => DiagramAiProject;
 type DiagramGeneratorPageProps = {
   initialDiagramId?: string;
   initialDiagramName?: string;
-  initialProject?: DiagramAiProject;
+  initialProject?: DiagramAiDocument;
   isSessionLoading: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
@@ -92,6 +98,7 @@ export function DiagramGeneratorPage({
   const diagramNamesRef = useRef(diagramNames);
   const saveStatesRef = useRef(saveStates);
   const editableProjectFactories = useRef<Partial<Record<EditorMode, EditableProjectFactory>>>({});
+  const savedModelsRef = useRef<Partial<Record<EditorMode, DiagramAiProject>>>({});
   const saveInFlight = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
   const saveQueued = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
   const saveCompletionRef = useRef<Record<EditorMode, Promise<void> | null>>({ conceptual: null, logical: null });
@@ -215,6 +222,14 @@ export function DiagramGeneratorPage({
 
       const project = suppliedProject ?? editableProjectFactories.current[targetMode]?.();
       if (!project) throw new Error('O diagrama ainda não está pronto para ser salvo.');
+      const otherMode = targetMode === 'conceptual' ? 'logical' : 'conceptual';
+      const otherProject = editableProjectFactories.current[otherMode]?.();
+      const models = {
+        ...savedModelsRef.current,
+        ...(otherProject ? { [otherMode]: otherProject } : {}),
+        [targetMode]: project,
+      };
+      const document = createDiagramAiDocument(models, targetMode);
 
       saveInFlight.current[targetMode] = true;
       let completeSave: () => void = () => {};
@@ -226,16 +241,18 @@ export function DiagramGeneratorPage({
 
       try {
         const name = diagramNamesRef.current[targetMode] ?? diagramName(project);
-        const diagramId = diagramIdsRef.current[targetMode];
+        const diagramId = diagramIdsRef.current.conceptual ?? diagramIdsRef.current.logical;
         const savedDiagram = diagramId
-          ? await updateDiagram(diagramId, name, project)
-          : await createDiagram(name, project);
+          ? await updateDiagram(diagramId, name, document)
+          : await createDiagram(name, document);
 
+        savedModelsRef.current = models;
         if (!diagramId) {
-          diagramIdsRef.current = { ...diagramIdsRef.current, [targetMode]: savedDiagram.id };
+          diagramIdsRef.current = { conceptual: savedDiagram.id, logical: savedDiagram.id };
           setDiagramIds(diagramIdsRef.current);
         }
-        setStoredDiagramName(targetMode, savedDiagram.name);
+        setStoredDiagramName('conceptual', savedDiagram.name);
+        setStoredDiagramName('logical', savedDiagram.name);
 
         if (projectRevisions.current[targetMode] === revisionAtRequest) {
           updateSaveState(targetMode, { dirty: false, status: 'saved' });
@@ -436,7 +453,10 @@ export function DiagramGeneratorPage({
     if (nextMode === mode) return;
 
     const currentProject = editableProjectFactories.current[mode]?.();
-    if (currentProject) updateViewport(mode, currentProject.visual.viewport);
+    if (currentProject) {
+      savedModelsRef.current = { ...savedModelsRef.current, [mode]: currentProject };
+      updateViewport(mode, currentProject.visual.viewport);
+    }
 
     setMode(nextMode);
     if (nextMode !== 'logical') setIsSqlModalOpen(false);
@@ -446,14 +466,16 @@ export function DiagramGeneratorPage({
     (project: DiagramAiProject, diagramId?: string, diagramName?: string) => {
       if (diagramId) {
         skipNextDirtyCheck.current[project.modelType] = true;
-        diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: diagramId };
+        diagramIdsRef.current = { conceptual: diagramId, logical: diagramId };
         setDiagramIds(diagramIdsRef.current);
         updateSaveState(project.modelType, { dirty: false, status: 'saved' });
       } else {
         diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: undefined };
         setDiagramIds(diagramIdsRef.current);
       }
-      setStoredDiagramName(project.modelType, diagramName);
+      setStoredDiagramName('conceptual', diagramName);
+      setStoredDiagramName('logical', diagramName);
+      savedModelsRef.current = { [project.modelType]: project };
       restoreDiagramProject(project);
       setMode(project.modelType);
       setIsSqlModalOpen(false);
@@ -464,9 +486,33 @@ export function DiagramGeneratorPage({
   useEffect(() => {
     if (!initialProject || !initialDiagramId || restoredInitialDiagramId.current === initialDiagramId) return;
 
-    openDiagramProject(initialProject, initialDiagramId, initialDiagramName);
+    const models = initialProject.models;
+    savedModelsRef.current = models;
+    diagramIdsRef.current = { conceptual: initialDiagramId, logical: initialDiagramId };
+    setDiagramIds(diagramIdsRef.current);
+    setStoredDiagramName('conceptual', initialDiagramName);
+    setStoredDiagramName('logical', initialDiagramName);
+    if (models.conceptual) restoreDiagramProject(models.conceptual);
+    if (models.logical) restoreDiagramProject(models.logical);
+    skipNextDirtyCheck.current = { conceptual: true, logical: true };
+    updateSaveState('conceptual', { dirty: false, status: 'saved' });
+    updateSaveState('logical', { dirty: false, status: 'saved' });
+    setMode(
+      models[initialProject.lastSavedMode]
+        ? initialProject.lastSavedMode
+        : models.conceptual
+          ? 'conceptual'
+          : 'logical',
+    );
     restoredInitialDiagramId.current = initialDiagramId;
-  }, [initialDiagramId, initialDiagramName, initialProject, openDiagramProject]);
+  }, [
+    initialDiagramId,
+    initialDiagramName,
+    initialProject,
+    restoreDiagramProject,
+    setStoredDiagramName,
+    updateSaveState,
+  ]);
 
   async function generateActiveModel(clarifications?: ClarificationAnswer[]) {
     if (mode === 'logical') {
@@ -563,7 +609,7 @@ export function DiagramGeneratorPage({
     const normalizedName = name.trim();
     if (!normalizedName) return;
 
-    const diagramId = diagramIdsRef.current[mode];
+    const diagramId = diagramIdsRef.current.conceptual ?? diagramIdsRef.current.logical;
     if (!diagramId) {
       setStoredDiagramName(mode, normalizedName);
       markProjectDirty(mode);
@@ -575,7 +621,8 @@ export function DiagramGeneratorPage({
 
     try {
       const updatedDiagram = await renameDiagram(diagramId, normalizedName);
-      setStoredDiagramName(mode, updatedDiagram.name);
+      setStoredDiagramName('conceptual', updatedDiagram.name);
+      setStoredDiagramName('logical', updatedDiagram.name);
       updateSaveState(mode, { status: wasDirty ? 'unsaved' : 'saved' });
     } catch (renameError) {
       updateSaveState(mode, { status: 'error' });

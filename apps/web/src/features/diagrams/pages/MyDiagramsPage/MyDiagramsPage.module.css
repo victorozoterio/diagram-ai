@@ -120,6 +120,7 @@
 
 .card {
   position: relative;
+  min-height: 202px;
   overflow: hidden;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -133,12 +134,10 @@
 }
 
 .cardOpen {
-  display: flex;
+  display: block;
   width: 100%;
-  min-height: 142px;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 18px;
+  height: 132px;
+  padding: 0;
   border: 0;
   background: transparent;
   color: inherit;
@@ -146,7 +145,6 @@
   text-align: left;
 }
 
-.cardIcon,
 .emptyIcon {
   flex: 0 0 auto;
   border-radius: 9px;
@@ -154,25 +152,12 @@
   color: #4f46e5;
 }
 
-.cardIcon {
-  width: 34px;
-  height: 34px;
-}
-
-.cardContent {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  padding-top: 29px;
-  padding-right: 20px;
-}
-
 .cardNameSlot {
   position: absolute;
   z-index: 1;
-  top: 18px;
+  top: 148px;
   right: 52px;
-  left: 64px;
+  left: 18px;
   height: 24px;
 }
 
@@ -216,24 +201,17 @@
   box-shadow: 0 0 0 3px rgb(99 102 241 / 12%);
 }
 
-.cardContent span {
-  width: fit-content;
-  padding: 3px 6px;
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #4b5563;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.cardContent small {
+.cardUpdatedAt {
+  position: absolute;
+  top: 177px;
+  left: 18px;
   color: #9ca3af;
   font-size: 10px;
 }
 
 .deleteButton {
   position: absolute;
-  top: 16px;
+  top: 145px;
   right: 18px;
   display: grid;
   width: 28px;
@@ -245,6 +223,35 @@
   background: transparent;
   color: #6b7280;
   cursor: pointer;
+}
+
+.preview,
+.previewEmpty {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 132px;
+  overflow: hidden;
+  border-bottom: 1px solid #eef2ff;
+  background: #f8fafc radial-gradient(#c7d2fe 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+.previewNode {
+  position: absolute;
+  box-sizing: border-box;
+  min-width: 8px;
+  min-height: 6px;
+  border: 1px solid #818cf8;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 88%);
+}
+
+.previewEmpty {
+  display: grid;
+  place-items: center;
+  color: #9ca3af;
+  font-size: 11px;
 }
 
 .deleteButton:hover,

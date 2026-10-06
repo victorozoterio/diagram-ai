@@ -197,19 +197,7 @@ function DiagramCard({ diagram, onOpen, onRename, onRequestDelete }: DiagramCard
   return (
     <article className={styles.card}>
       <button className={styles.cardOpen} onClick={onOpen} type='button'>
-        <span className={styles.cardIcon}>
-          <FiFileText aria-hidden='true' />
-        </span>
-        <span className={styles.cardContent}>
-          <span>
-            {diagram.modelType === 'logical'
-              ? 'Lógico'
-              : diagram.modelType === 'conceptual'
-                ? 'Conceitual'
-                : 'Modelo salvo'}
-          </span>
-          <small>{formatUpdatedAt(diagram.updatedAt)}</small>
-        </span>
+        <DiagramPreview diagram={diagram} />
       </button>
 
       <div className={styles.cardNameSlot}>
@@ -238,6 +226,7 @@ function DiagramCard({ diagram, onOpen, onRename, onRequestDelete }: DiagramCard
           </button>
         )}
       </div>
+      <small className={styles.cardUpdatedAt}>{formatUpdatedAt(diagram.updatedAt)}</small>
 
       <button
         aria-label='Excluir diagrama'
@@ -252,6 +241,36 @@ function DiagramCard({ diagram, onOpen, onRename, onRequestDelete }: DiagramCard
         <FiTrash2 aria-hidden='true' />
       </button>
     </article>
+  );
+}
+
+function DiagramPreview({ diagram }: { diagram: DiagramSummary }) {
+  const project = diagram.content;
+  const snapshot = project.models[project.lastSavedMode] ?? project.models.conceptual ?? project.models.logical;
+  const nodes = snapshot?.visual.nodes ?? [];
+  if (nodes.length === 0) return <span className={styles.previewEmpty}>Diagrama vazio</span>;
+
+  const minX = Math.min(...nodes.map((node) => node.position.x));
+  const minY = Math.min(...nodes.map((node) => node.position.y));
+  const maxX = Math.max(...nodes.map((node) => node.position.x + (node.width ?? 140)));
+  const maxY = Math.max(...nodes.map((node) => node.position.y + (node.height ?? 64)));
+  const scale = Math.min(0.7, 210 / Math.max(1, maxX - minX + 32), 96 / Math.max(1, maxY - minY + 32));
+
+  return (
+    <span className={styles.preview} aria-hidden='true'>
+      {nodes.map((node) => (
+        <span
+          className={styles.previewNode}
+          key={node.id}
+          style={{
+            width: `${(node.width ?? 140) * scale}px`,
+            height: `${(node.height ?? 64) * scale}px`,
+            left: `${16 + (node.position.x - minX) * scale}px`,
+            top: `${12 + (node.position.y - minY) * scale}px`,
+          }}
+        />
+      ))}
+    </span>
   );
 }
 

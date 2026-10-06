@@ -4,6 +4,8 @@ import type { LogicalModel } from './logical-model';
 
 export const DIAGRAM_AI_FORMAT = 'diagram-ai' as const;
 export const DIAGRAM_AI_FORMAT_VERSION = 1 as const;
+export const DIAGRAM_AI_DOCUMENT_VERSION = 2 as const;
+export type DiagramAiEditorMode = 'conceptual' | 'logical';
 
 type JsonPrimitive = string | number | boolean | null;
 export type DiagramAiJsonValue = JsonPrimitive | DiagramAiJsonObject | DiagramAiJsonValue[];
@@ -49,6 +51,15 @@ export type DiagramAiProject = {
     viewport: Viewport;
     state?: DiagramAiJsonObject;
   };
+};
+
+/** Documento persistido: reúne os dois canvases de um único projeto. */
+export type DiagramAiDocument = {
+  format: typeof DIAGRAM_AI_FORMAT;
+  version: typeof DIAGRAM_AI_DOCUMENT_VERSION;
+  exportedAt: string;
+  lastSavedMode: DiagramAiEditorMode;
+  models: Partial<Record<DiagramAiEditorMode, DiagramAiProject>>;
 };
 
 export class DiagramAiProjectError extends Error {
@@ -118,6 +129,56 @@ export function parseDiagramAiProject(value: unknown): DiagramAiProject {
   }
 
   return value as DiagramAiProject;
+}
+
+export function createDiagramAiDocument(
+  models: Partial<Record<DiagramAiEditorMode, DiagramAiProject>>,
+  lastSavedMode: DiagramAiEditorMode,
+): DiagramAiDocument {
+  return {
+    format: DIAGRAM_AI_FORMAT,
+    version: DIAGRAM_AI_DOCUMENT_VERSION,
+    exportedAt: new Date().toISOString(),
+    lastSavedMode,
+    models,
+  };
+}
+
+/** Aceita documentos v2 e promove arquivos .diagramai v1 sem perder dados. */
+export function parseDiagramAiDocument(value: unknown): DiagramAiDocument {
+  if (!isRecord(value) || value.format !== DIAGRAM_AI_FORMAT) {
+    throw new DiagramAiProjectError('Este arquivo não é um projeto válido do Diagram.AI.');
+  }
+  if (value.version === DIAGRAM_AI_FORMAT_VERSION) {
+    const legacyProject = parseDiagramAiProject(value);
+    return createDiagramAiDocument({ [legacyProject.modelType]: legacyProject }, legacyProject.modelType);
+  }
+  if (
+    value.version !== DIAGRAM_AI_DOCUMENT_VERSION ||
+    typeof value.exportedAt !== 'string' ||
+    !isValidDate(value.exportedAt) ||
+    !isRecord(value.models)
+  ) {
+    throw new DiagramAiProjectError(`A versão ${String(value.version)} deste arquivo não é compatível.`);
+  }
+  const models: Partial<Record<DiagramAiEditorMode, DiagramAiProject>> = {};
+  for (const mode of ['conceptual', 'logical'] as const) {
+    if (value.models[mode] === undefined) continue;
+    const model = parseDiagramAiProject(value.models[mode]);
+    if (model.modelType !== mode) throw new DiagramAiProjectError('O tipo de modelo do arquivo é inconsistente.');
+    models[mode] = model;
+  }
+  if (!models.conceptual && !models.logical)
+    throw new DiagramAiProjectError('O arquivo não possui nenhum modelo válido.');
+  const lastSavedMode =
+    value.lastSavedMode === 'logical' && models.logical ? 'logical' : models.conceptual ? 'conceptual' : 'logical';
+  return {
+    format: DIAGRAM_AI_FORMAT,
+    version: DIAGRAM_AI_DOCUMENT_VERSION,
+    exportedAt: value.exportedAt as string,
+    lastSavedMode,
+    models,
+  };
 }
 
 function serializeFlowNode(node: Node): DiagramAiFlowNode {
