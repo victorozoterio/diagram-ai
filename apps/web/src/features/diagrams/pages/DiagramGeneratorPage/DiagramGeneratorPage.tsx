@@ -43,6 +43,7 @@ const emptyConceptualModel: ConceptualModel = {
 const emptyLogicalModel = { tables: [] };
 const AUTO_SAVE_INTERVAL = 2 * 60 * 1000;
 const editorModes: EditorMode[] = ['conceptual', 'logical'];
+const NEW_DIAGRAM_LABEL = 'Diagrama';
 
 type SaveState = {
   dirty: boolean;
@@ -88,14 +89,14 @@ export function DiagramGeneratorPage({
   const [clarificationStep, setClarificationStep] = useState<ClarificationStep | null>(null);
   const [clarificationError, setClarificationError] = useState<string | null>(null);
   const [diagramIds, setDiagramIds] = useState<Partial<Record<EditorMode, string>>>({});
-  const [diagramNames, setDiagramNames] = useState<Partial<Record<EditorMode, string>>>({});
+  const [diagramName, setDiagramName] = useState<string | undefined>(undefined);
   const [saveStates, setSaveStates] = useState<Record<EditorMode, SaveState>>({
     conceptual: { dirty: false, status: null },
     logical: { dirty: false, status: null },
   });
   const sqlMessageTimeout = useRef<number | null>(null);
   const diagramIdsRef = useRef(diagramIds);
-  const diagramNamesRef = useRef(diagramNames);
+  const diagramNameRef = useRef(diagramName);
   const saveStatesRef = useRef(saveStates);
   const editableProjectFactories = useRef<Partial<Record<EditorMode, EditableProjectFactory>>>({});
   const savedModelsRef = useRef<Partial<Record<EditorMode, DiagramAiProject>>>({});
@@ -175,8 +176,8 @@ export function DiagramGeneratorPage({
   }, [diagramIds]);
 
   useEffect(() => {
-    diagramNamesRef.current = diagramNames;
-  }, [diagramNames]);
+    diagramNameRef.current = diagramName;
+  }, [diagramName]);
 
   useEffect(() => {
     saveStatesRef.current = saveStates;
@@ -193,15 +194,9 @@ export function DiagramGeneratorPage({
     });
   }, []);
 
-  const setStoredDiagramName = useCallback((targetMode: EditorMode, name?: string) => {
-    const nextNames = { ...diagramNamesRef.current };
-    if (name) {
-      nextNames[targetMode] = name;
-    } else {
-      delete nextNames[targetMode];
-    }
-    diagramNamesRef.current = nextNames;
-    setDiagramNames(nextNames);
+  const setStoredDiagramName = useCallback((name?: string) => {
+    diagramNameRef.current = name;
+    setDiagramName(name);
   }, []);
 
   const markProjectDirty = useCallback(
@@ -240,19 +235,18 @@ export function DiagramGeneratorPage({
       updateSaveState(targetMode, { status: 'saving' });
 
       try {
-        const name = diagramNamesRef.current[targetMode] ?? diagramName(project);
+        const name = diagramNameRef.current ?? NEW_DIAGRAM_LABEL;
         const diagramId = diagramIdsRef.current.conceptual ?? diagramIdsRef.current.logical;
         const savedDiagram = diagramId
           ? await updateDiagram(diagramId, name, document)
-          : await createDiagram(name, document);
+          : await createDiagram(diagramNameRef.current, document);
 
         savedModelsRef.current = models;
         if (!diagramId) {
           diagramIdsRef.current = { conceptual: savedDiagram.id, logical: savedDiagram.id };
           setDiagramIds(diagramIdsRef.current);
         }
-        setStoredDiagramName('conceptual', savedDiagram.name);
-        setStoredDiagramName('logical', savedDiagram.name);
+        setStoredDiagramName(savedDiagram.name);
 
         if (projectRevisions.current[targetMode] === revisionAtRequest) {
           updateSaveState(targetMode, { dirty: false, status: 'saved' });
@@ -473,8 +467,7 @@ export function DiagramGeneratorPage({
         diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: undefined };
         setDiagramIds(diagramIdsRef.current);
       }
-      setStoredDiagramName('conceptual', diagramName);
-      setStoredDiagramName('logical', diagramName);
+      setStoredDiagramName(diagramName);
       savedModelsRef.current = { [project.modelType]: project };
       restoreDiagramProject(project);
       setMode(project.modelType);
@@ -490,8 +483,7 @@ export function DiagramGeneratorPage({
     savedModelsRef.current = models;
     diagramIdsRef.current = { conceptual: initialDiagramId, logical: initialDiagramId };
     setDiagramIds(diagramIdsRef.current);
-    setStoredDiagramName('conceptual', initialDiagramName);
-    setStoredDiagramName('logical', initialDiagramName);
+    setStoredDiagramName(initialDiagramName);
     if (models.conceptual) restoreDiagramProject(models.conceptual);
     if (models.logical) restoreDiagramProject(models.logical);
     skipNextDirtyCheck.current = { conceptual: true, logical: true };
@@ -601,9 +593,7 @@ export function DiagramGeneratorPage({
   const activeSaveStatus = (mode === 'conceptual' ? hasConceptualContent : hasLogicalContent)
     ? saveStates[mode].status
     : undefined;
-  const activeDiagramName =
-    diagramNames[mode] ??
-    (mode === 'conceptual' ? activeConceptualModel.metadata.title?.trim() || 'Modelo conceitual' : 'Modelo lógico');
+  const activeDiagramName = diagramName ?? NEW_DIAGRAM_LABEL;
 
   async function renameActiveDiagram(name: string) {
     const normalizedName = name.trim();
@@ -611,7 +601,7 @@ export function DiagramGeneratorPage({
 
     const diagramId = diagramIdsRef.current.conceptual ?? diagramIdsRef.current.logical;
     if (!diagramId) {
-      setStoredDiagramName(mode, normalizedName);
+      setStoredDiagramName(normalizedName);
       markProjectDirty(mode);
       return;
     }
@@ -621,8 +611,7 @@ export function DiagramGeneratorPage({
 
     try {
       const updatedDiagram = await renameDiagram(diagramId, normalizedName);
-      setStoredDiagramName('conceptual', updatedDiagram.name);
-      setStoredDiagramName('logical', updatedDiagram.name);
+      setStoredDiagramName(updatedDiagram.name);
       updateSaveState(mode, { status: wasDirty ? 'unsaved' : 'saved' });
     } catch (renameError) {
       updateSaveState(mode, { status: 'error' });
@@ -775,13 +764,4 @@ export function DiagramGeneratorPage({
       )}
     </main>
   );
-}
-
-function diagramName(project: DiagramAiProject) {
-  if (project.modelType === 'conceptual') {
-    const title = (project.semanticModel as ConceptualModel).metadata.title?.trim();
-    if (title) return title;
-  }
-
-  return project.modelType === 'conceptual' ? 'Modelo conceitual' : 'Modelo lógico';
 }

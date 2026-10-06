@@ -7,6 +7,8 @@ import {
   createManualAttribute,
   createManualEntity,
   createStandaloneRelationship,
+  DEFAULT_DESCRIPTION,
+  DESCRIPTION_PLACEHOLDER,
 } from './model-factories';
 import { addAttributeToModel, updateEntityInModel } from './model-operations';
 
@@ -63,5 +65,13 @@ describe('identidade dos elementos manuais', () => {
     expect(
       new Set([entity.id, firstAttribute.id, secondAttribute.id, firstRelationship.id, secondRelationship.id]).size,
     ).toBe(5);
+  });
+});
+
+describe('estado inicial do assistente', () => {
+  it('inicia a descrição vazia e mantém a dica apenas como placeholder', () => {
+    expect(DEFAULT_DESCRIPTION).toBe('');
+    expect(DESCRIPTION_PLACEHOLDER).toBe('Descreva o sistema que deseja modelar...');
+    expect(DEFAULT_DESCRIPTION).not.toContain(DESCRIPTION_PLACEHOLDER);
   });
 });

@@ -1,7 +1,7 @@
 import type { Cardinality, ConceptualModel, ElementKind, Entity, EntityKind, Relationship } from '../../types';
 
-export const DEFAULT_DESCRIPTION =
-  'Um cliente pode realizar vários pedidos. Cada pedido pertence a apenas um cliente. O cliente possui nome, email e telefone. O pedido possui data e valor total.';
+export const DEFAULT_DESCRIPTION = '';
+export const DESCRIPTION_PLACEHOLDER = 'Descreva o sistema que deseja modelar...';
 
 export function createEmptyConceptualModel(): ConceptualModel {
   return {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FiMic, FiSquare, FiX } from 'react-icons/fi';
 import { type AmbiguityQuestion, transcribeAudio } from '@/api/diagrams.api';
+import { DESCRIPTION_PLACEHOLDER } from '../../hooks/editor/model-factories';
 import { AmbiguityQuestions, CUSTOM_ANSWER } from './AmbiguityQuestions';
 import styles from './EditorAssistant.module.css';
 
@@ -186,6 +187,7 @@ export function EditorAssistant({
               id='description'
               className={styles.descriptionField}
               value={description}
+              placeholder={DESCRIPTION_PLACEHOLDER}
               onChange={(event) => {
                 setVoiceError(null);
                 onDescriptionChange(event.target.value);

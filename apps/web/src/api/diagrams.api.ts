@@ -177,12 +177,12 @@ export async function generateSql(dialect: SqlDialect, model: LogicalModel): Pro
   return payload.sql;
 }
 
-export async function createDiagram(name: string, content: DiagramAiDocument): Promise<SavedDiagram> {
+export async function createDiagram(name: string | undefined, content: DiagramAiDocument): Promise<SavedDiagram> {
   const response = await fetch(`${API_URL}/diagrams/projects`, {
     ...requestOptions,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, content }),
+    body: JSON.stringify({ ...(name ? { name } : {}), content }),
   });
 
   if (!response.ok) throw new Error('Não foi possível salvar o diagrama na nuvem.');

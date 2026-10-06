@@ -3,14 +3,15 @@ import type { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateDiagramDto } from '../dto/create-diagram.dto';
 import type { UpdateDiagramDto } from '../dto/update-diagram.dto';
+import { nextAvailableDiagramName } from './diagram-name';
 
 @Injectable()
 export class DiagramProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(userId: string, dto: CreateDiagramDto) {
+  async create(userId: string, dto: CreateDiagramDto) {
     this.assertDiagramAiContent(dto.content);
-    const name = this.normalizedName(dto.name);
+    const name = dto.name === undefined ? await this.nextDefaultName(userId) : this.normalizedName(dto.name);
 
     return this.prisma.diagram.create({
       data: {
@@ -81,6 +82,15 @@ export class DiagramProjectsService {
     const normalizedName = name.trim();
     if (!normalizedName) throw new BadRequestException('O nome do diagrama é obrigatório.');
     return normalizedName;
+  }
+
+  private async nextDefaultName(userId: string) {
+    const diagrams = await this.prisma.diagram.findMany({
+      where: { userId },
+      select: { name: true },
+    });
+
+    return nextAvailableDiagramName(diagrams.map((diagram) => diagram.name));
   }
 }
 

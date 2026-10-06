@@ -1,12 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsObject, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateDiagramDto {
-  @ApiProperty({ example: 'Modelo conceitual' })
+  @ApiProperty({ example: 'Diagrama 1', required: false })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @MaxLength(160)
-  name!: string;
+  name?: string;
 
   @ApiProperty({ description: 'Documento versionado no formato .diagramai' })
   @IsObject()
