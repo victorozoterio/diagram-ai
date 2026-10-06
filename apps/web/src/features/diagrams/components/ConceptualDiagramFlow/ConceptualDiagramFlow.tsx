@@ -1,6 +1,7 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
 import { useCallback, useEffect, useRef } from 'react';
 import { createDiagramAiProject } from '../../types';
+import { useSelectAllShortcut } from '../use-select-all-shortcut';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
 import { ChenConnectionLine } from './edges/ChenConnectionLine';
@@ -64,24 +65,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
     props.onEditableProjectReady?.(getEditableProject);
   }, [getEditableProject, props.onEditableProjectReady]);
 
-  useEffect(() => {
-    function handleGlobalKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key.toLowerCase() !== 'a' || (!event.ctrlKey && !event.metaKey)) {
-        return;
-      }
-
-      if (isEditableTarget(document.activeElement) || isEditableTarget(event.target)) {
-        return;
-      }
-
-      event.preventDefault();
-      selectAllNodes();
-      selectAllEdges();
-    }
-
-    window.addEventListener('keydown', handleGlobalKeyDown, true);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
-  }, [selectAllEdges, selectAllNodes]);
+  useSelectAllShortcut({ onSelectAllNodes: selectAllNodes, onSelectAllEdges: selectAllEdges });
 
   return (
     <div
@@ -157,19 +141,5 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         <RestoreViewport viewport={props.restoredViewport} restoreKey={props.viewportRestoreVersion} />
       </ReactFlow>
     </div>
-  );
-}
-
-function isEditableTarget(target: EventTarget | Element | null) {
-  if (!(target instanceof Element)) {
-    return false;
-  }
-
-  return (
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    (target instanceof HTMLElement && target.isContentEditable) ||
-    Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
   );
 }

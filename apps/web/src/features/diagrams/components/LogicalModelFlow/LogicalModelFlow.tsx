@@ -32,6 +32,7 @@ import { FitViewOnNodeChange } from '../ConceptualDiagramFlow/FitViewOnNodeChang
 import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
 import { RestoreViewport } from '../ConceptualDiagramFlow/RestoreViewport';
 import { preserveNodeMeasurement } from '../flow-node-measurement';
+import { useSelectAllShortcut } from '../use-select-all-shortcut';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
 import { LogicalOrthogonalEdge } from './edges/LogicalOrthogonalEdge';
 import styles from './LogicalModelFlow.module.css';
@@ -623,6 +624,17 @@ export function LogicalModelFlow({
   function handleNodesChange(changes: NodeChange<Node<LogicalTableNodeData>>[]) {
     setNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
   }
+
+  const selectAllNodes = useCallback(() => {
+    setNodes((currentNodes) =>
+      applyNodeChanges(
+        currentNodes.map((node) => ({ id: node.id, type: 'select' as const, selected: true })),
+        currentNodes,
+      ),
+    );
+  }, []);
+
+  useSelectAllShortcut({ onSelectAllNodes: selectAllNodes });
 
   const manualEdges: Edge[] = (model.relationships ?? []).map((relationship) => ({
     id: relationship.id,
