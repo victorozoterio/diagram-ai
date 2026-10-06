@@ -85,5 +85,6 @@ function canonicalName(value: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '');
 
+  if (normalized.endsWith('ns')) return `${normalized.slice(0, -2)}m`;
   return normalized.endsWith('s') ? normalized.slice(0, -1) : normalized;
 }

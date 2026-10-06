@@ -21,6 +21,8 @@ export type AmbiguityQuestion = {
   kind?: 'cardinality' | 'structural';
   participants?: [string, string];
   options: string[];
+  optionIds?: string[];
+  optionCardinalities?: Array<{ optionIndex: number; cardinality: NonNullable<ClarificationAnswer['cardinality']> }>;
   allowsMultipleSelection: boolean;
   allowsCustomAnswer: boolean;
 };

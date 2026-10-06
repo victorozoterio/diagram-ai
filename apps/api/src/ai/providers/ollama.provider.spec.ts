@@ -54,3 +54,46 @@ it('preserva e normaliza uma pergunta quando as opções de cardinalidade são i
   expect(result.questions).toHaveLength(1);
   expect(result.questions[0]?.options[2]).toContain('(N:1)');
 });
+
+it('retorna ao frontend pergunta cardinal do contrato antigo com participantes estruturados recuperados', async () => {
+  const provider = providerWithChatResponse(
+    JSON.stringify({
+      requiresClarification: true,
+      questions: [
+        {
+          id: 'cardinalidade_origem_destino',
+          kind: 'cardinality',
+          text: 'Como origem e destino se relacionam?',
+          options: [
+            'Cada origem se relaciona com um destino, e cada destino possui uma origem (1:1)',
+            'Uma origem pode se relacionar com vários destinos, e cada destino possui uma origem (1:N)',
+            'Cada origem se relaciona com um destino, e um destino pode possuir várias origens (N:1)',
+            'Uma origem pode se relacionar com vários destinos, e um destino pode possuir várias origens (N:N)',
+          ],
+          allowsMultipleSelection: false,
+          allowsCustomAnswer: true,
+        },
+      ],
+    }),
+  );
+
+  await expect(provider.analyzeAmbiguities('Origens se relacionam com destinos.')).resolves.toMatchObject({
+    requiresClarification: true,
+    questions: [
+      {
+        participants: ['origem', 'destino'],
+        optionCardinalities: expect.arrayContaining([
+          expect.objectContaining({
+            optionIndex: 3,
+            cardinality: {
+              participants: [
+                { entity: 'origem', cardinality: 'N' },
+                { entity: 'destino', cardinality: 'N' },
+              ],
+            },
+          }),
+        ]),
+      },
+    ],
+  });
+});

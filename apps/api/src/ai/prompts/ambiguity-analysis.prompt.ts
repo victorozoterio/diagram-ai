@@ -11,7 +11,7 @@ Identifique somente ambiguidades que podem mudar estruturalmente o modelo de dad
 - Só use requiresClarification=false quando não houver nenhuma relação estrutural pendente. Para cada relação explícita sem cardinalidade totalmente definida, gere uma pergunta própria, até o limite de 5.
 - Para cardinalidade, avalie A para B e B para A antes de decidir. "Um A pode ter vários B" define uma direção; o artigo "um" sozinho não define a outra. Se as duas direções estiverem explícitas, a cardinalidade está resolvida e é proibido perguntar novamente sobre ela.
 - Se uma direção estiver indefinida, faça uma única pergunta com as opções 1:1, 1:N, N:1 e N:N, allowsMultipleSelection=false e allowsCustomAnswer=true.
-- Para perguntas de cardinalidade, use obrigatoriamente kind="cardinality" e participants com exatamente os dois nomes de entidade na mesma ordem usada como A e B nas quatro opções. Para as demais dúvidas estruturais, use kind="structural" e omita participants.
+- Para perguntas de cardinalidade, use obrigatoriamente kind="cardinality" e inclua participants com exatamente os dois nomes de entidade na mesma ordem usada como A e B nas quatro opções. participants é obrigatório no JSON e nunca deve ser omitido. Para as demais dúvidas estruturais, use kind="structural" e omita participants.
 - Nas quatro opções de cardinalidade, o texto e o rótulo entre parênteses devem corresponder exatamente a esta semântica, usando A e B como os participantes da relação:
   - (1:1): cada A se relaciona com um B, e cada B se relaciona com um A.
   - (1:N): um A pode se relacionar com vários B, e cada B se relaciona com um A.

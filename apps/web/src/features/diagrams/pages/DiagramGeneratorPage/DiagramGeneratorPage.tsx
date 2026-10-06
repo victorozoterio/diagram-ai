@@ -9,7 +9,7 @@ import {
   updateDiagram,
 } from '@/api/diagrams.api';
 import type { AuthenticatedUser } from '@/features/auth/components/AuthenticatedUserMenu';
-import { selectedCardinalityConstraint } from '../../clarification-cardinality';
+import { buildClarificationAnswers } from '../../clarification-answers';
 import type { EditorMode, SaveStatus } from '../../components';
 import {
   ConceptualDiagramFlow,
@@ -558,26 +558,7 @@ export function DiagramGeneratorPage({
       return;
     }
 
-    const clarifications = clarificationStep.questions.flatMap((question) => {
-      const selectedAnswers = clarificationStep.answers[question.id] ?? [];
-      const customAnswer = clarificationStep.customAnswers[question.id]?.trim();
-      const answers = selectedAnswers
-        .filter((answer) => answer !== '__custom_answer__')
-        .concat(customAnswer ? [customAnswer] : []);
-      const cardinality = selectedCardinalityConstraint(question, answers);
-
-      return answers.length > 0
-        ? [
-            {
-              questionId: question.id,
-              questionText: question.text,
-              kind: question.kind,
-              answers,
-              ...(cardinality ? { cardinality } : {}),
-            },
-          ]
-        : [];
-    });
+    const clarifications = buildClarificationAnswers(clarificationStep);
 
     setClarificationStep(null);
     await generateActiveModel(clarifications);

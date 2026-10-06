@@ -46,3 +46,17 @@ it('preserva a orientação N:1 recebida no sentido inverso', () => {
     { entityId: 'destino', cardinality: '1' },
   ]);
 });
+
+it('expõe a flag composta sem componentes para a normalização estrutural posterior', () => {
+  const model = parseConceptualModelResponse(
+    JSON.stringify({
+      e: [{ n: 'origem', a: [{ n: 'endereco', t: 's', f: ['c'] }] }],
+      r: [],
+    }),
+  );
+
+  expect(model.entities[0]?.attributes.find(({ name }) => name === 'endereco')).toMatchObject({
+    composite: true,
+    components: [],
+  });
+});

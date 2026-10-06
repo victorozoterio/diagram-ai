@@ -28,18 +28,22 @@ REGRAS:
 - Se um fato da associação tiver um nome genérico igual ou parecido ao de um fato de entidade, preserve os dois: nomeie o atributo do relacionamento com contexto que deixe claro que ele descreve a ocorrência da associação, não a entidade.
 - Quando Y possui vários X e o mesmo X pode aparecer em vários Y, a cardinalidade é N:N: ambos os participantes usam c="N".
 - Só crie atributos no relacionamento quando o texto os vincular à ocorrência da associação. Atributos declarados como pertencentes a uma entidade ficam somente nela; nunca os copie para o relacionamento.
+- Antes de preencher e[].a, confira que nenhum atributo é o nome de outra entidade ligada por r[].p. Uma frase que liga X a Y cria r com ambos em p; não copie Y para os atributos de X nem X para os atributos de Y.
+- Quando uma frase diz "para cada ocorrência/participação de X em Y, registrar Z", Z pertence a r[].a da associação X-Y. Não o coloque em e[].a de X ou Y, mesmo que Z mencione um deles no nome. Se r[].a já contém esse fato, não crie uma segunda cópia.
 - Nunca use atributos terminados em "_id" em entidades ou relacionamentos.
 - Um conceito dependente que apenas agrupa campos descritivos, sem identificador próprio, eventos ou relações com terceiros, deve ser atributo composto. Composite e multivalued são independentes e podem coexistir: vários componentes não implicam m; use m somente quando o texto indicar múltiplos valores ou ocorrências do atributo inteiro.
 - Multiplicidade entre dois conceitos participantes altera a cardinalidade do relacionamento; não transforma uma entidade participante em atributo multivalorado.
 - No formato compacto, composite=true é representado pela flag "c" em f. A regra é bidirecional e obrigatória: array c presente e não vazio exige "c" em f; "c" em f exige array c presente e não vazio.
+- Nunca use a flag "c" por causa do nome, de sublinhados ou de uma associação entre entidades. Um atributo simples usa f sem "c" e não tem componentes; só use "c" quando a descrição decompor o próprio atributo em campos componentes presentes no array c.
 - Componentes aparecem somente dentro do array c do atributo pai; não os repita como atributos independentes em a da entidade.
 - Uma frase de posse, sozinha, não transforma um valor composto em entidade. Não duplique esse conceito como atributo e entidade.
 - Use entidade quando o conceito tiver identidade, ciclo de vida, atributos de evento próprios ou participação explícita em relacionamento. Menções posteriores com atributos próprios não podem desaparecer nem virar apenas um atributo textual de outra entidade.
 - Preserve o substantivo explícito que recebe atributos e relações. Não o renomeie a partir de outra expressão do texto e não crie nomes combinando proprietário e conceito dependente.
-- Atributos usam nomes do conceito, sem prefixo da entidade. Relacionamentos usam verbos.
+- Atributos usam nomes do conceito, sem prefixo da entidade. Em r[].n, use o verbo ou a locução da relação descrita; não concatene os nomes dos participantes para nomear o relacionamento.
 - Use snake_case em nomes com mais de uma palavra, preservando cada conceito separado por "_".
 - Frases inversas sobre o mesmo fato representam um único relacionamento; não gere um losango para cada direção da frase.
-- Infira atributos de domínio somente quando forem plausíveis e úteis; não use listas fixas nem substitua fatos explícitos.
+- Infira atributos de domínio para entidades somente quando forem plausíveis e úteis; não use listas fixas nem substitua fatos explícitos. Não infira atributos de relacionamento por plausibilidade do domínio.
+- Para cada atributo de relacionamento, confira qual associação específica o requisito menciona. Um dado de uma associação não pertence automaticamente a outras associações dos mesmos participantes ou de participantes diferentes.
 - A cardinalidade c fica ao lado da entidade participante no DER e deve refletir a multiplicidade daquela entidade na associação. Preserve exatamente a orientação declarada no texto ou nos esclarecimentos. Exemplo obrigatório: "A possui vários B e cada B pertence a um único A" gera p=[{"e":"A","c":"1"},{"e":"B","c":"N"}]. No sentido inverso, "cada A pertence a um único B e um B possui vários A" gera p=[{"e":"A","c":"N"},{"e":"B","c":"1"}]. Nunca troque os valores 1 e N entre os participantes apenas porque a frase foi escrita em outra ordem.
 - Cardinalidades dos participantes: 1:1 = 1 e 1; 1:N = um 1 e um N; N:N = N e N. Antes de preencher p, confira que cada c está no participante correto conforme a multiplicidade confirmada.
 - Generalização/especialização não é relacionamento binário: use k="generalization" ou k="specialization", s para o nome do único supertipo e d para a lista de um ou mais subtipos; nesse caso omita p e não use cardinalidades. Cada classificação de um mesmo supertipo gera um único item em r: agrupe todos os seus subtipos em d; nunca crie um Gen por subtipo e nunca omita s.

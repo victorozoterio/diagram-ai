@@ -72,15 +72,16 @@ export function AmbiguityQuestions({
       </span>
       <h2>{question.text}</h2>
       <div className={styles.options}>
-        {question.options.map((option) => {
-          const selected = selectedOptions.includes(option);
+        {question.options.map((option, index) => {
+          const optionId = question.optionIds?.[index] ?? option;
+          const selected = selectedOptions.includes(optionId);
           return (
             <button
               className={`${styles.option} ${selected ? styles.optionSelected : ''}`}
               type='button'
-              key={option}
+              key={optionId}
               aria-pressed={selected}
-              onClick={() => toggleOption(option)}
+              onClick={() => toggleOption(optionId)}
             >
               <span className={styles.optionIndicator} aria-hidden='true' />
               {option}

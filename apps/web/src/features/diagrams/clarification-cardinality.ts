@@ -2,20 +2,18 @@ import type { AmbiguityQuestion, ClarificationAnswer } from '@/api/diagrams.api'
 
 export function selectedCardinalityConstraint(
   question: AmbiguityQuestion,
-  answers: string[],
+  selectedOptionIndexes: number[],
 ): ClarificationAnswer['cardinality'] | undefined {
-  if (question.kind !== 'cardinality' || !question.participants || answers.length !== 1) return undefined;
+  // A metadata estrutural é a fonte de verdade. Assim, uma classificação
+  // textual incorreta da pergunta não pode transformar a escolha em texto.
+  if (selectedOptionIndexes.length !== 1) return undefined;
+  return question.optionCardinalities?.find(({ optionIndex }) => optionIndex === selectedOptionIndexes[0])?.cardinality;
+}
 
-  const notation = answers[0].match(/\((1:1|1:N|N:1|N:N)\)\s*$/i)?.[1]?.toUpperCase();
-  if (!notation) return undefined;
+export function optionIndexForSelection(question: AmbiguityQuestion, selectedOptionId: string): number | undefined {
+  const identifiedIndex = question.optionIds?.indexOf(selectedOptionId) ?? -1;
+  if (identifiedIndex >= 0) return identifiedIndex;
 
-  const [firstCardinality, secondCardinality] = notation.split(':') as ['1' | 'N', '1' | 'N'];
-  const [firstEntity, secondEntity] = question.participants;
-
-  return {
-    participants: [
-      { entity: firstEntity, cardinality: firstCardinality },
-      { entity: secondEntity, cardinality: secondCardinality },
-    ],
-  };
+  const matchingIndexes = question.options.flatMap((option, index) => (option === selectedOptionId ? [index] : []));
+  return matchingIndexes.length === 1 ? matchingIndexes[0] : undefined;
 }

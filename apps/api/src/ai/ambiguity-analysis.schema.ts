@@ -33,10 +33,14 @@ export const AmbiguityQuestionSchema = z
     allowsMultipleSelection: z.boolean(),
     allowsCustomAnswer: z.boolean(),
     participants: z.tuple([z.string().min(1), z.string().min(1)]).optional(),
+    // Preenchido pelo servidor depois de validar as opções; nunca depende do texto interpretado pelo frontend.
+    optionCardinalities: z
+      .array(z.object({ optionIndex: z.number().int().nonnegative(), cardinality: CardinalityClarificationSchema }))
+      .optional(),
+    optionIds: z.array(z.string().min(1)).optional(),
   })
   .superRefine((question, context) => {
     const normalizedOptions = question.options.map(normalizeOption);
-    const hasCardinalityOption = question.options.some((option) => cardinalityLabel(option));
     if (new Set(normalizedOptions).size !== normalizedOptions.length) {
       context.addIssue({
         code: 'custom',
@@ -50,14 +54,6 @@ export const AmbiguityQuestionSchema = z
         code: 'custom',
         path: ['participants'],
         message: 'Perguntas de cardinalidade devem informar os dois participantes na ordem das opções.',
-      });
-    }
-
-    if (hasCardinalityOption && question.kind !== 'cardinality') {
-      context.addIssue({
-        code: 'custom',
-        path: ['kind'],
-        message: 'Opções com cardinalidade devem declarar kind="cardinality".',
       });
     }
 
@@ -97,6 +93,32 @@ export const AmbiguityAnalysisSchema = z
       });
     }
   });
+
+// Schema enviado ao Ollama: para perguntas de cardinalidade, participantes
+// fazem parte do contrato de saída e não são uma convenção apenas do prompt.
+const AmbiguityQuestionOutputBaseSchema = z.object({
+  id: z.string().min(1),
+  text: z.string().min(1),
+  options: z.array(z.string().min(1)).min(2),
+  allowsMultipleSelection: z.boolean(),
+  allowsCustomAnswer: z.boolean(),
+});
+
+const CardinalityAmbiguityQuestionOutputSchema = AmbiguityQuestionOutputBaseSchema.extend({
+  kind: z.literal('cardinality'),
+  participants: z.tuple([z.string().min(1), z.string().min(1)]),
+});
+
+const StructuralAmbiguityQuestionOutputSchema = AmbiguityQuestionOutputBaseSchema.extend({
+  kind: z.literal('structural'),
+});
+
+const AmbiguityAnalysisOutputSchema = z.object({
+  requiresClarification: z.boolean(),
+  questions: z
+    .array(z.union([CardinalityAmbiguityQuestionOutputSchema, StructuralAmbiguityQuestionOutputSchema]))
+    .max(5),
+});
 
 const AmbiguityAnalysisEnvelopeSchema = z.object({
   requiresClarification: z.boolean(),
@@ -211,12 +233,37 @@ export function normalizeAmbiguityAnalysis(value: unknown): {
   const questionIds = new Set<string>();
   const questions = envelope.questions.slice(0, 5).flatMap((question, index) => {
     const sanitized = sanitizeAmbiguityQuestion(question);
-    if (sanitized.repaired) repairedQuestionCount += 1;
 
     const parsed = AmbiguityQuestionSchema.safeParse(sanitized.question);
     if (parsed.success && !questionIds.has(parsed.data.id)) {
+      if (sanitized.repaired) repairedQuestionCount += 1;
       questionIds.add(parsed.data.id);
-      return [parsed.data];
+      const {
+        optionCardinalities: _ignoredCardinalities,
+        optionIds: _ignoredOptionIds,
+        ...validatedQuestion
+      } = parsed.data;
+      if (validatedQuestion.kind !== 'cardinality' || !validatedQuestion.participants) return [validatedQuestion];
+
+      const [firstEntity, secondEntity] = validatedQuestion.participants;
+      return [
+        {
+          ...validatedQuestion,
+          optionIds: validatedQuestion.options.map((_, optionIndex) => `${validatedQuestion.id}:${optionIndex}`),
+          optionCardinalities: validatedQuestion.options.map((option, optionIndex) => {
+            const [first, second] = cardinalityLabel(option)?.split(':') as ['1' | 'N', '1' | 'N'];
+            return {
+              optionIndex,
+              cardinality: {
+                participants: [
+                  { entity: firstEntity, cardinality: first },
+                  { entity: secondEntity, cardinality: second },
+                ],
+              },
+            };
+          }),
+        },
+      ];
     }
 
     discardedQuestionCount += 1;
@@ -256,17 +303,31 @@ function sanitizeAmbiguityQuestion(question: unknown): { question: unknown; repa
   const sanitizedQuestion = { ...question, options: uniqueOptions } as {
     kind?: unknown;
     participants?: unknown;
+    text?: unknown;
     options: unknown[];
   };
-  const repaired = uniqueOptions.length !== options.length;
-  if (sanitizedQuestion.kind !== 'cardinality') {
+  let repaired = uniqueOptions.length !== options.length;
+  const hasCardinalityChoices = sanitizedQuestion.options.some(
+    (option) => typeof option === 'string' && cardinalityLabel(option) !== undefined,
+  );
+  if (sanitizedQuestion.kind !== 'cardinality' && !hasCardinalityChoices) {
     return { question: sanitizedQuestion, repaired };
   }
 
+  let participants: [string, string];
   if (!isParticipantsPair(sanitizedQuestion.participants)) {
-    return { question: asStructuralQuestion(sanitizedQuestion), repaired: true };
+    const inferredParticipants = inferCardinalityParticipants(sanitizedQuestion);
+    if (!inferredParticipants) {
+      // Sem dois participantes, a escolha não pode gerar uma constraint segura.
+      return { question: { ...sanitizedQuestion, kind: 'cardinality' }, repaired: true };
+    }
+    sanitizedQuestion.participants = inferredParticipants;
+    participants = inferredParticipants;
+    repaired = true;
+  } else {
+    participants = sanitizedQuestion.participants;
   }
-  const participants = sanitizedQuestion.participants;
+  sanitizedQuestion.kind = 'cardinality';
 
   const labels = sanitizedQuestion.options
     .filter((option): option is string => typeof option === 'string')
@@ -287,10 +348,60 @@ function sanitizeAmbiguityQuestion(question: unknown): { question: unknown; repa
     };
   }
 
-  // Quando a IA não fornece labels confiáveis, preservamos a pergunta como
-  // estrutural: a resposta textual ainda orienta a geração, sem inventar uma
-  // cardinalidade estruturada a partir de uma opção ambígua.
-  return { question: asStructuralQuestion(sanitizedQuestion), repaired: true };
+  // Os participantes foram identificados, mas a IA omitiu/trocou os rótulos.
+  // Reconstrói as quatro escolhas canônicas para não perder a constraint.
+  return {
+    question: {
+      ...sanitizedQuestion,
+      options: CARDINALITY_LABELS.map((label) => cardinalityOption(participants, label)),
+    },
+    repaired: true,
+  };
+}
+
+/**
+ * Compatibilidade com respostas antigas do modelo que ainda omitem participants.
+ * A inferência ocorre antes da UI, a partir da pergunta e das quatro opções,
+ * para construir a metadata estrutural; nunca interpreta uma resposta escolhida.
+ */
+function inferCardinalityParticipants(question: { text?: unknown; options: unknown[] }): [string, string] | undefined {
+  const candidateCounts = new Map<string, { value: string; count: number; firstIndex: number }>();
+  const source = [question.text, ...question.options].filter((value): value is string => typeof value === 'string');
+  let index = 0;
+
+  for (const value of source) {
+    for (const match of value.matchAll(/\b(?:cada|um|uma)\s+([\p{L}][\p{L}-]*)/giu)) {
+      const original = singularizeParticipant(match[1]);
+      if (!original || isParticipantStopWord(original)) continue;
+      const key = normalizeOption(original);
+      const candidate = candidateCounts.get(key);
+      if (candidate) candidate.count += 1;
+      else candidateCounts.set(key, { value: original, count: 1, firstIndex: index });
+      index += 1;
+    }
+  }
+
+  const participants = [...candidateCounts.values()]
+    .sort((left, right) => right.count - left.count || left.firstIndex - right.firstIndex)
+    .slice(0, 2)
+    .map(({ value }) => value);
+
+  return participants.length === 2 && participants[0] !== participants[1]
+    ? [participants[0], participants[1]]
+    : undefined;
+}
+
+function singularizeParticipant(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (normalized.endsWith('ões')) return `${normalized.slice(0, -3)}ão`;
+  if (normalized.endsWith('ães')) return `${normalized.slice(0, -3)}ão`;
+  if (normalized.endsWith('ns')) return `${normalized.slice(0, -2)}m`;
+  if (normalized.endsWith('s') && normalized.length > 2) return normalized.slice(0, -1);
+  return normalized;
+}
+
+function isParticipantStopWord(value: string): boolean {
+  return new Set(['modelo', 'sistema', 'relacao', 'relacionamento', 'vinculo']).has(normalizeOption(value));
 }
 
 function isParticipantsPair(value: unknown): value is [string, string] {
@@ -309,19 +420,6 @@ function cardinalityOption(participants: [string, string], label: (typeof CARDIN
   return `${statements[label]} (${label})`;
 }
 
-function asStructuralQuestion(question: { options: unknown[]; kind?: unknown; participants?: unknown }): unknown {
-  return {
-    ...question,
-    kind: 'structural',
-    participants: undefined,
-    options: question.options.map((option) =>
-      typeof option === 'string'
-        ? option.replace(/\s*(?:\[|\()(?:1:1|1:N|N:1|N:N)(?:\]|\))\s*[.!?]?\s*$/i, '').trim()
-        : option,
-    ),
-  };
-}
-
 export type ClarificationAnswer = z.infer<typeof ClarificationAnswerSchema>;
 export type AmbiguityAnalysis = z.infer<typeof AmbiguityAnalysisSchema>;
-export const AmbiguityAnalysisJsonSchema = z.toJSONSchema(AmbiguityAnalysisSchema);
+export const AmbiguityAnalysisJsonSchema = z.toJSONSchema(AmbiguityAnalysisOutputSchema);

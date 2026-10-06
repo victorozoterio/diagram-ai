@@ -8,9 +8,15 @@ import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
 import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
 import { buildConceptualModelRepairContext } from './conceptual-model-repair-context';
+import { contextualizeRelationshipAttributes } from './contextualize-relationship-attributes';
 import { applyExplicitCardinalityClarifications } from './explicit-cardinality-clarifications';
+import { misplacedGeneratedAttributes, reconcileGeneratedAttributePlacement } from './generated-attribute-placement';
 import { LogicalModelConverterService } from './logical-model-converter.service';
 import { LogicalToConceptualConverterService } from './logical-to-conceptual-converter.service';
+import { findCompositeAttributeInconsistencies, normalizeCompositeAttributes } from './normalize-composite-attributes';
+import { reconcileAssociationAttributes } from './reconcile-association-attributes';
+import { reconcileGeneratedAssociationArtifacts } from './reconcile-generated-association-artifacts';
+import { unsupportedRelationshipAttributes } from './relationship-attribute-evidence';
 import { SqlDialect, SqlGeneratorService } from './sql-generator.service';
 
 type ValidationResult<TModel> = { success: true; data: TModel } | { success: false; validationError: unknown };
@@ -38,40 +44,72 @@ export class DiagramsService {
       invalidMessage: 'O modelo conceitual gerado é inválido.',
       initialCandidate: async () =>
         applyExplicitCardinalityClarifications(
-          await this.aiService.generateConceptualModel(dto.description, clarifications),
+          contextualizeRelationshipAttributes(
+            reconcileGeneratedAttributePlacement(
+              reconcileAssociationAttributes(
+                reconcileGeneratedAssociationArtifacts(
+                  this.normalizeCompositeStructure(
+                    await this.aiService.generateConceptualModel(dto.description, clarifications),
+                    'geração inicial',
+                  ),
+                ),
+              ),
+            ),
+          ),
           clarifications,
         ),
       validate: (candidate) => {
-        if (candidate.unresolved.length > 0) {
-          return {
-            success: false,
-            validationError: {
-              cardinalityConstraints: candidate.unresolved,
-              message: 'A IA não representou o relacionamento exigido pela cardinalidade confirmada.',
-            },
-          };
+        const parsed = ConceptualModelSchema.safeParse(candidate.model);
+        const unsupportedAttributes = unsupportedRelationshipAttributes(candidate.model, clarifications);
+        const misplacedAttributes = misplacedGeneratedAttributes(candidate.model);
+        if (
+          parsed.success &&
+          candidate.unresolved.length === 0 &&
+          unsupportedAttributes.length === 0 &&
+          misplacedAttributes.length === 0
+        ) {
+          return { success: true, data: parsed.data };
         }
 
-        const parsed = ConceptualModelSchema.safeParse(candidate.model);
-        if (parsed.success) return { success: true, data: parsed.data };
-
-        const tree = z.treeifyError(parsed.error);
         return {
           success: false,
           validationError: {
-            tree,
-            repair: buildConceptualModelRepairContext(candidate.model, parsed.error),
+            ...(candidate.unresolved.length > 0
+              ? {
+                  cardinalityConstraints: candidate.unresolved,
+                  message: 'A IA não representou o relacionamento exigido pela cardinalidade confirmada.',
+                }
+              : {}),
+            ...(parsed.success
+              ? {}
+              : {
+                  tree: z.treeifyError(parsed.error),
+                  repair: buildConceptualModelRepairContext(candidate.model, parsed.error),
+                }),
+            ...(unsupportedAttributes.length > 0 ? { unsupportedRelationshipAttributes: unsupportedAttributes } : {}),
+            ...(misplacedAttributes.length > 0 ? { misplacedEntityAttributes: misplacedAttributes } : {}),
           },
         };
       },
       repair: async (candidate, validationError) =>
         applyExplicitCardinalityClarifications(
-          await this.aiService.fixConceptualModel({
-            description: dto.description,
-            invalidModel: candidate.model,
-            validationError,
-            clarifications,
-          }),
+          contextualizeRelationshipAttributes(
+            reconcileGeneratedAttributePlacement(
+              reconcileAssociationAttributes(
+                reconcileGeneratedAssociationArtifacts(
+                  this.normalizeCompositeStructure(
+                    await this.aiService.fixConceptualModel({
+                      description: dto.description,
+                      invalidModel: candidate.model,
+                      validationError,
+                      clarifications,
+                    }),
+                    'reparo',
+                  ),
+                ),
+              ),
+            ),
+          ),
           clarifications,
         ),
     });
@@ -86,6 +124,17 @@ export class DiagramsService {
       );
       return { requiresClarification: false, questions: [] };
     }
+  }
+
+  private normalizeCompositeStructure(model: ConceptualModel, phase: 'geração inicial' | 'reparo'): ConceptualModel {
+    const inconsistencies = findCompositeAttributeInconsistencies(model);
+    if (inconsistencies.length > 0) {
+      this.logger.warn(
+        `Normalização estrutural de atributos compostos na ${phase}: ${JSON.stringify(inconsistencies)}`,
+      );
+      return normalizeCompositeAttributes(model);
+    }
+    return model;
   }
 
   private async generateLogical(description: string, clarifications?: ClarificationAnswer[]): Promise<LogicalModel> {

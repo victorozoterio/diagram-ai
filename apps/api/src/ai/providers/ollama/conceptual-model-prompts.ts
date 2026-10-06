@@ -52,6 +52,14 @@ function buildTargetedCorrections(validationError: unknown): string {
     );
   }
 
+  for (const conflict of repairContext.compositeAttributes) {
+    const components = JSON.stringify(conflict.attribute.components);
+    corrections.push(
+      `- O atributo "${conflict.attribute.name}" (id "${conflict.attribute.id}") em ${conflict.scope} "${conflict.owner}" viola a composição: composite=${conflict.attribute.composite}, components=${components}, multivalued=${conflict.attribute.multivalued}.`,
+      '- A regra é obrigatória: use a flag "c" em f somente se existir array c não vazio com componentes válidos. Se nenhum componente foi fornecido, remova a flag "c" e mantenha o atributo simples; nunca invente componentes por causa do nome do atributo.',
+    );
+  }
+
   if (serializedError.includes('Generalização exige evidência explícita de supertipo e subtipo')) {
     corrections.push(
       '- O item Gen não possui evidência explícita de relação de tipo/categoria na descrição. Preserve os participantes explícitos da descrição e substitua esse Gen por um relacionamento comum com p e as cardinalidades confirmadas pelo usuário.',
@@ -75,25 +83,63 @@ function buildTargetedCorrections(validationError: unknown): string {
     );
   }
 
+  if (
+    validationError &&
+    typeof validationError === 'object' &&
+    'unsupportedRelationshipAttributes' in validationError
+  ) {
+    const unsupported = validationError.unsupportedRelationshipAttributes;
+    if (Array.isArray(unsupported)) {
+      for (const item of unsupported) {
+        if (!item || typeof item !== 'object' || !('relationship' in item) || !('attribute' in item)) continue;
+        corrections.push(
+          `- O atributo "${String(item.attribute)}" em "${String(item.relationship)}" não tem evidência nessa associação. Remova-o desse relacionamento; preserve-o somente na entidade ou na outra relação à qual a descrição o atribui explicitamente.`,
+        );
+      }
+    }
+  }
+
+  if (validationError && typeof validationError === 'object' && 'misplacedEntityAttributes' in validationError) {
+    const misplaced = validationError.misplacedEntityAttributes;
+    if (Array.isArray(misplaced)) {
+      for (const item of misplaced) {
+        if (!item || typeof item !== 'object' || !('entity' in item) || !('attribute' in item)) continue;
+        if ('reason' in item && item.reason === 'entity-used-as-attribute') {
+          corrections.push(
+            `- Remova o atributo "${String(item.attribute)}" de e[].a da entidade "${String(item.entity)}": esse conceito já é uma entidade ligada por "${String(item.relationship)}". Preserve as duas entidades e o relacionamento em r[].`,
+          );
+        } else if ('reason' in item && item.reason === 'association-attribute-in-entity') {
+          corrections.push(
+            `- Mova "${String(item.attribute)}" de e[].a da entidade "${String(item.entity)}" para r[].a do relacionamento "${String(item.relationship)}" entre ${JSON.stringify(item.participants)}. Evidência textual: ${String(item.evidence)}. Se r[].a já descrever o mesmo fato, mantenha uma única cópia na associação. Preserve os atributos próprios da entidade.`,
+          );
+        }
+      }
+    }
+  }
+
   corrections.push('- Preserve todos os elementos não envolvidos nos erros acima.');
   return corrections.join('\n');
 }
 
 function readRepairContext(validationError: unknown): ConceptualModelRepairContext {
   if (!validationError || typeof validationError !== 'object' || !('repair' in validationError)) {
-    return { duplicateRelationshipAttributes: [] };
+    return { duplicateRelationshipAttributes: [], compositeAttributes: [] };
   }
 
   const repair = validationError.repair;
-  if (!repair || typeof repair !== 'object' || !('duplicateRelationshipAttributes' in repair)) {
-    return { duplicateRelationshipAttributes: [] };
+  if (!repair || typeof repair !== 'object') {
+    return { duplicateRelationshipAttributes: [], compositeAttributes: [] };
   }
 
-  const duplicateRelationshipAttributes = repair.duplicateRelationshipAttributes;
-  return Array.isArray(duplicateRelationshipAttributes)
-    ? {
-        duplicateRelationshipAttributes:
-          duplicateRelationshipAttributes as ConceptualModelRepairContext['duplicateRelationshipAttributes'],
-      }
-    : { duplicateRelationshipAttributes: [] };
+  const duplicateRelationshipAttributes =
+    'duplicateRelationshipAttributes' in repair ? repair.duplicateRelationshipAttributes : undefined;
+  const compositeAttributes = 'compositeAttributes' in repair ? repair.compositeAttributes : undefined;
+  return {
+    duplicateRelationshipAttributes: Array.isArray(duplicateRelationshipAttributes)
+      ? (duplicateRelationshipAttributes as ConceptualModelRepairContext['duplicateRelationshipAttributes'])
+      : [],
+    compositeAttributes: Array.isArray(compositeAttributes)
+      ? (compositeAttributes as ConceptualModelRepairContext['compositeAttributes'])
+      : [],
+  };
 }

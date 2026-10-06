@@ -14,6 +14,9 @@ export const AttributeTypeSchema = z.enum([
   'unknown',
 ]);
 
+export const COMPOSITE_ATTRIBUTE_INVARIANT_MESSAGE =
+  'Atributos compostos devem possuir componentes, e componentes exigem composite=true.';
+
 export const CardinalitySchema = z.enum(['1:1', '1:N', 'N:N']);
 
 export const AttributeSchema = z.object({
@@ -138,17 +141,23 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
         });
       }
 
-      if (attribute.composite !== attribute.components.length > 0) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['entities', entityIndex, 'attributes', attributeIndex],
-          message: 'Atributos compostos devem possuir componentes, e componentes exigem composite=true.',
-        });
-      }
+      validateAttributeComposition(attribute, ['entities', entityIndex, 'attributes', attributeIndex], context);
     });
   });
 
+  model.standaloneAttributes.forEach((attribute, attributeIndex) => {
+    validateAttributeComposition(attribute, ['standaloneAttributes', attributeIndex], context);
+  });
+
   model.relationships.forEach((relationship, relationshipIndex) => {
+    relationship.attributes.forEach((attribute, attributeIndex) => {
+      validateAttributeComposition(
+        attribute,
+        ['relationships', relationshipIndex, 'attributes', attributeIndex],
+        context,
+      );
+    });
+
     if (isGeneralization(relationship)) {
       validateGeneralization(relationship, relationshipIndex, entityIds, context);
       if (model.metadata.generatedBy && !hasExplicitGeneralizationEvidence(model, relationship)) {
@@ -223,6 +232,20 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
     });
   });
 });
+
+function validateAttributeComposition(
+  attribute: z.infer<typeof AttributeSchema>,
+  path: PropertyKey[],
+  context: z.RefinementCtx,
+): void {
+  if (attribute.composite === attribute.components.length > 0) return;
+
+  context.addIssue({
+    code: z.ZodIssueCode.custom,
+    path,
+    message: COMPOSITE_ATTRIBUTE_INVARIANT_MESSAGE,
+  });
+}
 
 function matchesEntityConcept(attributeName: string, entityConceptNames: Set<string>): boolean {
   const normalizedAttributeName = normalizeSchemaName(attributeName);
