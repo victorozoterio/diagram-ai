@@ -1,6 +1,11 @@
 import type { Attribute, ConceptualModel, ElementKind } from '../../types';
 import type { AttributeSelection, DiagramPosition, DiagramSize, StateSetter } from './editor.types';
-import { attributePositionKey, createEmptyConceptualModel, createManualAttribute } from './model-factories';
+import {
+  attributePositionKey,
+  conceptualElementIds,
+  createEmptyConceptualModel,
+  createManualAttribute,
+} from './model-factories';
 import {
   addAttributeToModel,
   addStandaloneAttributeToModel,
@@ -34,7 +39,7 @@ export function useAttributeActions({
     const model = conceptualModel ?? createEmptyConceptualModel();
     const attributeCount =
       entityId === null ? (model.standaloneAttributes?.length ?? 0) : (entity?.attributes.length ?? 0);
-    const attribute = createManualAttribute(entityId, attributeCount, kind);
+    const attribute = createManualAttribute(attributeCount, kind, conceptualElementIds(model));
     setConceptualModel((currentModel) => {
       const nextModel = currentModel ?? model;
       return entityId === null

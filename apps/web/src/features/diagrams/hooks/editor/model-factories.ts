@@ -18,14 +18,33 @@ export function createEmptyConceptualModel(): ConceptualModel {
   };
 }
 
-export function createSlug(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9\s_]/g, '')
-    .trim()
-    .replace(/\s+/g, '_')
-    .toLowerCase();
+/**
+ * Cria uma identidade estável para elementos adicionados manualmente.
+ */
+export function createManualElementId(prefix: string, existingIds: Iterable<string> = []) {
+  const usedIds = new Set(existingIds);
+  const randomId =
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+  const baseId = `${prefix}_${randomId}`;
+  let id = baseId;
+  let suffix = 2;
+
+  while (usedIds.has(id)) {
+    id = `${baseId}_${suffix}`;
+    suffix += 1;
+  }
+
+  return id;
+}
+
+export function conceptualElementIds(model: ConceptualModel): Set<string> {
+  return new Set([
+    ...model.entities.map((entity) => entity.id),
+    ...model.relationships.map((relationship) => relationship.id),
+    ...(model.standaloneAttributes ?? []).flatMap(attributeIds),
+    ...model.entities.flatMap((entity) => entity.attributes.flatMap(attributeIds)),
+    ...model.relationships.flatMap((relationship) => relationship.attributes.flatMap(attributeIds)),
+  ]);
 }
 
 export function createManualEntity(kind: EntityKind, entities: Entity[]): Entity {
@@ -44,7 +63,10 @@ export function createManualEntity(kind: EntityKind, entities: Entity[]): Entity
   const name = `${label} ${nextNumber}`;
 
   return {
-    id: createSlug(name),
+    id: createManualElementId(
+      'entity',
+      entities.map((entity) => entity.id),
+    ),
     name,
     description: 'Entidade adicionada manualmente pelo usuário.',
     kind,
@@ -53,9 +75,9 @@ export function createManualEntity(kind: EntityKind, entities: Entity[]): Entity
 }
 
 export function createManualAttribute(
-  entityId: string | null,
   attributeCount: number,
   kind: ElementKind,
+  existingIds: Iterable<string> = [],
 ): Entity['attributes'][number] {
   const name = `Atributo${attributeCount + 1}`;
   const attributeKind =
@@ -70,7 +92,7 @@ export function createManualAttribute(
             : 'simple';
 
   return {
-    id: entityId ? `${entityId}_${createSlug(name)}` : `attribute_${Date.now().toString(36)}`,
+    id: createManualElementId('attribute', existingIds),
     name,
     type: 'string',
     description: 'Atributo adicionado manualmente pelo usuário.',
@@ -85,11 +107,14 @@ export function createManualAttribute(
   };
 }
 
-export function createStandaloneRelationship(kind: Relationship['kind']): Relationship {
+export function createStandaloneRelationship(
+  kind: Relationship['kind'],
+  existingIds: Iterable<string> = [],
+): Relationship {
   const isGeneralization = kind === 'generalization' || kind === 'specialization';
 
   return {
-    id: `relationship_${Date.now().toString(36)}`,
+    id: createManualElementId('relationship', existingIds),
     name: isGeneralization ? 'Gen' : 'Rel',
     type: '1:N',
     kind,
@@ -115,4 +140,8 @@ export function relationshipPositionKey(relationshipId: string) {
 
 export function attributePositionKey(entityId: string | null, attributeId: string) {
   return `${entityId ?? 'standalone'}:${attributeId}`;
+}
+
+function attributeIds(attribute: Entity['attributes'][number]) {
+  return [attribute.id, ...attribute.components.map((component) => component.id)];
 }

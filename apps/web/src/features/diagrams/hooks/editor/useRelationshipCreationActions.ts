@@ -1,8 +1,9 @@
 import type { Cardinality, ConceptualModel, Relationship } from '../../types';
 import type { DiagramPosition, StateSetter } from './editor.types';
 import {
+  conceptualElementIds,
   createEmptyConceptualModel,
-  createSlug,
+  createManualElementId,
   createStandaloneRelationship,
   relationshipPositionKey,
   resolveRelationshipCardinality,
@@ -45,16 +46,8 @@ export function useRelationshipCreationActions({
       }
 
       const cardinalities = type === '1:1' ? ['1', '1'] : type === '1:N' ? ['1', 'N'] : ['N', 'N'];
-      const baseId = `relationship_${createSlug(relationshipName)}`;
-      let id = baseId;
-      let suffix = 2;
-      while (currentModel.relationships.some((relationship) => relationship.id === id)) {
-        id = `${baseId}_${suffix}`;
-        suffix += 1;
-      }
-
       const relationship: Relationship = {
-        id,
+        id: createManualElementId('relationship', conceptualElementIds(currentModel)),
         name: isGeneralization ? 'Gen' : relationshipName,
         type,
         kind,
