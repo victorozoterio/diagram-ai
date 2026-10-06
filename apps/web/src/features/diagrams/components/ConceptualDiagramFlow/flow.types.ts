@@ -1,5 +1,13 @@
 import type { DiagramSize, EdgeControlPoints } from '../../hooks/editor/editor.types';
-import type { AttributeType, ConceptualModel, DiagramAiProject, ElementKind, Entity, Relationship } from '../../types';
+import type {
+  AttributeType,
+  ConceptualModel,
+  DiagramAiFlowEdge,
+  DiagramAiProject,
+  ElementKind,
+  Entity,
+  Relationship,
+} from '../../types';
 
 export type DiagramPosition = { x: number; y: number };
 
@@ -94,6 +102,9 @@ export type ConceptualDiagramFlowProps = {
   elementPositions?: Record<string, DiagramPosition>;
   nodeSizes?: Record<string, DiagramSize>;
   edgeControlPoints?: Record<string, EdgeControlPoints>;
+  restoredEdges?: DiagramAiFlowEdge[] | null;
+  edgeRestoreVersion?: number;
+  onRestoredEdgesApplied?: () => void;
   restoredViewport?: { x: number; y: number; zoom: number } | null;
   viewportRestoreVersion?: number;
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;

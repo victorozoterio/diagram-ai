@@ -1,5 +1,5 @@
 import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflow/react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { createDiagramAiProject } from '../../types';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
@@ -28,32 +28,37 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
   } = useFlowInteractions(props);
   const { edges, handleEdgesChange, selectAllEdges } = useFlowEdges(props, handleReconnect);
 
-  const getEditableProject = useCallback(
-    () =>
-      createDiagramAiProject({
-        modelType: 'conceptual',
-        semanticModel: props.model,
-        nodes,
-        edges,
-        viewport: flowInstance?.getViewport(),
-        visualState: {
-          entityPositions: props.entityPositions,
-          elementPositions: props.elementPositions,
-          nodeSizes: props.nodeSizes,
-          edgeControlPoints: props.edgeControlPoints,
-        },
-      }),
-    [
-      edges,
-      flowInstance,
+  const editableProjectFactory = useRef<() => ReturnType<typeof createDiagramAiProject>>(() =>
+    createDiagramAiProject({
+      modelType: 'conceptual',
+      semanticModel: props.model,
       nodes,
-      props.edgeControlPoints,
-      props.elementPositions,
-      props.entityPositions,
-      props.model,
-      props.nodeSizes,
-    ],
+      edges,
+      viewport: flowInstance?.getViewport(),
+      visualState: {
+        entityPositions: props.entityPositions,
+        elementPositions: props.elementPositions,
+        nodeSizes: props.nodeSizes,
+        edgeControlPoints: props.edgeControlPoints,
+      },
+    }),
   );
+  editableProjectFactory.current = () =>
+    createDiagramAiProject({
+      modelType: 'conceptual',
+      semanticModel: props.model,
+      nodes,
+      edges,
+      viewport: flowInstance?.getViewport(),
+      visualState: {
+        entityPositions: props.entityPositions,
+        elementPositions: props.elementPositions,
+        nodeSizes: props.nodeSizes,
+        edgeControlPoints: props.edgeControlPoints,
+      },
+    });
+
+  const getEditableProject = useCallback(() => editableProjectFactory.current(), []);
 
   useEffect(() => {
     props.onEditableProjectReady?.(getEditableProject);

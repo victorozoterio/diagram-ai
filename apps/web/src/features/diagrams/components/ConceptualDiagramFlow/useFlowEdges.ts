@@ -1,6 +1,7 @@
 import { applyEdgeChanges, type Edge, type EdgeChange, reconnectEdge } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { EdgeControlPoints } from '../../hooks/editor/editor.types';
+import { hydrateFlowEdges } from '../../types';
 import type { ConceptualDiagramFlowProps, EdgeReconnectConnection } from './flow.types';
 import { buildFlowEdges } from './flow-mappers';
 
@@ -10,6 +11,9 @@ type FlowEdgeDependencies = Pick<
   | 'entityPositions'
   | 'elementPositions'
   | 'edgeControlPoints'
+  | 'restoredEdges'
+  | 'edgeRestoreVersion'
+  | 'onRestoredEdgesApplied'
   | 'onCycleRelationshipCardinality'
   | 'onUpdateEdgeControlPoints'
 >;
@@ -21,6 +25,9 @@ export function useFlowEdges(
     entityPositions,
     elementPositions,
     edgeControlPoints,
+    restoredEdges,
+    edgeRestoreVersion,
+    onRestoredEdgesApplied,
     onCycleRelationshipCardinality,
     onUpdateEdgeControlPoints,
   }: FlowEdgeDependencies,
@@ -102,6 +109,17 @@ export function useFlowEdges(
       }),
     );
   }, [mappedEdges]);
+
+  const appliedRestoreVersion = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (edgeRestoreVersion === undefined || appliedRestoreVersion.current === edgeRestoreVersion || !restoredEdges) {
+      return;
+    }
+
+    setEdges(hydrateFlowEdges(mappedEdges, restoredEdges));
+    appliedRestoreVersion.current = edgeRestoreVersion;
+    onRestoredEdgesApplied?.();
+  }, [edgeRestoreVersion, mappedEdges, onRestoredEdgesApplied, restoredEdges]);
 
   const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
     setEdges((currentEdges) => applyEdgeChanges(changes, currentEdges));

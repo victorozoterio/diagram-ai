@@ -124,6 +124,11 @@ export function DiagramGeneratorPage({
     logicalViewport,
     conceptualViewportRestoreVersion,
     logicalViewportRestoreVersion,
+    conceptualRestoredEdges,
+    logicalRestoredEdges,
+    conceptualEdgeRestoreVersion,
+    logicalEdgeRestoreVersion,
+    consumeRestoredEdges,
     updateViewport,
     entityPositions,
     elementPositions,
@@ -663,6 +668,9 @@ export function DiagramGeneratorPage({
                 elementPositions={elementPositions}
                 nodeSizes={nodeSizes}
                 edgeControlPoints={edgeControlPoints}
+                restoredEdges={conceptualRestoredEdges}
+                edgeRestoreVersion={conceptualEdgeRestoreVersion}
+                onRestoredEdgesApplied={() => consumeRestoredEdges('conceptual')}
                 onUpdateEntityPosition={updateEntityPosition}
                 onUpdateElementPosition={updateElementPosition}
                 onUpdateNodeSize={updateNodeSize}
@@ -712,6 +720,9 @@ export function DiagramGeneratorPage({
               layoutVersion={logicalLayoutVersion}
               restoredViewport={logicalViewport}
               viewportRestoreVersion={logicalViewportRestoreVersion}
+              restoredEdges={logicalRestoredEdges}
+              edgeRestoreVersion={logicalEdgeRestoreVersion}
+              onRestoredEdgesApplied={() => consumeRestoredEdges('logical')}
             />
           )}
         </EditorCanvas>

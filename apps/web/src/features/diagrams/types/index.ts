@@ -12,7 +12,7 @@ export type {
   RelationshipParticipant,
 } from './conceptual-model';
 
-export type { DiagramAiDocument, DiagramAiEditorMode, DiagramAiProject } from './diagram-ai-project';
+export type { DiagramAiDocument, DiagramAiEditorMode, DiagramAiFlowEdge, DiagramAiProject } from './diagram-ai-project';
 
 export {
   createDiagramAiDocument,
@@ -20,6 +20,7 @@ export {
   DIAGRAM_AI_FORMAT,
   DIAGRAM_AI_FORMAT_VERSION,
   DiagramAiProjectError,
+  hydrateFlowEdges,
   parseDiagramAiDocument,
   parseDiagramAiProject,
 } from './diagram-ai-project';

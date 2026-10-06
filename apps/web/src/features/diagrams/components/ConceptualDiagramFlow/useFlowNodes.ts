@@ -1,5 +1,6 @@
 import { applyNodeChanges, type Node, type NodeChange } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { preserveNodeMeasurement } from '../flow-node-measurement';
 import type { ConceptualDiagramFlowProps } from './flow.types';
 import { buildFlowNodes } from './flow-mappers';
 
@@ -139,24 +140,27 @@ export function useFlowNodes({
           (currentNode.width ?? 0) > 0 &&
           (currentNode.height ?? 0) > 0;
 
-        return {
-          ...nextNode,
-          ...(hasCurrentDimensions
-            ? {
-                width: currentNode.width,
-                height: currentNode.height,
-                initialWidth: currentNode.initialWidth ?? currentNode.width,
-                initialHeight: currentNode.initialHeight ?? currentNode.height,
-                style: {
-                  ...nextNode.style,
+        return preserveNodeMeasurement(
+          {
+            ...nextNode,
+            ...(hasCurrentDimensions
+              ? {
                   width: currentNode.width,
                   height: currentNode.height,
-                },
-              }
-            : {}),
-          position: currentNode.dragging ? currentNode.position : nextNode.position,
-          selected: currentNode.selected,
-        };
+                  initialWidth: currentNode.initialWidth ?? currentNode.width,
+                  initialHeight: currentNode.initialHeight ?? currentNode.height,
+                  style: {
+                    ...nextNode.style,
+                    width: currentNode.width,
+                    height: currentNode.height,
+                  },
+                }
+              : {}),
+            position: currentNode.dragging ? currentNode.position : nextNode.position,
+            selected: currentNode.selected,
+          },
+          currentNode,
+        );
       }),
     );
   }, [layoutVersion, mappedNodes]);

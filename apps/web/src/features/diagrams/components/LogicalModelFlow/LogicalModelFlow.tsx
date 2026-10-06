@@ -19,7 +19,9 @@ import '@xyflow/react/dist/style.css';
 
 import {
   createDiagramAiProject,
+  type DiagramAiFlowEdge,
   type DiagramAiProject,
+  hydrateFlowEdges,
   type LogicalColumn,
   type LogicalModel,
   type LogicalTable,
@@ -29,6 +31,7 @@ import { DiagramExportMenu } from '../ConceptualDiagramFlow/DiagramExportMenu';
 import { FitViewOnNodeChange } from '../ConceptualDiagramFlow/FitViewOnNodeChange';
 import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableNodeControls';
 import { RestoreViewport } from '../ConceptualDiagramFlow/RestoreViewport';
+import { preserveNodeMeasurement } from '../flow-node-measurement';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
 import { LogicalOrthogonalEdge } from './edges/LogicalOrthogonalEdge';
 import styles from './LogicalModelFlow.module.css';
@@ -50,6 +53,9 @@ type LogicalModelFlowProps = {
   layoutVersion?: number;
   restoredViewport?: { x: number; y: number; zoom: number } | null;
   viewportRestoreVersion?: number;
+  restoredEdges?: DiagramAiFlowEdge[] | null;
+  edgeRestoreVersion?: number;
+  onRestoredEdgesApplied?: () => void;
 };
 
 type LogicalTableNodeData = {
@@ -483,12 +489,18 @@ export function LogicalModelFlow({
   layoutVersion = 0,
   restoredViewport,
   viewportRestoreVersion,
+  restoredEdges,
+  edgeRestoreVersion,
+  onRestoredEdgesApplied,
 }: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<LogicalTableNodeData>[]>([]);
+  const [hydratedEdges, setHydratedEdges] = useState<Edge[] | null>(null);
+  const previousModel = useRef(model);
+  const appliedEdgeRestoreVersion = useRef<number | undefined>(undefined);
   const [viewportReadyForCount, setViewportReadyForCount] = useState<number | null>(null);
   const editingStartSizes = useRef<Record<string, { width: number; height: number }>>({});
   const handleViewportReady = useCallback(() => setViewportReadyForCount(model.tables.length), [model.tables.length]);
@@ -563,22 +575,25 @@ export function LogicalModelFlow({
         const nextWidth = nextNode.width ?? DEFAULT_TABLE_SIZE.width;
         const nextHeight = nextNode.height ?? DEFAULT_TABLE_SIZE.height;
 
-        return {
-          ...nextNode,
-          position: currentNode?.dragging ? currentNode.position : nextNode.position,
-          selected: currentNode?.selected ?? false,
-          ...(currentWidth && currentHeight && !(currentIsEditing && !nextIsEditing)
-            ? {
-                width: Math.max(currentWidth, nextWidth),
-                height: Math.max(currentHeight, nextHeight),
-                style: {
-                  ...nextNode.style,
+        return preserveNodeMeasurement(
+          {
+            ...nextNode,
+            position: currentNode?.dragging ? currentNode.position : nextNode.position,
+            selected: currentNode?.selected ?? false,
+            ...(currentWidth && currentHeight && !(currentIsEditing && !nextIsEditing)
+              ? {
                   width: Math.max(currentWidth, nextWidth),
                   height: Math.max(currentHeight, nextHeight),
-                },
-              }
-            : {}),
-        };
+                  style: {
+                    ...nextNode.style,
+                    width: Math.max(currentWidth, nextWidth),
+                    height: Math.max(currentHeight, nextHeight),
+                  },
+                }
+              : {}),
+          },
+          currentNode,
+        );
       }),
     );
   }, [mappedNodes]);
@@ -661,13 +676,38 @@ export function LogicalModelFlow({
   );
 
   const edges = [...referenceEdges, ...manualEdges];
+  const generatedEdgesRef = useRef(edges);
+  generatedEdgesRef.current = edges;
+
+  useEffect(() => {
+    if (previousModel.current === model) return;
+
+    previousModel.current = model;
+    setHydratedEdges(null);
+  }, [model]);
+
+  useEffect(() => {
+    if (
+      edgeRestoreVersion === undefined ||
+      appliedEdgeRestoreVersion.current === edgeRestoreVersion ||
+      !restoredEdges
+    ) {
+      return;
+    }
+
+    setHydratedEdges(hydrateFlowEdges(generatedEdgesRef.current, restoredEdges));
+    appliedEdgeRestoreVersion.current = edgeRestoreVersion;
+    onRestoredEdgesApplied?.();
+  }, [edgeRestoreVersion, onRestoredEdgesApplied, restoredEdges]);
+
+  const renderedEdges = hydratedEdges ?? edges;
 
   const editableProjectFactory = useRef<() => DiagramAiProject>(() =>
     createDiagramAiProject({
       modelType: 'logical',
       semanticModel: model,
       nodes,
-      edges,
+      edges: renderedEdges,
       viewport: flowInstance.current?.getViewport(),
     }),
   );
@@ -676,7 +716,7 @@ export function LogicalModelFlow({
       modelType: 'logical',
       semanticModel: model,
       nodes,
-      edges,
+      edges: renderedEdges,
       viewport: flowInstance.current?.getViewport(),
     });
 
@@ -760,7 +800,7 @@ export function LogicalModelFlow({
       />
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={renderedEdges}
         nodeTypes={logicalNodeTypes}
         edgeTypes={logicalEdgeTypes}
         onInit={(instance) => {

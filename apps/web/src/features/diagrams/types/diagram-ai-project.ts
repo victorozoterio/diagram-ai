@@ -102,6 +102,26 @@ export function createDiagramAiProject({
   };
 }
 
+/** Restaura a topologia visual persistida e mantém os callbacks do fluxo atual. */
+export function hydrateFlowEdges(generatedEdges: Edge[], persistedEdges: DiagramAiFlowEdge[] | undefined): Edge[] {
+  if (persistedEdges === undefined) return generatedEdges;
+
+  const generatedEdgesById = new Map(generatedEdges.map((edge) => [edge.id, edge]));
+  return persistedEdges.map((persistedEdge) => {
+    const generatedEdge = generatedEdgesById.get(persistedEdge.id);
+    if (!generatedEdge) return persistedEdge as Edge;
+
+    return {
+      ...generatedEdge,
+      ...persistedEdge,
+      data: {
+        ...(persistedEdge.data ?? {}),
+        ...(generatedEdge.data ?? {}),
+      },
+    } as Edge;
+  });
+}
+
 /** Valida um arquivo .diagramai antes de qualquer estado do editor ser alterado. */
 export function parseDiagramAiProject(value: unknown): DiagramAiProject {
   if (!isRecord(value) || value.format !== DIAGRAM_AI_FORMAT) {

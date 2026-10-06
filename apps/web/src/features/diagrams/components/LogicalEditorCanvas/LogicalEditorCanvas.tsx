@@ -1,4 +1,4 @@
-import type { DiagramAiProject, LogicalModel, LogicalTable } from '../../types';
+import type { DiagramAiFlowEdge, DiagramAiProject, LogicalModel, LogicalTable } from '../../types';
 import { EmptyCanvasState } from '../EmptyCanvasState/EmptyCanvasState';
 import { LogicalModelFlow } from '../LogicalModelFlow/LogicalModelFlow';
 import styles from './LogicalEditorCanvas.module.css';
@@ -20,6 +20,9 @@ type LogicalEditorCanvasProps = {
   layoutVersion?: number;
   restoredViewport?: { x: number; y: number; zoom: number } | null;
   viewportRestoreVersion?: number;
+  restoredEdges?: DiagramAiFlowEdge[] | null;
+  edgeRestoreVersion?: number;
+  onRestoredEdgesApplied?: () => void;
 };
 
 export function LogicalEditorCanvas({
@@ -39,6 +42,9 @@ export function LogicalEditorCanvas({
   layoutVersion = 0,
   restoredViewport,
   viewportRestoreVersion,
+  restoredEdges,
+  edgeRestoreVersion,
+  onRestoredEdgesApplied,
 }: LogicalEditorCanvasProps) {
   return (
     <section className={styles.section}>
@@ -66,6 +72,9 @@ export function LogicalEditorCanvas({
         layoutVersion={layoutVersion}
         restoredViewport={restoredViewport}
         viewportRestoreVersion={viewportRestoreVersion}
+        restoredEdges={restoredEdges}
+        edgeRestoreVersion={edgeRestoreVersion}
+        onRestoredEdgesApplied={onRestoredEdgesApplied}
       />
       {model.tables.length === 0 && (
         <EmptyCanvasState description='Gere um modelo ou arraste um elemento da biblioteca para começar.' />
