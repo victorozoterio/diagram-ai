@@ -30,7 +30,7 @@ describe('handleEditorKeyboardShortcut', () => {
   it.each([
     { ctrlKey: true, shiftKey: true },
     { metaKey: true, shiftKey: true },
-  ])('executa baixar arquivo com $ctrlKey$metaKey+Shift+S', (modifiers) => {
+  ])('executa salvar como com $ctrlKey$metaKey+Shift+S', (modifiers) => {
     const onSave = vi.fn();
     const onDownload = vi.fn();
     const event = keyboardEvent(modifiers);

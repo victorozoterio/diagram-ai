@@ -266,7 +266,7 @@ export function DiagramExportMenu({
             disabled={!canDownloadProject}
             onClick={downloadEditableProjectFile}
           >
-            <span>Baixar arquivo</span>
+            <span>Salvar como</span>
             <kbd>Ctrl+Shift+S</kbd>
           </button>
           <span className={styles.divider} aria-hidden='true' />
