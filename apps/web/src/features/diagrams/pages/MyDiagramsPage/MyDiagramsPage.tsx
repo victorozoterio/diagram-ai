@@ -310,7 +310,7 @@ export function previewFlowElements(snapshot: DiagramAiProject | undefined): { n
   if (!snapshot) return { nodes: [], edges: [] };
   const nodes = snapshot.visual.nodes as Node[];
   const edges = snapshot.visual.edges as Edge[];
-  if (snapshot.modelType !== 'conceptual') return { nodes, edges };
+  if (snapshot.modelType !== 'conceptual') return withoutPreviewSelection(nodes, edges);
 
   const state = (snapshot.visual.state ?? {}) as {
     entityPositions?: Record<string, { x: number; y: number }>;
@@ -322,15 +322,43 @@ export function previewFlowElements(snapshot: DiagramAiProject | undefined): { n
     >;
   };
   const model = snapshot.semanticModel as ConceptualModel;
+  const previewNodes = nodes.length > 0 ? nodes : buildFlowNodes(model, state, {});
+  const previewEdges = edges.length > 0 ? edges : buildFlowEdges(model, state, {});
+
+  return withoutPreviewSelection(previewNodes, previewEdges);
+}
+
+/**
+ * A preview é somente leitura: não deve refletir a seleção transitória salva
+ * pelo React Flow nem os controles associados a ela no canvas original.
+ */
+function withoutPreviewSelection(nodes: Node[], edges: Edge[]) {
   return {
     // Os nodes visuais já foram criados pelo mesmo mapper no editor e foram
     // persistidos com posições, dimensões e dados compatíveis com seus renderizadores.
     // Recriá-los aqui substituía esse estado visual e causou a regressão da preview.
-    nodes: nodes.length > 0 ? nodes : buildFlowNodes(model, state, {}),
+    nodes: nodes.map((node) => {
+      const { selected: _nodeSelected, ...previewNode } = node;
+      const {
+        isSelected: _isSelected,
+        selected: _dataSelected,
+        editingTableId: _editingTableId,
+        highlightedColumnIds,
+        ...data
+      } = node.data;
+
+      return {
+        ...previewNode,
+        data: {
+          ...data,
+          ...(Array.isArray(highlightedColumnIds) ? { highlightedColumnIds: [] } : {}),
+        },
+      };
+    }),
     // As edges visuais preservam handles, âncoras e pontos de controle
     // definidos no canvas. A reconstrução é apenas compatibilidade para
     // documentos conceituais antigos que não tenham edges serializadas.
-    edges: edges.length > 0 ? edges : buildFlowEdges(model, state, {}),
+    edges: edges.map(({ selected: _selected, ...edge }) => edge),
   };
 }
 

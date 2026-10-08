@@ -502,6 +502,7 @@ export function LogicalModelFlow({
   const [hydratedEdges, setHydratedEdges] = useState<Edge[] | null>(null);
   const previousModel = useRef(model);
   const appliedEdgeRestoreVersion = useRef<number | undefined>(undefined);
+  const previousEdgeRestoreVersion = useRef(edgeRestoreVersion);
   const [viewportReadyForCount, setViewportReadyForCount] = useState<number | null>(null);
   const editingStartSizes = useRef<Record<string, { width: number; height: number }>>({});
   const handleViewportReady = useCallback(() => setViewportReadyForCount(model.tables.length), [model.tables.length]);
@@ -566,6 +567,15 @@ export function LogicalModelFlow({
   );
 
   useEffect(() => {
+    const shouldClearSelection = previousEdgeRestoreVersion.current !== edgeRestoreVersion;
+    previousEdgeRestoreVersion.current = edgeRestoreVersion;
+
+    if (shouldClearSelection) {
+      setSelectedEdgeId(null);
+      setEditingTableId(null);
+      editingStartSizes.current = {};
+    }
+
     setNodes((currentNodes) =>
       mappedNodes.map((nextNode) => {
         const currentNode = currentNodes.find((node) => node.id === nextNode.id);
@@ -580,7 +590,7 @@ export function LogicalModelFlow({
           {
             ...nextNode,
             position: currentNode?.dragging ? currentNode.position : nextNode.position,
-            selected: currentNode?.selected ?? false,
+            selected: shouldClearSelection ? false : (currentNode?.selected ?? false),
             ...(currentWidth && currentHeight && !(currentIsEditing && !nextIsEditing)
               ? {
                   width: Math.max(currentWidth, nextWidth),
@@ -597,7 +607,7 @@ export function LogicalModelFlow({
         );
       }),
     );
-  }, [mappedNodes]);
+  }, [edgeRestoreVersion, mappedNodes]);
 
   const finishEditing = useCallback(() => {
     if (!editingTableId) return;

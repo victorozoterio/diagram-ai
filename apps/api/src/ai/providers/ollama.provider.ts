@@ -25,7 +25,7 @@ import { GeneratedLogicalModelJsonSchema } from './ollama/logical-model-generati
 import { OllamaError, serializeOllamaError } from './ollama/ollama.errors';
 import type { OllamaChatMessage, OllamaChatResponse } from './ollama/ollama.types';
 
-const OLLAMA_TIMEOUT_MS = 120_000;
+const OLLAMA_TIMEOUT_MS = 360_000;
 const NO_AMBIGUITIES: AmbiguityAnalysis = { requiresClarification: false, questions: [] };
 
 @Injectable()

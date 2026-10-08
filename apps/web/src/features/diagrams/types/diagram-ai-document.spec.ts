@@ -2,6 +2,7 @@ import type { Edge, Node } from '@xyflow/react';
 import { describe, expect, it } from 'vitest';
 
 import {
+  clearProjectFlowSelection,
   createDiagramAiDocument,
   createDiagramAiProject,
   type DiagramAiProject,
@@ -41,6 +42,36 @@ const logical = createDiagramAiProject({
 });
 
 describe('documento Diagram.AI', () => {
+  it('limpa a seleção somente na projeção de abertura do editor', () => {
+    const project = createDiagramAiProject({
+      modelType: 'conceptual',
+      semanticModel: { metadata: {}, entities: [], relationships: [], ambiguities: [] },
+      nodes: [{ ...flowNodes[0], selected: true }],
+      edges: [{ ...flowEdges[0], selected: true }],
+    });
+
+    const restored = clearProjectFlowSelection(project);
+
+    expect(restored.visual.nodes[0]).toMatchObject({ id: 'cliente', selected: false, position: { x: 40, y: 80 } });
+    expect(restored.visual.edges[0]).toMatchObject({ id: 'solicita:cliente', selected: false });
+    expect(project.visual.nodes[0].selected).toBe(true);
+    expect(project.visual.edges[0].selected).toBe(true);
+    expect(restored.semanticModel).toBe(project.semanticModel);
+
+    const logicalProject = createDiagramAiProject({
+      modelType: 'logical',
+      semanticModel: { tables: [] },
+      nodes: [{ ...flowNodes[0], selected: true }],
+      edges: [{ ...flowEdges[0], selected: true }],
+    });
+    const restoredLogical = clearProjectFlowSelection(logicalProject);
+
+    expect(restoredLogical.visual.nodes[0].selected).toBe(false);
+    expect(restoredLogical.visual.edges[0].selected).toBe(false);
+    expect(logicalProject.visual.nodes[0].selected).toBe(true);
+    expect(logicalProject.visual.edges[0].selected).toBe(true);
+  });
+
   it('preserva nodes e edges ao serializar e desserializar um projeto conceitual', () => {
     const project = createDiagramAiProject({
       modelType: 'conceptual',

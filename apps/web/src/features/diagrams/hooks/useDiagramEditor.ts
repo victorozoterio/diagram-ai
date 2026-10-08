@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ConceptualModel, DiagramAiFlowEdge, DiagramAiProject, LogicalModel } from '../types';
+import {
+  type ConceptualModel,
+  clearProjectFlowSelection,
+  type DiagramAiFlowEdge,
+  type DiagramAiProject,
+  type LogicalModel,
+} from '../types';
 import type { AttributeSelection, DiagramPosition, DiagramSize, EdgeControlPoints } from './editor/editor.types';
 import {
   type DiagramViewport,
@@ -232,11 +238,12 @@ export function useDiagramEditor() {
 
   function restoreDiagramProject(project: DiagramAiProject) {
     history.current = { present: null, undo: [], redo: [] };
-    const visualState = project.visual.state;
+    const restoredProject = clearProjectFlowSelection(project);
+    const visualState = restoredProject.visual.state;
 
-    if (project.modelType === 'conceptual') {
-      const model = project.semanticModel as ConceptualModel;
-      const restoredVisualState = conceptualVisualState(visualState, project.visual.nodes, model);
+    if (restoredProject.modelType === 'conceptual') {
+      const model = restoredProject.semanticModel as ConceptualModel;
+      const restoredVisualState = conceptualVisualState(visualState, restoredProject.visual.nodes, model);
       setConceptualModel(model);
       setEntityPositions(restoredVisualState.entityPositions);
       setElementPositions(restoredVisualState.elementPositions);
@@ -244,19 +251,19 @@ export function useDiagramEditor() {
       setEdgeControlPoints(restoredVisualState.edgeControlPoints);
       setSelectedAttribute(null);
       setSelectedEntityIds([]);
-      setRestoredEdges((currentEdges) => ({ ...currentEdges, conceptual: project.visual.edges }));
+      setRestoredEdges((currentEdges) => ({ ...currentEdges, conceptual: restoredProject.visual.edges }));
       setEdgeRestoreVersions((currentVersions) => ({
         ...currentVersions,
         conceptual: currentVersions.conceptual + 1,
       }));
-      restoreViewport('conceptual', project.visual.viewport);
+      restoreViewport('conceptual', restoredProject.visual.viewport);
       return;
     }
 
-    setLogicalModel(restoreLogicalModel(project.semanticModel as LogicalModel, project.visual.nodes));
-    setRestoredEdges((currentEdges) => ({ ...currentEdges, logical: project.visual.edges }));
+    setLogicalModel(restoreLogicalModel(restoredProject.semanticModel as LogicalModel, restoredProject.visual.nodes));
+    setRestoredEdges((currentEdges) => ({ ...currentEdges, logical: restoredProject.visual.edges }));
     setEdgeRestoreVersions((currentVersions) => ({ ...currentVersions, logical: currentVersions.logical + 1 }));
-    restoreViewport('logical', project.visual.viewport);
+    restoreViewport('logical', restoredProject.visual.viewport);
   }
 
   return {

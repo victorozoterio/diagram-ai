@@ -15,6 +15,7 @@ export type {
 export type { DiagramAiDocument, DiagramAiEditorMode, DiagramAiFlowEdge, DiagramAiProject } from './diagram-ai-project';
 
 export {
+  clearProjectFlowSelection,
   createDiagramAiDocument,
   createDiagramAiProject,
   DIAGRAM_AI_FORMAT,

@@ -102,6 +102,21 @@ export function createDiagramAiProject({
   };
 }
 
+/**
+ * Cria a projeção usada na abertura do editor sem restaurar a seleção transitória
+ * que pode ter sido capturada pelo React Flow no último salvamento.
+ */
+export function clearProjectFlowSelection(project: DiagramAiProject): DiagramAiProject {
+  return {
+    ...project,
+    visual: {
+      ...project.visual,
+      nodes: project.visual.nodes.map((node) => ({ ...node, selected: false })),
+      edges: project.visual.edges.map((edge) => ({ ...edge, selected: false })),
+    },
+  };
+}
+
 /** Restaura a topologia visual persistida e mantém os callbacks do fluxo atual. */
 export function hydrateFlowEdges(generatedEdges: Edge[], persistedEdges: DiagramAiFlowEdge[] | undefined): Edge[] {
   if (persistedEdges === undefined) return generatedEdges;

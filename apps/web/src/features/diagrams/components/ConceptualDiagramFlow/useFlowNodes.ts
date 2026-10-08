@@ -13,6 +13,7 @@ type FlowNodeDependencies = Pick<
   | 'selectedAttribute'
   | 'selectedEntityIds'
   | 'layoutVersion'
+  | 'edgeRestoreVersion'
   | 'onSelectEntity'
   | 'onUpdateEntity'
   | 'onSelectAttribute'
@@ -33,6 +34,7 @@ export function useFlowNodes({
   selectedAttribute,
   selectedEntityIds,
   layoutVersion = 0,
+  edgeRestoreVersion,
   onSelectEntity,
   onUpdateEntity,
   onSelectAttribute,
@@ -45,6 +47,7 @@ export function useFlowNodes({
 }: FlowNodeDependencies) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const previousLayoutVersion = useRef(layoutVersion);
+  const previousEdgeRestoreVersion = useRef(edgeRestoreVersion);
 
   const updateResizingNode = useCallback(
     (nodeId: string, size: { width: number; height: number }, resizing: boolean) => {
@@ -123,16 +126,19 @@ export function useFlowNodes({
   );
 
   useEffect(() => {
+    const shouldClearSelection = previousEdgeRestoreVersion.current !== edgeRestoreVersion;
+    previousEdgeRestoreVersion.current = edgeRestoreVersion;
+
     if (previousLayoutVersion.current !== layoutVersion) {
       previousLayoutVersion.current = layoutVersion;
-      setNodes(mappedNodes);
+      setNodes(mappedNodes.map((node) => ({ ...node, selected: false })));
       return;
     }
 
     setNodes((currentNodes) =>
       mappedNodes.map((nextNode) => {
         const currentNode = currentNodes.find((node) => node.id === nextNode.id);
-        if (!currentNode) return nextNode;
+        if (!currentNode) return shouldClearSelection ? { ...nextNode, selected: false } : nextNode;
 
         const hasCurrentDimensions =
           Number.isFinite(currentNode.width) &&
@@ -157,13 +163,13 @@ export function useFlowNodes({
                 }
               : {}),
             position: currentNode.dragging ? currentNode.position : nextNode.position,
-            selected: currentNode.selected,
+            selected: shouldClearSelection ? false : currentNode.selected,
           },
           currentNode,
         );
       }),
     );
-  }, [layoutVersion, mappedNodes]);
+  }, [edgeRestoreVersion, layoutVersion, mappedNodes]);
 
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {

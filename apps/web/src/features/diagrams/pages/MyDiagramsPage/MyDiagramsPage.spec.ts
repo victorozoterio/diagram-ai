@@ -232,6 +232,59 @@ it('preserva tabelas e conexões lógicas serializadas', () => {
   expect(preview.edges).toEqual(edges);
 });
 
+it('remove a seleção apenas da projeção visual da preview', () => {
+  const nodes: Node[] = [
+    {
+      id: 'cliente',
+      type: 'entity',
+      position: { x: 0, y: 0 },
+      width: 170,
+      height: 64,
+      selected: true,
+      data: { isSelected: true, selected: true },
+    },
+    {
+      id: 'pedido',
+      type: 'table',
+      position: { x: 400, y: 0 },
+      width: 220,
+      height: 150,
+      selected: true,
+      data: { editingTableId: 'pedido', highlightedColumnIds: ['cliente_id'] },
+    },
+  ];
+  const edges: Edge[] = [{ id: 'cliente-pedido', source: 'cliente', target: 'pedido', selected: true, data: {} }];
+  const preview = previewFlowElements(
+    createDiagramAiProject({ modelType: 'logical', semanticModel: { tables: [] }, nodes, edges }),
+  );
+
+  expect(preview.nodes).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ id: 'cliente', data: {} }),
+      expect.objectContaining({ id: 'pedido', data: { highlightedColumnIds: [] } }),
+    ]),
+  );
+  expect(preview.nodes[0]).not.toHaveProperty('selected');
+  expect(preview.nodes[1]).not.toHaveProperty('selected');
+  expect(preview.edges[0]).not.toHaveProperty('selected');
+  expect(nodes[0].selected).toBe(true);
+  expect(nodes[0].data).toMatchObject({ isSelected: true, selected: true });
+  expect(nodes[1].data).toMatchObject({ editingTableId: 'pedido', highlightedColumnIds: ['cliente_id'] });
+  expect(edges[0].selected).toBe(true);
+
+  const conceptualPreview = previewFlowElements(
+    createDiagramAiProject({
+      modelType: 'conceptual',
+      semanticModel: { metadata: {}, entities: [], relationships: [], ambiguities: [] },
+      nodes: [nodes[0]],
+      edges: [edges[0]],
+    }),
+  );
+  expect(conceptualPreview.nodes[0]).not.toHaveProperty('selected');
+  expect(conceptualPreview.nodes[0].data).toEqual({});
+  expect(conceptualPreview.edges[0]).not.toHaveProperty('selected');
+});
+
 it('considera a preview vazia somente quando não há snapshot', () => {
   expect(previewFlowElements(undefined)).toEqual({ nodes: [], edges: [] });
 });
