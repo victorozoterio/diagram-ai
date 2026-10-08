@@ -13,6 +13,7 @@ import '@xyflow/react/dist/style.css';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { FiAlertTriangle, FiFileText, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { type DiagramSummary, deleteDiagram, listDiagrams, renameDiagram } from '@/api/diagrams.api';
+import { BrandLogo } from '@/components/BrandLogo/BrandLogo';
 import { type AuthenticatedUser, AuthenticatedUserMenu } from '@/features/auth/components/AuthenticatedUserMenu';
 import { buildFlowEdges, buildFlowNodes } from '../../components/ConceptualDiagramFlow/flow-mappers';
 import { conceptualEdgeTypes, conceptualNodeTypes } from '../../components/ConceptualDiagramFlow/flow-renderers';
@@ -126,7 +127,9 @@ export function MyDiagramsPage({ onNewDiagram, onOpenDiagram, onSignOut, user }:
     <main className={styles.page}>
       <header className={styles.header}>
         <div className={styles.brand}>
-          <span className={styles.logoMark}>D</span>
+          <span className={styles.logoMark}>
+            <BrandLogo />
+          </span>
           <span>Diagram.AI</span>
         </div>
         <AuthenticatedUserMenu onSignOut={onSignOut} user={user} />

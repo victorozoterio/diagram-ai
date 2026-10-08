@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/BrandLogo/BrandLogo';
 import { type AuthenticatedUser, AuthenticatedUserMenu } from '@/features/auth/components/AuthenticatedUserMenu';
 import { useInlineDiagramRename } from '../../hooks/useInlineDiagramRename';
 import styles from './EditorHeader.module.css';
@@ -54,7 +55,7 @@ export function EditorHeader({
     <header className={styles.header}>
       <div className={styles.brand}>
         <button aria-label='Meus diagramas' className={styles.logoMark} onClick={onNavigateToDiagrams} type='button'>
-          D
+          <BrandLogo />
         </button>
         <div className={styles.diagramNameSlot}>
           {rename.isEditing ? (

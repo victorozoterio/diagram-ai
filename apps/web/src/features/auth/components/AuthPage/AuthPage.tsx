@@ -4,6 +4,7 @@ import { type Resolver, useForm } from 'react-hook-form';
 import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { authClient, getEnabledSocialProviders, type SocialProvider } from '@/auth/auth-client';
+import { BrandLogo } from '@/components/BrandLogo/BrandLogo';
 import { ROUTES } from '@/routes/routes';
 import { AuthFormField } from '../AuthFormField';
 import styles from './AuthPage.module.css';
@@ -165,7 +166,9 @@ export function AuthPage({ mode, onAuthenticated, onNavigate }: AuthPageProps) {
     <main className={styles.page}>
       <section className={styles.card} aria-labelledby='auth-title'>
         <div className={styles.brand}>
-          <span className={styles.logoMark}>D</span>
+          <span className={styles.logoMark}>
+            <BrandLogo />
+          </span>
           <span>Diagram.AI</span>
         </div>
         <div className={styles.intro}>

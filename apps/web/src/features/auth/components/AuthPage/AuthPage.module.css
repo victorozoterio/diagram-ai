@@ -29,9 +29,8 @@
   width: 30px;
   height: 30px;
   place-items: center;
+  overflow: hidden;
   border-radius: 8px;
-  background: #4f46e5;
-  color: #ffffff;
 }
 
 .intro {

@@ -32,9 +32,8 @@
 .logoMark {
   width: 34px;
   height: 34px;
+  overflow: hidden;
   border-radius: 10px;
-  background: #4f46e5;
-  color: #ffffff;
 }
 
 .content {
