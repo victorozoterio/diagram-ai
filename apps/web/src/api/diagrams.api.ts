@@ -48,6 +48,46 @@ const requestOptions = {
   credentials: 'include' as const,
 };
 
+type ApiErrorBody = {
+  code?: unknown;
+  message?: unknown;
+  issues?: unknown;
+};
+
+export class DiagramApiError extends Error {
+  readonly code?: string;
+  readonly issues?: unknown;
+
+  constructor(message: string, code?: string, issues?: unknown) {
+    super(message);
+    this.name = 'DiagramApiError';
+    this.code = code;
+    this.issues = issues;
+  }
+}
+
+async function requestError(response: Response, fallbackMessage: string): Promise<DiagramApiError> {
+  let payload: ApiErrorBody | undefined;
+  try {
+    payload = (await response.json()) as ApiErrorBody;
+  } catch {
+    // A resposta pode vir vazia em falhas de infraestrutura.
+  }
+
+  const baseMessage = typeof payload?.message === 'string' ? payload.message : fallbackMessage;
+  const issueMessages = Array.isArray(payload?.issues)
+    ? payload.issues
+        .map((issue) =>
+          typeof issue === 'object' && issue !== null && typeof issue.message === 'string' ? issue.message : null,
+        )
+        .filter((message): message is string => Boolean(message))
+    : [];
+  const message =
+    issueMessages.length > 0 ? `${baseMessage}\n${issueMessages.map((issue) => `• ${issue}`).join('\n')}` : baseMessage;
+  const code = typeof payload?.code === 'string' ? payload.code : undefined;
+  return new DiagramApiError(message, code, payload?.issues);
+}
+
 export async function transcribeAudio(audio: Blob): Promise<string> {
   const formData = new FormData();
   formData.append('audio', audio, 'descricao.webm');
@@ -59,7 +99,7 @@ export async function transcribeAudio(audio: Blob): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error('Não foi possível transcrever o áudio. Tente novamente.');
+    throw await requestError(response, 'Não foi possível transcrever o áudio. Tente novamente.');
   }
 
   const result = (await response.json()) as { text?: unknown };
@@ -84,7 +124,7 @@ export async function generateConceptualModel(
   });
 
   if (!response.ok) {
-    throw new Error('Não foi possível gerar o modelo conceitual.');
+    throw await requestError(response, 'Não foi possível gerar o modelo conceitual.');
   }
 
   return response.json();
@@ -104,7 +144,7 @@ export async function generateLogicalModel(
   });
 
   if (!response.ok) {
-    throw new Error('Não foi possível gerar o modelo lógico.');
+    throw await requestError(response, 'Não foi possível gerar o modelo lógico.');
   }
 
   return response.json();
@@ -138,7 +178,7 @@ export async function convertToLogicalModel(conceptualModel: ConceptualModel): P
   });
 
   if (!response.ok) {
-    throw new Error('Não foi possível converter o modelo conceitual para lógico.');
+    throw await requestError(response, 'Não foi possível converter o modelo conceitual para lógico.');
   }
 
   return response.json();
@@ -155,7 +195,7 @@ export async function convertToConceptualModel(logicalModel: LogicalModel): Prom
   });
 
   if (!response.ok) {
-    throw new Error('Não foi possível converter o modelo conceitual.');
+    throw await requestError(response, 'Não foi possível converter o modelo conceitual.');
   }
 
   return response.json();

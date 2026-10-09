@@ -1,4 +1,10 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  BadGatewayException,
+  GatewayTimeoutException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ENV, EnvironmentVariables } from 'src/config/environments';
@@ -313,14 +319,44 @@ export class OllamaProvider {
     return content;
   }
 
-  private providerException(message: string, error: unknown): InternalServerErrorException {
-    return new InternalServerErrorException(
-      {
-        message,
-        ollama: serializeOllamaError(error),
-      },
-      { cause: error instanceof Error ? error : undefined },
-    );
+  private providerException(message: string, error: unknown): Error {
+    const cause = error instanceof Error ? error : undefined;
+    const details = { ollama: serializeOllamaError(error) };
+
+    if (error instanceof OllamaError) {
+      if (error.code === 'connection_failed') {
+        return new ServiceUnavailableException(
+          {
+            code: 'OLLAMA_UNAVAILABLE',
+            message: 'Não foi possível conectar ao Ollama. Verifique se ele está em execução.',
+            ...details,
+          },
+          { cause },
+        );
+      }
+      if (error.code === 'timeout') {
+        return new GatewayTimeoutException(
+          {
+            code: 'OLLAMA_TIMEOUT',
+            message: 'O Ollama demorou mais do que o esperado para responder. Tente novamente.',
+            ...details,
+          },
+          { cause },
+        );
+      }
+      if (error.code === 'invalid_response' || error.code === 'token_limit') {
+        return new BadGatewayException(
+          {
+            code: 'OLLAMA_INVALID_RESPONSE',
+            message: 'O Ollama retornou uma resposta inválida. Tente novamente.',
+            ...details,
+          },
+          { cause },
+        );
+      }
+    }
+
+    return new BadGatewayException({ code: 'OLLAMA_GENERATION_FAILED', message, ...details }, { cause });
   }
 }
 

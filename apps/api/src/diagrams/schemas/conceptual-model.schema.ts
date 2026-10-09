@@ -21,7 +21,7 @@ export const CardinalitySchema = z.enum(['1:1', '1:N', 'N:N']);
 
 export const AttributeSchema = z.object({
   id: z.string().min(1, 'O atributo deve possuir um identificador único.'),
-  name: z.string().min(1, 'O atributo deve possuir um nome.'),
+  name: z.string().trim().min(1, 'O atributo deve possuir um nome.'),
   type: AttributeTypeSchema.default('unknown'),
   description: z.string().optional(),
   identifier: z.boolean().default(false),
@@ -45,7 +45,7 @@ export const AttributeSchema = z.object({
 
 export const EntitySchema = z.object({
   id: z.string().min(1, 'A entidade deve possuir um identificador único.'),
-  name: z.string().min(1, 'A entidade deve possuir um nome.'),
+  name: z.string().trim().min(1, 'A entidade deve possuir um nome.'),
   description: z.string().optional(),
   attributes: z.array(AttributeSchema).default([]),
 });
@@ -65,7 +65,7 @@ const GeneralizationHandleSchema = z.object({
 
 export const RelationshipSchema = z.object({
   id: z.string().min(1, 'O relacionamento deve possuir um identificador único.'),
-  name: z.string().min(1, 'O relacionamento deve possuir um nome.'),
+  name: z.string().trim().min(1, 'O relacionamento deve possuir um nome.'),
   description: z.string().optional(),
   type: CardinalitySchema.default('1:N'),
   kind: RelationshipKindSchema.default('relationship'),
@@ -110,25 +110,6 @@ export const ConceptualModelSchema = ConceptualModelStructureSchema.superRefine(
         code: z.ZodIssueCode.custom,
         path: ['entities', entityIndex],
         message: 'Relacionamentos não devem ser representados como entidades técnicas.',
-      });
-    }
-
-    const expectedIdentifierName = `id_${toSchemaIdentifier(entity.name)}`;
-    const technicalIdentifier = entity.attributes.find(
-      (attribute) => attribute.identifier && attribute.name.toLowerCase() === expectedIdentifierName,
-    );
-
-    if (!technicalIdentifier) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['entities', entityIndex, 'attributes'],
-        message: `A entidade deve possuir o identificador técnico "${expectedIdentifierName}".`,
-      });
-    } else if (technicalIdentifier.type !== 'uuid' || !technicalIdentifier.required || !technicalIdentifier.unique) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['entities', entityIndex, 'attributes'],
-        message: 'O identificador técnico deve ser uuid, obrigatório e único.',
       });
     }
 
@@ -401,12 +382,6 @@ function validateRelationshipCardinality(
 function isArtificialRelationshipIdentifier(value: string): boolean {
   const normalizedValue = value.toLowerCase();
   return normalizedValue.startsWith('id_relacionamento_') || normalizedValue.startsWith('id_relationship_');
-}
-
-function toSchemaIdentifier(value: string): string {
-  return normalizeSchemaName(value)
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
 }
 
 function normalizeSchemaName(value: string): string {

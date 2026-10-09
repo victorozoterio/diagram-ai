@@ -179,11 +179,9 @@
 }
 
 .feedbackArea {
-  height: 56px;
-  min-height: 56px;
-  flex: 0 0 56px;
+  min-height: 0;
+  flex: 0 0 auto;
   margin-top: 12px;
-  overflow-y: auto;
 }
 
 .error {
@@ -194,6 +192,8 @@
   color: #b91c1c;
   font-size: 11px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .questionnaire {

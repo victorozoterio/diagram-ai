@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { expect, it, vi } from 'vitest';
 
 import type { AiService } from '../../ai/ai.service';
@@ -243,6 +244,29 @@ it('trata uma falha da análise de ambiguidades como ausência de perguntas', as
     requiresClarification: false,
     questions: [],
   });
+});
+
+it('devolve erros estruturados e específicos antes de converter um modelo conceitual inválido', () => {
+  const invalidModel = model('data_associacao');
+  invalidModel.entities.push({ ...invalidModel.entities[0], id: 'origem_duplicada', name: ' origem ' });
+  const service = new DiagramsService({} as AiService, {} as never, {} as never, {} as never);
+
+  try {
+    service.convertToLogical(invalidModel);
+    throw new Error('A conversão deveria falhar.');
+  } catch (error) {
+    expect(error).toBeInstanceOf(BadRequestException);
+    const response = (error as BadRequestException).getResponse() as {
+      code: string;
+      message: string;
+      issues: Array<{ code: string; message: string }>;
+    };
+    expect(response.code).toBe('CONCEPTUAL_MODEL_CONVERSION_INVALID');
+    expect(response.message).toMatch(/corrija os problemas/i);
+    expect(response.issues).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 'entity-name-duplicate' })]),
+    );
+  }
 });
 
 it('repara a resposta lógica inválida antes de devolver o modelo normalizado', async () => {

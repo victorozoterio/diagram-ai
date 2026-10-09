@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnprocessableEntityException } from '@nestjs/common';
 import { z } from 'zod';
 import { AiService } from '../../ai/ai.service';
 import type { AmbiguityAnalysis, ClarificationAnswer } from '../../ai/ambiguity-analysis.schema';
@@ -7,6 +7,11 @@ import { AnalyzeAmbiguitiesDto } from '../dto/analyze-ambiguities.dto';
 import { GenerateDiagramDto } from '../dto/generate-diagram.dto';
 import { ConceptualModel, ConceptualModelSchema } from '../schemas/conceptual-model.schema';
 import { LogicalModel, LogicalModelSchema } from '../schemas/logical-model.schema';
+import {
+  conceptualSchemaIssues,
+  normalizeConceptualModelForConversion,
+  validateConceptualModelForConversion,
+} from './conceptual-conversion-validation';
 import { buildConceptualModelRepairContext } from './conceptual-model-repair-context';
 import { contextualizeRelationshipAttributes } from './contextualize-relationship-attributes';
 import { applyExplicitCardinalityClarifications } from './explicit-cardinality-clarifications';
@@ -171,7 +176,8 @@ export class DiagramsService {
       );
 
       if (attempt === this.maxValidationAttempts) {
-        throw new BadRequestException({
+        throw new UnprocessableEntityException({
+          code: 'GENERATED_MODEL_INVALID',
           message: params.invalidMessage,
           attempts: attempt,
           errors: validation.validationError,
@@ -198,12 +204,23 @@ export class DiagramsService {
   }
 
   convertToLogical(conceptualModel: ConceptualModel): LogicalModel {
-    const parsed = ConceptualModelSchema.safeParse(conceptualModel);
+    const normalizedModel = normalizeConceptualModelForConversion(conceptualModel);
+    const parsed = ConceptualModelSchema.safeParse(normalizedModel);
 
     if (!parsed.success) {
       throw new BadRequestException({
-        message: 'O modelo conceitual informado é inválido.',
-        errors: z.treeifyError(parsed.error),
+        code: 'CONCEPTUAL_MODEL_INVALID',
+        message: 'Não foi possível converter o modelo conceitual. Corrija os problemas indicados.',
+        issues: conceptualSchemaIssues(parsed.error, conceptualModel),
+      });
+    }
+
+    const issues = validateConceptualModelForConversion(parsed.data);
+    if (issues.length > 0) {
+      throw new BadRequestException({
+        code: 'CONCEPTUAL_MODEL_CONVERSION_INVALID',
+        message: 'Não foi possível converter o modelo conceitual. Corrija os problemas indicados.',
+        issues,
       });
     }
 
@@ -215,6 +232,7 @@ export class DiagramsService {
 
     if (!parsed.success) {
       throw new BadRequestException({
+        code: 'LOGICAL_MODEL_INVALID',
         message: 'O modelo lógico informado é inválido.',
         errors: z.treeifyError(parsed.error),
       });

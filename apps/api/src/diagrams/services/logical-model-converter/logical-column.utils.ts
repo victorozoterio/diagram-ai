@@ -59,9 +59,20 @@ export function ensurePrimaryKey(table: LogicalTable): LogicalColumn {
     return existingPrimaryKey;
   }
 
+  const generatedName = `id_${toSnakeCase(table.name)}`;
+  const columnWithGeneratedName = table.columns.find((column) => column.name === generatedName);
+  if (columnWithGeneratedName) {
+    columnWithGeneratedName.type = 'uuid';
+    columnWithGeneratedName.primaryKey = true;
+    columnWithGeneratedName.required = true;
+    columnWithGeneratedName.nullable = false;
+    columnWithGeneratedName.unique = false;
+    return columnWithGeneratedName;
+  }
+
   const idColumn: LogicalColumn = {
     id: `${table.id}_id`,
-    name: 'id',
+    name: generatedName,
     type: 'uuid',
     primaryKey: true,
     foreignKey: false,
