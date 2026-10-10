@@ -36,6 +36,7 @@ export function AttributeEdge({
     <>
       <BaseEdge
         id={id}
+        className='diagram-export-attribute-edge'
         path={path}
         style={{
           stroke: selected ? '#64748b' : '#94a3b8',

@@ -178,6 +178,7 @@ export function EdgeControlPointsEditor({
               <button
                 key={endpoint}
                 className='nodrag nopan nowheel'
+                data-export-editor-control
                 type='button'
                 aria-label='Reconectar extremidade da conexão'
                 style={controlButtonStyle(position, 'crosshair')}
@@ -194,6 +195,7 @@ export function EdgeControlPointsEditor({
           <button
             key={key}
             className='nodrag nopan nowheel'
+            data-export-editor-control
             type='button'
             aria-label='Ajustar curvatura da conexão'
             style={controlButtonStyle(position, 'grab')}

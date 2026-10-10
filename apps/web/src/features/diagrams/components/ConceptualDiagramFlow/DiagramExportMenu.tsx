@@ -21,6 +21,14 @@ type DiagramExportMenuProps = {
 
 const EXPORT_PADDING = 32;
 const EXPORT_PIXEL_RATIO = 2;
+export const EXPORT_EDITOR_CONTROL_SELECTORS = [
+  '.react-flow__resize-control',
+  '.react-flow__handle',
+  '.react-flow__selection',
+  '.react-flow__nodesselection',
+  '.react-flow__edgeupdater',
+  '[data-export-editor-control]',
+] as const;
 
 export function DiagramExportMenu({
   flowWrapperRef,
@@ -63,7 +71,7 @@ export function DiagramExportMenu({
     const bounds = getExportBounds(nodes);
     const width = Math.max(1, Math.ceil(bounds.width + EXPORT_PADDING * 2));
     const height = Math.max(1, Math.ceil(bounds.height + EXPORT_PADDING * 2));
-
+    const restoreExportPresentation = applyCleanExportPresentation(viewport);
     const restoreSvgStyles = inlineSvgStylesForExport(viewport);
     const restoreHtmlStyles = inlineHtmlStylesForExport(viewport);
 
@@ -96,6 +104,7 @@ export function DiagramExportMenu({
     } finally {
       restoreSvgStyles();
       restoreHtmlStyles();
+      restoreExportPresentation();
     }
   }, [flowWrapperRef, nodes]);
 
@@ -323,6 +332,57 @@ export function DiagramExportMenu({
   );
 
   return portalTarget ? createPortal(menu, portalTarget) : null;
+}
+
+/**
+ * A biblioteca captura o viewport real porque a cópia isolada do SVG perde
+ * arestas do React Flow. Estes estilos são aplicados apenas durante a captura
+ * e restaurados exatamente depois, sem mudar o estado selecionado dos nodes.
+ */
+export function applyCleanExportPresentation(viewport: HTMLElement): () => void {
+  const previousStyles = new Map<HTMLElement | SVGElement, string | null>();
+  const updateStyle = (element: HTMLElement | SVGElement, update: () => void) => {
+    if (!previousStyles.has(element)) previousStyles.set(element, element.getAttribute('style'));
+    update();
+  };
+
+  viewport.querySelectorAll<HTMLElement | SVGElement>(EXPORT_EDITOR_CONTROL_SELECTORS.join(',')).forEach((element) => {
+    updateStyle(element, () => element.style.setProperty('display', 'none'));
+  });
+
+  viewport.querySelectorAll<HTMLElement | SVGElement>("[class*='selected']").forEach((element) => {
+    updateStyle(element, () => element.style.setProperty('filter', 'none'));
+  });
+
+  resetExportEdgeStyle(viewport, 'diagram-export-attribute-edge', '#94a3b8', '1.5', updateStyle);
+  resetExportEdgeStyle(viewport, 'diagram-export-relationship-edge', '#b1b1b7', '1', updateStyle);
+  resetExportEdgeStyle(viewport, 'diagram-export-logical-edge', '#94a3b8', '1.5', updateStyle);
+
+  return () => {
+    previousStyles.forEach((style, element) => {
+      if (style === null) {
+        element.removeAttribute('style');
+      } else {
+        element.setAttribute('style', style);
+      }
+    });
+  };
+}
+
+function resetExportEdgeStyle(
+  viewport: HTMLElement,
+  className: string,
+  stroke: string,
+  strokeWidth: string,
+  updateStyle: (element: HTMLElement | SVGElement, update: () => void) => void,
+): void {
+  viewport.querySelectorAll<SVGElement>(`.${className}`).forEach((edge) => {
+    updateStyle(edge, () => {
+      edge.style.setProperty('stroke', stroke);
+      edge.style.setProperty('stroke-width', strokeWidth);
+      edge.style.removeProperty('filter');
+    });
+  });
 }
 
 function getExportBounds(nodes: Node[]) {

@@ -75,11 +75,19 @@ export function LogicalOrthogonalEdge({
 
   return (
     <>
-      <BaseEdge id={id} path={path} label={label} interactionWidth={20} style={style} />
+      <BaseEdge
+        id={id}
+        className='diagram-export-logical-edge'
+        path={path}
+        label={label}
+        interactionWidth={20}
+        style={style}
+      />
       {selected && (
         <>
           <path
             d={horizontalSource}
+            data-export-editor-control
             className={`${styles.segmentHitArea} ${styles.horizontalSegment}`}
             onPointerDown={(event) => startDragging('horizontal', event)}
             onPointerMove={moveDragging}
@@ -88,6 +96,7 @@ export function LogicalOrthogonalEdge({
           />
           <path
             d={verticalMiddle}
+            data-export-editor-control
             className={`${styles.segmentHitArea} ${styles.verticalSegment}`}
             onPointerDown={(event) => startDragging('vertical', event)}
             onPointerMove={moveDragging}
@@ -96,6 +105,7 @@ export function LogicalOrthogonalEdge({
           />
           <path
             d={horizontalTarget}
+            data-export-editor-control
             className={`${styles.segmentHitArea} ${styles.horizontalSegment}`}
             onPointerDown={(event) => startDragging('horizontal', event)}
             onPointerMove={moveDragging}

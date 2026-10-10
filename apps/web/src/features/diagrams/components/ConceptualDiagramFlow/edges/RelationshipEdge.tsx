@@ -43,7 +43,7 @@ export function RelationshipEdge({
       : undefined,
   };
 
-  if (!data) return <BaseEdge id={id} path={edgePath} style={edgeStyle} />;
+  if (!data) return <BaseEdge id={id} className='diagram-export-relationship-edge' path={edgePath} style={edgeStyle} />;
 
   const entityIsSource = source === data.entityId;
   const entityX = entityIsSource ? sourceX : targetX;
@@ -51,7 +51,7 @@ export function RelationshipEdge({
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} style={edgeStyle} />
+      <BaseEdge id={id} className='diagram-export-relationship-edge' path={edgePath} style={edgeStyle} />
       {!isGeneralization && participantCardinality && (
         <EdgeLabelRenderer>
           <button
