@@ -36,7 +36,7 @@ export function parseConceptualModelResponse(content: string, sourceText?: strin
         return {
           id: entityId,
           name: entity.n.toLowerCase(),
-          attributes: withTechnicalIdentifier(entityId, mapAttributes(entity.a ?? [], sourceText)),
+          attributes: mapAttributes(entity.a ?? [], sourceText),
         };
       }),
       standaloneAttributes: [],
@@ -176,9 +176,7 @@ export function compactConceptualModelForRepair(model: unknown): unknown {
   return {
     e: parsed.data.entities.map((entity) => ({
       n: entity.name,
-      a: entity.attributes
-        .filter((attribute) => attribute.name !== `id_${toIdentifier(entity.name)}`)
-        .map(compactAttribute),
+      a: entity.attributes.map(compactAttribute),
     })),
     r: parsed.data.relationships.map((relationship) => ({
       n: relationship.name,
@@ -248,35 +246,6 @@ function hasExplicitIdentifierSemantics(attributeName: string, sourceText?: stri
       const normalizedSentence = sentence.replaceAll('_', ' ');
       return normalizedSentence.includes(normalizedAttributeName) && identifierEvidence.test(normalizedSentence);
     });
-}
-
-function withTechnicalIdentifier(entityId: string, attributes: Attribute[]): Attribute[] {
-  const technicalName = `id_${entityId}`;
-  const existingIdentifier = attributes.find((attribute) => attribute.name === technicalName);
-
-  if (existingIdentifier) {
-    existingIdentifier.type = 'uuid';
-    existingIdentifier.identifier = true;
-    existingIdentifier.required = true;
-    existingIdentifier.unique = true;
-    return attributes;
-  }
-
-  return [
-    {
-      id: technicalName,
-      name: technicalName,
-      type: 'uuid',
-      identifier: true,
-      required: true,
-      unique: true,
-      multivalued: false,
-      composite: false,
-      derived: false,
-      components: [],
-    },
-    ...attributes,
-  ];
 }
 
 function compactAttribute(attribute: Attribute): GeneratedAttribute {

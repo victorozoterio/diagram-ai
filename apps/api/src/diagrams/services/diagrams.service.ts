@@ -15,6 +15,8 @@ import {
 import { buildConceptualModelRepairContext } from './conceptual-model-repair-context';
 import { contextualizeRelationshipAttributes } from './contextualize-relationship-attributes';
 import { applyExplicitCardinalityClarifications } from './explicit-cardinality-clarifications';
+import { applyExplicitDescriptionCardinality } from './explicit-description-cardinality';
+import { findMissingExplicitRelationships } from './explicit-relationship-coverage';
 import { misplacedGeneratedAttributes, reconcileGeneratedAttributePlacement } from './generated-attribute-placement';
 import { LogicalModelConverterService } from './logical-model-converter.service';
 import { LogicalToConceptualConverterService } from './logical-to-conceptual-converter.service';
@@ -49,17 +51,20 @@ export class DiagramsService {
       invalidMessage: 'O modelo conceitual gerado é inválido.',
       initialCandidate: async () =>
         applyExplicitCardinalityClarifications(
-          contextualizeRelationshipAttributes(
-            reconcileGeneratedAttributePlacement(
-              reconcileAssociationAttributes(
-                reconcileGeneratedAssociationArtifacts(
-                  this.normalizeCompositeStructure(
-                    await this.aiService.generateConceptualModel(dto.description, clarifications),
-                    'geração inicial',
+          applyExplicitDescriptionCardinality(
+            contextualizeRelationshipAttributes(
+              reconcileGeneratedAttributePlacement(
+                reconcileAssociationAttributes(
+                  reconcileGeneratedAssociationArtifacts(
+                    this.normalizeCompositeStructure(
+                      await this.aiService.generateConceptualModel(dto.description, clarifications),
+                      'geração inicial',
+                    ),
                   ),
                 ),
               ),
             ),
+            dto.description,
           ),
           clarifications,
         ),
@@ -67,11 +72,13 @@ export class DiagramsService {
         const parsed = ConceptualModelSchema.safeParse(candidate.model);
         const unsupportedAttributes = unsupportedRelationshipAttributes(candidate.model, clarifications);
         const misplacedAttributes = misplacedGeneratedAttributes(candidate.model);
+        const missingExplicitRelationships = findMissingExplicitRelationships(candidate.model, dto.description);
         if (
           parsed.success &&
           candidate.unresolved.length === 0 &&
           unsupportedAttributes.length === 0 &&
-          misplacedAttributes.length === 0
+          misplacedAttributes.length === 0 &&
+          missingExplicitRelationships.length === 0
         ) {
           return { success: true, data: parsed.data };
         }
@@ -93,27 +100,31 @@ export class DiagramsService {
                 }),
             ...(unsupportedAttributes.length > 0 ? { unsupportedRelationshipAttributes: unsupportedAttributes } : {}),
             ...(misplacedAttributes.length > 0 ? { misplacedEntityAttributes: misplacedAttributes } : {}),
+            ...(missingExplicitRelationships.length > 0 ? { missingExplicitRelationships } : {}),
           },
         };
       },
       repair: async (candidate, validationError) =>
         applyExplicitCardinalityClarifications(
-          contextualizeRelationshipAttributes(
-            reconcileGeneratedAttributePlacement(
-              reconcileAssociationAttributes(
-                reconcileGeneratedAssociationArtifacts(
-                  this.normalizeCompositeStructure(
-                    await this.aiService.fixConceptualModel({
-                      description: dto.description,
-                      invalidModel: candidate.model,
-                      validationError,
-                      clarifications,
-                    }),
-                    'reparo',
+          applyExplicitDescriptionCardinality(
+            contextualizeRelationshipAttributes(
+              reconcileGeneratedAttributePlacement(
+                reconcileAssociationAttributes(
+                  reconcileGeneratedAssociationArtifacts(
+                    this.normalizeCompositeStructure(
+                      await this.aiService.fixConceptualModel({
+                        description: dto.description,
+                        invalidModel: candidate.model,
+                        validationError,
+                        clarifications,
+                      }),
+                      'reparo',
+                    ),
                   ),
                 ),
               ),
             ),
+            dto.description,
           ),
           clarifications,
         ),

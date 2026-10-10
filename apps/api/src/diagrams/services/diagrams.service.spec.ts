@@ -246,6 +246,104 @@ it('trata uma falha da análise de ambiguidades como ausência de perguntas', as
   });
 });
 
+it('repara a omissão de um relacionamento explícito sem remover relações já geradas', async () => {
+  const base: ConceptualModel = {
+    metadata: {},
+    standaloneAttributes: [],
+    ambiguities: [],
+    entities: [
+      { id: 'usuario', name: 'usuario', attributes: [] },
+      { id: 'emprestimo', name: 'emprestimo', attributes: [] },
+      { id: 'livro', name: 'livro', attributes: [] },
+    ],
+    relationships: [
+      {
+        id: 'inclui',
+        name: 'inclui',
+        kind: 'relationship',
+        type: 'N:N',
+        participants: [
+          { entityId: 'emprestimo', cardinality: 'N' },
+          { entityId: 'livro', cardinality: 'N' },
+        ],
+        attributes: [
+          {
+            id: 'data_devolucao',
+            name: 'data_devolucao',
+            type: 'date',
+            identifier: false,
+            required: false,
+            unique: false,
+            multivalued: false,
+            composite: false,
+            derived: false,
+            components: [],
+          },
+        ],
+        subtypeIds: [],
+        subtypeHandles: {},
+      },
+    ],
+  };
+  const repaired: ConceptualModel = {
+    ...base,
+    relationships: [
+      ...base.relationships,
+      {
+        id: 'realiza',
+        name: 'realiza',
+        kind: 'relationship',
+        type: '1:N',
+        participants: [
+          { entityId: 'usuario', cardinality: '1' },
+          { entityId: 'emprestimo', cardinality: 'N' },
+        ],
+        attributes: [],
+        subtypeIds: [],
+        subtypeHandles: {},
+      },
+    ],
+  };
+  const fixConceptualModel = vi.fn(async ({ validationError }: { validationError: unknown }) => {
+    expect(validationError).toMatchObject({
+      missingExplicitRelationships: [expect.objectContaining({ participants: ['usuario', 'emprestimo'] })],
+    });
+    return repaired;
+  });
+  const aiService = {
+    generateConceptualModel: vi.fn(async () => base),
+    fixConceptualModel,
+  } as unknown as AiService;
+  const service = new DiagramsService(aiService, {} as never, {} as never, {} as never);
+
+  const result = (await service.generate({
+    description:
+      'Um usuário pode realizar vários empréstimos, mas cada empréstimo pertence a apenas um usuário. Um empréstimo pode incluir vários livros, e um livro pode constar em vários empréstimos. Para cada empréstimo de um livro, registre a data de devolução.',
+    mode: 'conceptual',
+    clarifications: [
+      {
+        questionId: 'cardinalidade_emprestimo_livro',
+        kind: 'cardinality',
+        answers: ['Um empréstimo pode incluir vários livros, e um livro pode constar em vários empréstimos (N:N)'],
+        cardinality: {
+          participants: [
+            { entity: 'emprestimo', cardinality: 'N' },
+            { entity: 'livro', cardinality: 'N' },
+          ],
+        },
+      },
+    ],
+  })) as ConceptualModel;
+
+  expect(fixConceptualModel).toHaveBeenCalledTimes(1);
+  expect(result.relationships).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ name: 'realiza' }),
+      expect.objectContaining({ name: 'inclui', attributes: [expect.objectContaining({ name: 'data_devolucao' })] }),
+    ]),
+  );
+});
+
 it('devolve erros estruturados e específicos antes de converter um modelo conceitual inválido', () => {
   const invalidModel = model('data_associacao');
   invalidModel.entities.push({ ...invalidModel.entities[0], id: 'origem_duplicada', name: ' origem ' });

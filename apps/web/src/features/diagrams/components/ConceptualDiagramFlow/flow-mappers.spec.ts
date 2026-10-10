@@ -52,6 +52,16 @@ it('mantém N no participante A e 1 no participante B ao mapear N:1 para React F
   ]);
 });
 
+it.each([
+  ['1:1', '1' as const, '1' as const],
+  ['N:N', 'N' as const, 'N' as const],
+])('mantém %s nas mesmas entidades ao mapear para React Flow', (_, first, second) => {
+  expect(mappedCardinalities(model(first, second))).toEqual([
+    ['origem', first],
+    ['destino', second],
+  ]);
+});
+
 it('renderiza N junto da primeira entidade mesmo quando ela é target da edge', () => {
   const reversed = model('N', '1');
   reversed.relationships[0].participants.reverse();

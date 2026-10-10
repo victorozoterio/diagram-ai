@@ -117,6 +117,19 @@ function buildTargetedCorrections(validationError: unknown): string {
     }
   }
 
+  if (validationError && typeof validationError === 'object' && 'missingExplicitRelationships' in validationError) {
+    const missing = validationError.missingExplicitRelationships;
+    if (Array.isArray(missing)) {
+      for (const item of missing) {
+        if (!item || typeof item !== 'object' || !('participants' in item) || !Array.isArray(item.participants))
+          continue;
+        corrections.push(
+          `- A descrição declara uma associação entre ${JSON.stringify(item.participants)}, mas ela está ausente de r[]. Crie exatamente um relacionamento comum com esses dois participantes; preserve a cardinalidade explicitamente informada no texto e não crie entidade artificial para a associação. Evidência: ${'evidence' in item ? String(item.evidence) : 'não disponível'}.`,
+        );
+      }
+    }
+  }
+
   corrections.push('- Preserve todos os elementos não envolvidos nos erros acima.');
   return corrections.join('\n');
 }
