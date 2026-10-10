@@ -1,4 +1,4 @@
-import { useNodesInitialized, useReactFlow } from '@xyflow/react';
+import { useNodesInitialized, useReactFlow, type Viewport } from '@xyflow/react';
 import { useEffect, useRef } from 'react';
 
 /** Ajusta a câmera somente na inicialização ou quando o layout inicial muda. */
@@ -6,14 +6,16 @@ export function FitViewOnNodeChange({
   nodeCount,
   fitViewKey = 0,
   onReady,
+  onFitted,
   skipFitView = false,
 }: {
   nodeCount: number;
   fitViewKey?: number;
   onReady?: () => void;
+  onFitted?: (viewport: Viewport) => void;
   skipFitView?: boolean;
 }) {
-  const { fitView } = useReactFlow();
+  const { fitView, getViewport } = useReactFlow();
   const nodesInitialized = useNodesInitialized({ includeHiddenNodes: true });
   const fittedKey = useRef<number | null>(null);
 
@@ -40,11 +42,13 @@ export function FitViewOnNodeChange({
     fittedKey.current = fitViewKey;
 
     const frameId = requestAnimationFrame(() => {
-      fitView({ padding: 0.1 });
-      onReady?.();
+      void fitView({ padding: 0.1 }).then(() => {
+        onFitted?.(getViewport());
+        onReady?.();
+      });
     });
     return () => cancelAnimationFrame(frameId);
-  }, [fitView, fitViewKey, nodeCount, nodesInitialized, onReady, skipFitView]);
+  }, [fitView, fitViewKey, getViewport, nodeCount, nodesInitialized, onFitted, onReady, skipFitView]);
 
   return null;
 }

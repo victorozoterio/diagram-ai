@@ -24,6 +24,7 @@ import {
 } from '../../components';
 import type { ClarificationStep } from '../../components/EditorAssistant/EditorAssistant';
 import { useDiagramEditor } from '../../hooks';
+import { type ViewportSize, viewportForProjectBounds } from '../../hooks/editor/mode-viewports';
 import {
   type ConceptualModel,
   createDiagramAiDocument,
@@ -94,6 +95,7 @@ export function DiagramGeneratorPage({
     conceptual: { dirty: false, status: null },
     logical: { dirty: false, status: null },
   });
+  const [flowViewportSize, setFlowViewportSize] = useState<ViewportSize | null>(null);
   const sqlMessageTimeout = useRef<number | null>(null);
   const diagramIdsRef = useRef(diagramIds);
   const diagramNameRef = useRef(diagramName);
@@ -107,6 +109,7 @@ export function DiagramGeneratorPage({
   const observedProjectSignatures = useRef<Partial<Record<EditorMode, string>>>({});
   const skipNextDirtyCheck = useRef<Record<EditorMode, boolean>>({ conceptual: false, logical: false });
   const restoredInitialDiagramId = useRef<string | undefined>(undefined);
+  const preparedInitialViewportId = useRef<string | undefined>(undefined);
   const {
     description,
     conceptualModel,
@@ -130,6 +133,7 @@ export function DiagramGeneratorPage({
     logicalEdgeRestoreVersion,
     consumeRestoredEdges,
     updateViewport,
+    restoreViewport,
     entityPositions,
     elementPositions,
     nodeSizes,
@@ -202,6 +206,13 @@ export function DiagramGeneratorPage({
   const setStoredDiagramName = useCallback((name?: string) => {
     diagramNameRef.current = name;
     setDiagramName(name);
+  }, []);
+
+  const handleViewportSizeChange = useCallback((size: ViewportSize) => {
+    if (size.width <= 0 || size.height <= 0) return;
+    setFlowViewportSize((current) =>
+      current?.width === size.width && current.height === size.height ? current : size,
+    );
   }, []);
 
   const markProjectDirty = useCallback(
@@ -502,6 +513,7 @@ export function DiagramGeneratorPage({
           : 'logical',
     );
     restoredInitialDiagramId.current = initialDiagramId;
+    preparedInitialViewportId.current = undefined;
   }, [
     initialDiagramId,
     initialDiagramName,
@@ -510,6 +522,31 @@ export function DiagramGeneratorPage({
     setStoredDiagramName,
     updateSaveState,
   ]);
+
+  useEffect(() => {
+    if (
+      !initialProject ||
+      !initialDiagramId ||
+      !flowViewportSize ||
+      restoredInitialDiagramId.current !== initialDiagramId ||
+      preparedInitialViewportId.current === initialDiagramId
+    ) {
+      return;
+    }
+
+    const initialMode: EditorMode = initialProject.models[initialProject.lastSavedMode]
+      ? initialProject.lastSavedMode
+      : initialProject.models.conceptual
+        ? 'conceptual'
+        : 'logical';
+    const hiddenMode: EditorMode = initialMode === 'conceptual' ? 'logical' : 'conceptual';
+    const hiddenProject = initialProject.models[hiddenMode];
+
+    if (hiddenProject) {
+      restoreViewport(hiddenMode, viewportForProjectBounds(hiddenProject, flowViewportSize));
+    }
+    preparedInitialViewportId.current = initialDiagramId;
+  }, [flowViewportSize, initialDiagramId, initialProject, restoreViewport]);
 
   async function generateActiveModel(clarifications?: ClarificationAnswer[]) {
     if (mode === 'logical') {
@@ -656,6 +693,7 @@ export function DiagramGeneratorPage({
                 }}
                 onVisualChange={() => markProjectDirty('conceptual')}
                 onViewportChange={(viewport) => updateViewport('conceptual', viewport)}
+                onViewportSizeChange={handleViewportSizeChange}
                 restoredViewport={conceptualViewport}
                 viewportRestoreVersion={conceptualViewportRestoreVersion}
                 onRemoveEntity={removeEntity}
@@ -714,6 +752,7 @@ export function DiagramGeneratorPage({
               }}
               onVisualChange={() => markProjectDirty('logical')}
               onViewportChange={(viewport) => updateViewport('logical', viewport)}
+              onViewportSizeChange={handleViewportSizeChange}
               onAddTable={addLogicalTable}
               onUpdateTable={updateLogicalTable}
               onUpdateModel={updateLogicalModel}

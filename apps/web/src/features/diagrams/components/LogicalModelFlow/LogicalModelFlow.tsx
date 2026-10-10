@@ -48,6 +48,7 @@ type LogicalModelFlowProps = {
   onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
   onVisualChange?: () => void;
   onViewportChange?: (viewport: { x: number; y: number; zoom: number }) => void;
+  onViewportSizeChange?: (size: { width: number; height: number }) => void;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -484,6 +485,7 @@ export function LogicalModelFlow({
   onEditableProjectReady,
   onVisualChange,
   onViewportChange,
+  onViewportSizeChange,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
@@ -506,6 +508,17 @@ export function LogicalModelFlow({
   const [viewportReadyForCount, setViewportReadyForCount] = useState<number | null>(null);
   const editingStartSizes = useRef<Record<string, { width: number; height: number }>>({});
   const handleViewportReady = useCallback(() => setViewportReadyForCount(model.tables.length), [model.tables.length]);
+
+  useEffect(() => {
+    const element = flowWrapperRef.current;
+    if (!element || !onViewportSizeChange) return;
+
+    const reportSize = () => onViewportSizeChange({ width: element.clientWidth, height: element.clientHeight });
+    reportSize();
+    const observer = new ResizeObserver(reportSize);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [onViewportSizeChange]);
   const highlightedFieldKeys = useMemo(() => getSelectedEdgeFieldKeys(model, selectedEdgeId), [model, selectedEdgeId]);
   const handleResize = useCallback((nodeId: string, size: { width: number; height: number }) => {
     setNodes((currentNodes) =>
@@ -926,6 +939,7 @@ export function LogicalModelFlow({
           fitViewKey={layoutVersion}
           onReady={restoredViewport ? undefined : handleViewportReady}
           skipFitView={Boolean(restoredViewport)}
+          onFitted={onViewportChange}
         />
         <RestoreViewport
           viewport={restoredViewport}

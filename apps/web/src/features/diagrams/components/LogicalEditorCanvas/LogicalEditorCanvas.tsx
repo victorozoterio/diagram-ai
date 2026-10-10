@@ -14,6 +14,7 @@ type LogicalEditorCanvasProps = {
   onEditableProjectReady?: (getProject: () => DiagramAiProject) => void;
   onVisualChange?: () => void;
   onViewportChange?: (viewport: { x: number; y: number; zoom: number }) => void;
+  onViewportSizeChange?: (size: { width: number; height: number }) => void;
   onAddTable: (position: { x: number; y: number }) => void;
   onUpdateTable: (table: LogicalTable) => void;
   onUpdateModel: (model: LogicalModel) => void;
@@ -36,6 +37,7 @@ export function LogicalEditorCanvas({
   onEditableProjectReady,
   onVisualChange,
   onViewportChange,
+  onViewportSizeChange,
   onAddTable,
   onUpdateTable,
   onUpdateModel,
@@ -66,6 +68,7 @@ export function LogicalEditorCanvas({
         onEditableProjectReady={onEditableProjectReady}
         onVisualChange={onVisualChange}
         onViewportChange={onViewportChange}
+        onViewportSizeChange={onViewportSizeChange}
         onAddTable={onAddTable}
         onUpdateTable={onUpdateTable}
         onUpdateModel={onUpdateModel}

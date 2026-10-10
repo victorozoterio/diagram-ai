@@ -256,14 +256,16 @@ export function useDiagramEditor() {
         ...currentVersions,
         conceptual: currentVersions.conceptual + 1,
       }));
-      restoreViewport('conceptual', restoredProject.visual.viewport);
+      clearViewport('conceptual');
+      setLayoutVersion((version) => version + 1);
       return;
     }
 
     setLogicalModel(restoreLogicalModel(restoredProject.semanticModel as LogicalModel, restoredProject.visual.nodes));
     setRestoredEdges((currentEdges) => ({ ...currentEdges, logical: restoredProject.visual.edges }));
     setEdgeRestoreVersions((currentVersions) => ({ ...currentVersions, logical: currentVersions.logical + 1 }));
-    restoreViewport('logical', restoredProject.visual.viewport);
+    clearViewport('logical');
+    setLogicalLayoutVersion((version) => version + 1);
   }
 
   return {
@@ -294,6 +296,7 @@ export function useDiagramEditor() {
     consumeRestoredEdges,
     setDescription,
     updateViewport,
+    restoreViewport,
     setConceptualModel,
     setLogicalModel,
     restoreDiagramProject,

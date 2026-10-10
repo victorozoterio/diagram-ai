@@ -65,6 +65,19 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
     props.onEditableProjectReady?.(getEditableProject);
   }, [getEditableProject, props.onEditableProjectReady]);
 
+  useEffect(() => {
+    const element = flowWrapperRef.current;
+    if (!element || !props.onViewportSizeChange) return;
+
+    const reportSize = () => {
+      props.onViewportSizeChange?.({ width: element.clientWidth, height: element.clientHeight });
+    };
+    reportSize();
+    const observer = new ResizeObserver(reportSize);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [flowWrapperRef, props.onViewportSizeChange]);
+
   useSelectAllShortcut({ onSelectAllNodes: selectAllNodes, onSelectAllEdges: selectAllEdges });
 
   return (
@@ -137,6 +150,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
           nodeCount={nodes.length}
           fitViewKey={props.layoutVersion ?? 0}
           skipFitView={Boolean(props.restoredViewport)}
+          onFitted={props.onViewportChange}
         />
         <RestoreViewport viewport={props.restoredViewport} restoreKey={props.viewportRestoreVersion} />
       </ReactFlow>
