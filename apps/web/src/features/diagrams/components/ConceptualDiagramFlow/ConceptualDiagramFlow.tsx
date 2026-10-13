@@ -97,9 +97,10 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
         nodes={nodes}
         portalTarget={props.exportMenuTarget}
         disabled={props.exportDisabled}
-        onOpenProject={props.onOpenProject}
+        onOpenDocument={props.onOpenDocument}
         onNavigateToDiagrams={props.onNavigateToDiagrams}
         getEditableProject={getEditableProject}
+        getEditableDocument={props.getEditableDocument}
         onSaveProject={props.onSaveProject}
         isSavingProject={props.isSavingProject}
       />

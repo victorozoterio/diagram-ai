@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 
 import {
   createDiagramAiProject,
+  type DiagramAiDocument,
   type DiagramAiFlowEdge,
   type DiagramAiProject,
   hydrateFlowEdges,
@@ -41,7 +42,8 @@ type LogicalModelFlowProps = {
   model: LogicalModel;
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
-  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  getEditableDocument?: () => DiagramAiDocument;
+  onOpenDocument?: (document: DiagramAiDocument) => void | Promise<void>;
   onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;
@@ -478,7 +480,8 @@ export function LogicalModelFlow({
   model,
   exportMenuTarget,
   exportDisabled,
-  onOpenProject,
+  getEditableDocument,
+  onOpenDocument,
   onNavigateToDiagrams,
   onSaveProject,
   isSavingProject,
@@ -827,9 +830,10 @@ export function LogicalModelFlow({
         nodes={nodes}
         portalTarget={exportMenuTarget}
         disabled={exportDisabled}
-        onOpenProject={onOpenProject}
+        onOpenDocument={onOpenDocument}
         onNavigateToDiagrams={onNavigateToDiagrams}
         getEditableProject={() => editableProjectFactory.current()}
+        getEditableDocument={getEditableDocument}
         onSaveProject={onSaveProject}
         isSavingProject={isSavingProject}
       />

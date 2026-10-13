@@ -119,13 +119,26 @@ describe('documento Diagram.AI', () => {
     expect(restored[0].data).toHaveProperty('onCycleRelationshipCardinality');
   });
 
-  it('preserva modelos conceitual e lógico com viewports independentes', () => {
-    const document = createDiagramAiDocument({ conceptual, logical }, 'logical');
+  it('preserva os dois modelos, o nome do projeto e o último modo ativo', () => {
+    const document = createDiagramAiDocument({ conceptual, logical }, 'logical', 'Sistema acadêmico');
     const parsed = parseDiagramAiDocument(document);
 
+    expect(parsed.name).toBe('Sistema acadêmico');
     expect(parsed.lastSavedMode).toBe('logical');
     expect(parsed.models.conceptual?.visual.viewport).toEqual(conceptual.visual.viewport);
     expect(parsed.models.logical?.visual.viewport).toEqual(logical.visual.viewport);
+    expect(parsed.models.conceptual?.visual.edges).toEqual(conceptual.visual.edges);
+    expect(parsed.models.logical?.visual.edges).toEqual(logical.visual.edges);
+  });
+
+  it('aceita um documento com apenas um modelo e preserva o outro ausente', () => {
+    const document = createDiagramAiDocument({ logical }, 'logical', 'Apenas lógico');
+    const parsed = parseDiagramAiDocument(document);
+
+    expect(parsed.name).toBe('Apenas lógico');
+    expect(parsed.lastSavedMode).toBe('logical');
+    expect(parsed.models.logical).toEqual(logical);
+    expect(parsed.models.conceptual).toBeUndefined();
   });
 
   it('aceita projetos v1 e os promove para um documento com um único modelo', () => {
@@ -134,6 +147,21 @@ describe('documento Diagram.AI', () => {
     expect(parsed.lastSavedMode).toBe('conceptual');
     expect(parsed.models.conceptual).toEqual(conceptual);
     expect(parsed.models.logical).toBeUndefined();
+  });
+
+  it('aceita documentos v2 antigos sem nome do projeto', () => {
+    const legacyDocument = {
+      format: 'diagram-ai',
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      lastSavedMode: 'conceptual',
+      models: { conceptual },
+    };
+
+    const parsed = parseDiagramAiDocument(legacyDocument);
+
+    expect(parsed.name).toBeUndefined();
+    expect(parsed.models.conceptual).toEqual(conceptual);
   });
 
   it('mantém o outro modelo ao salvar uma atualização de um modo', () => {

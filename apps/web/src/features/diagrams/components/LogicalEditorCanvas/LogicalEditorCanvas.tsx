@@ -1,4 +1,4 @@
-import type { DiagramAiFlowEdge, DiagramAiProject, LogicalModel, LogicalTable } from '../../types';
+import type { DiagramAiDocument, DiagramAiFlowEdge, DiagramAiProject, LogicalModel, LogicalTable } from '../../types';
 import { EmptyCanvasState } from '../EmptyCanvasState/EmptyCanvasState';
 import { LogicalModelFlow } from '../LogicalModelFlow/LogicalModelFlow';
 import styles from './LogicalEditorCanvas.module.css';
@@ -7,7 +7,8 @@ type LogicalEditorCanvasProps = {
   model: LogicalModel;
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
-  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  getEditableDocument?: () => DiagramAiDocument;
+  onOpenDocument?: (document: DiagramAiDocument) => void | Promise<void>;
   onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;
@@ -30,7 +31,8 @@ export function LogicalEditorCanvas({
   model,
   exportMenuTarget,
   exportDisabled,
-  onOpenProject,
+  getEditableDocument,
+  onOpenDocument,
   onNavigateToDiagrams,
   onSaveProject,
   isSavingProject,
@@ -61,7 +63,8 @@ export function LogicalEditorCanvas({
         model={model}
         exportMenuTarget={exportMenuTarget}
         exportDisabled={exportDisabled}
-        onOpenProject={onOpenProject}
+        getEditableDocument={getEditableDocument}
+        onOpenDocument={onOpenDocument}
         onNavigateToDiagrams={onNavigateToDiagrams}
         onSaveProject={onSaveProject}
         isSavingProject={isSavingProject}

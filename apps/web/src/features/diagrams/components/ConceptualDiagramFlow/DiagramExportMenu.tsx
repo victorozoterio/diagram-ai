@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf';
 import { type ChangeEvent, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditorKeyboardShortcuts } from '../../hooks/useEditorKeyboardShortcuts';
-import { type DiagramAiProject, parseDiagramAiProject } from '../../types';
+import { type DiagramAiDocument, type DiagramAiProject, parseDiagramAiDocument } from '../../types';
 import styles from './DiagramExportMenu.module.css';
 
 type DiagramExportMenuProps = {
@@ -13,7 +13,8 @@ type DiagramExportMenuProps = {
   portalTarget?: Element | null;
   disabled?: boolean;
   getEditableProject?: () => DiagramAiProject;
-  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  getEditableDocument?: () => DiagramAiDocument;
+  onOpenDocument?: (document: DiagramAiDocument) => void | Promise<void>;
   onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;
@@ -36,7 +37,8 @@ export function DiagramExportMenu({
   portalTarget,
   disabled = false,
   getEditableProject,
-  onOpenProject,
+  getEditableDocument,
+  onOpenDocument,
   onNavigateToDiagrams,
   onSaveProject,
   isSavingProject = false,
@@ -136,17 +138,17 @@ export function DiagramExportMenu({
   );
 
   const downloadEditableProjectFile = useCallback(() => {
-    if (!getEditableProject) return;
+    if (!getEditableDocument) return;
 
     setMessage('');
     try {
-      const project = getEditableProject();
-      downloadEditableProject(project);
+      const document = getEditableDocument();
+      downloadEditableProject(document);
       setMessage('Projeto editável baixado.');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Não foi possível exportar o projeto editável.');
     }
-  }, [getEditableProject]);
+  }, [getEditableDocument]);
 
   const saveEditableProject = useCallback(async () => {
     if (!getEditableProject || !onSaveProject) return;
@@ -166,7 +168,7 @@ export function DiagramExportMenu({
   }, []);
 
   const canSaveProject = !disabled && !!getEditableProject && !!onSaveProject && !isExporting && !isSavingProject;
-  const canDownloadProject = !disabled && !!getEditableProject && !isExporting && !isSavingProject;
+  const canDownloadProject = !disabled && !!getEditableDocument && !isExporting && !isSavingProject;
 
   useEditorKeyboardShortcuts({
     canDownload: canDownloadProject,
@@ -191,7 +193,7 @@ export function DiagramExportMenu({
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       event.target.value = '';
-      if (!file || !onOpenProject) return;
+      if (!file || !onOpenDocument) return;
 
       setMessage('');
       try {
@@ -199,14 +201,14 @@ export function DiagramExportMenu({
           throw new Error('Selecione um arquivo com extensão .diagramai.');
         }
 
-        const project = parseDiagramAiProject(JSON.parse(await file.text()));
-        await onOpenProject(project);
+        const document = parseDiagramAiDocument(JSON.parse(await file.text()));
+        await onOpenDocument(document);
         setMessage('Arquivo aberto.');
       } catch (error) {
         setMessage(error instanceof Error ? error.message : 'Não foi possível abrir o arquivo.');
       }
     },
-    [onOpenProject],
+    [onOpenDocument],
   );
 
   const menu = (
@@ -255,7 +257,7 @@ export function DiagramExportMenu({
             Meus diagramas
           </button>
           <span className={styles.divider} aria-hidden='true' />
-          <button type='button' role='menuitem' disabled={!onOpenProject || isExporting} onClick={openProjectFile}>
+          <button type='button' role='menuitem' disabled={!onOpenDocument || isExporting} onClick={openProjectFile}>
             Abrir arquivo
           </button>
           <button
@@ -545,11 +547,11 @@ function downloadDataUrl(dataUrl: string, fileName: string) {
   link.click();
 }
 
-function downloadEditableProject(project: DiagramAiProject) {
-  const blob = new Blob([JSON.stringify(project, null, 2)], { type: 'application/json;charset=utf-8' });
+function downloadEditableProject(editableDocument: DiagramAiDocument) {
+  const blob = new Blob([JSON.stringify(editableDocument, null, 2)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.download = `diagrama-${project.modelType}.diagramai`;
+  link.download = 'diagrama.diagramai';
   link.href = url;
   link.click();
   URL.revokeObjectURL(url);

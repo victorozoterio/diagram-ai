@@ -116,6 +116,7 @@ export function DiagramGeneratorPage({
     logicalModel,
     setLogicalModel,
     restoreDiagramProject,
+    clearDiagram,
     isGenerating,
     isConverting,
     error,
@@ -472,24 +473,47 @@ export function DiagramGeneratorPage({
     if (nextMode !== 'logical') setIsSqlModalOpen(false);
   }
 
-  const openDiagramProject = useCallback(
-    (project: DiagramAiProject, diagramId?: string, diagramName?: string) => {
-      if (diagramId) {
-        skipNextDirtyCheck.current[project.modelType] = true;
-        diagramIdsRef.current = { conceptual: diagramId, logical: diagramId };
-        setDiagramIds(diagramIdsRef.current);
-        updateSaveState(project.modelType, { dirty: false, status: 'saved' });
-      } else {
-        diagramIdsRef.current = { ...diagramIdsRef.current, [project.modelType]: undefined };
-        setDiagramIds(diagramIdsRef.current);
+  const getEditableDocument = useCallback((): DiagramAiDocument => {
+    const activeProject = editableProjectFactories.current[mode]?.();
+    const models = {
+      ...savedModelsRef.current,
+      ...(activeProject ? { [mode]: activeProject } : {}),
+    };
+
+    return createDiagramAiDocument(models, mode, diagramNameRef.current ?? NEW_DIAGRAM_LABEL);
+  }, [mode]);
+
+  const openDiagramDocument = useCallback(
+    (document: DiagramAiDocument) => {
+      const models = document.models;
+      const targetMode: EditorMode = models[document.lastSavedMode]
+        ? document.lastSavedMode
+        : models.conceptual
+          ? 'conceptual'
+          : 'logical';
+
+      clearDiagram();
+      savedModelsRef.current = models;
+      diagramIdsRef.current = {};
+      setDiagramIds({});
+      setStoredDiagramName(document.name);
+      skipNextDirtyCheck.current = { conceptual: true, logical: true };
+      updateSaveState('conceptual', { dirty: false, status: null });
+      updateSaveState('logical', { dirty: false, status: null });
+
+      if (models.conceptual) restoreDiagramProject(models.conceptual);
+      if (models.logical) restoreDiagramProject(models.logical);
+
+      const hiddenMode: EditorMode = targetMode === 'conceptual' ? 'logical' : 'conceptual';
+      const hiddenProject = models[hiddenMode];
+      if (hiddenProject && flowViewportSize) {
+        restoreViewport(hiddenMode, viewportForProjectBounds(hiddenProject, flowViewportSize));
       }
-      setStoredDiagramName(diagramName);
-      savedModelsRef.current = { [project.modelType]: project };
-      restoreDiagramProject(project);
-      setMode(project.modelType);
+
+      setMode(targetMode);
       setIsSqlModalOpen(false);
     },
-    [restoreDiagramProject, setStoredDiagramName, updateSaveState],
+    [clearDiagram, flowViewportSize, restoreDiagramProject, restoreViewport, setStoredDiagramName, updateSaveState],
   );
 
   useEffect(() => {
@@ -684,7 +708,8 @@ export function DiagramGeneratorPage({
                 model={activeConceptualModel}
                 exportMenuTarget={exportMenuTarget}
                 exportDisabled={!hasConceptualContent}
-                onOpenProject={openDiagramProject}
+                getEditableDocument={getEditableDocument}
+                onOpenDocument={openDiagramDocument}
                 onNavigateToDiagrams={onNavigateToDiagrams}
                 onSaveProject={user ? (project) => saveProject('conceptual', project) : undefined}
                 isSavingProject={saveStates.conceptual.status === 'saving'}
@@ -743,7 +768,8 @@ export function DiagramGeneratorPage({
               model={logicalModel ?? emptyLogicalModel}
               exportMenuTarget={exportMenuTarget}
               exportDisabled={!hasLogicalContent}
-              onOpenProject={openDiagramProject}
+              getEditableDocument={getEditableDocument}
+              onOpenDocument={openDiagramDocument}
               onNavigateToDiagrams={onNavigateToDiagrams}
               onSaveProject={user ? (project) => saveProject('logical', project) : undefined}
               isSavingProject={saveStates.logical.status === 'saving'}

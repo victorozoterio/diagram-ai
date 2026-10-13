@@ -2,6 +2,7 @@ import type { DiagramSize, EdgeControlPoints } from '../../hooks/editor/editor.t
 import type {
   AttributeType,
   ConceptualModel,
+  DiagramAiDocument,
   DiagramAiFlowEdge,
   DiagramAiProject,
   ElementKind,
@@ -91,7 +92,8 @@ export type ConceptualDiagramFlowProps = {
   layoutVersion?: number;
   exportMenuTarget?: Element | null;
   exportDisabled?: boolean;
-  onOpenProject?: (project: DiagramAiProject) => void | Promise<void>;
+  getEditableDocument?: () => DiagramAiDocument;
+  onOpenDocument?: (document: DiagramAiDocument) => void | Promise<void>;
   onNavigateToDiagrams?: () => void;
   onSaveProject?: (project: DiagramAiProject) => Promise<void>;
   isSavingProject?: boolean;

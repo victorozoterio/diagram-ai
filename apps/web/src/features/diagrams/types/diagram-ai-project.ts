@@ -58,6 +58,8 @@ export type DiagramAiDocument = {
   format: typeof DIAGRAM_AI_FORMAT;
   version: typeof DIAGRAM_AI_DOCUMENT_VERSION;
   exportedAt: string;
+  /** Nome do projeto no momento da exportação. Ausente em documentos v2 antigos. */
+  name?: string;
   lastSavedMode: DiagramAiEditorMode;
   models: Partial<Record<DiagramAiEditorMode, DiagramAiProject>>;
 };
@@ -169,11 +171,14 @@ export function parseDiagramAiProject(value: unknown): DiagramAiProject {
 export function createDiagramAiDocument(
   models: Partial<Record<DiagramAiEditorMode, DiagramAiProject>>,
   lastSavedMode: DiagramAiEditorMode,
+  name?: string,
 ): DiagramAiDocument {
+  const normalizedName = name?.trim();
   return {
     format: DIAGRAM_AI_FORMAT,
     version: DIAGRAM_AI_DOCUMENT_VERSION,
     exportedAt: new Date().toISOString(),
+    ...(normalizedName ? { name: normalizedName } : {}),
     lastSavedMode,
     models,
   };
@@ -211,6 +216,7 @@ export function parseDiagramAiDocument(value: unknown): DiagramAiDocument {
     format: DIAGRAM_AI_FORMAT,
     version: DIAGRAM_AI_DOCUMENT_VERSION,
     exportedAt: value.exportedAt as string,
+    ...(typeof value.name === 'string' && value.name.trim() ? { name: value.name.trim() } : {}),
     lastSavedMode,
     models,
   };
