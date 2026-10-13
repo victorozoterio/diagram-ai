@@ -45,6 +45,17 @@ function buildTargetedCorrections(validationError: unknown): string {
     );
   }
 
+  for (const conflict of repairContext.entityRelationshipAttributes) {
+    const participants = conflict.participants.join(', ') || 'nenhum participante válido';
+    const supportingRelationships = conflict.supportingRelationships.join(', ');
+    corrections.push(
+      `- No relacionamento "${conflict.relationship}", "${conflict.relationshipAttribute}" representa a entidade "${conflict.representedEntity}", mas está em a. Os participantes atuais são: ${participants}.`,
+      supportingRelationships
+        ? `- "${conflict.representedEntity}" já participa de ${supportingRelationships} com uma entidade desta associação. Isso é redundância: remova "${conflict.relationshipAttribute}" de a e preserve os relacionamentos existentes; não crie uma terceira associação nem adicione essa entidade a p deste relacionamento.`
+        : `- Remova "${conflict.relationshipAttribute}" de a. Se "${conflict.representedEntity}" já estiver em p, preserve os demais participantes e atributos próprios da associação. Se não estiver em p, corrija p para que a entidade participe da associação descrita, sem transformar a entidade em atributo.`,
+    );
+  }
+
   if (serializedError.includes('Atributos compostos devem possuir componentes')) {
     corrections.push(
       '- Para cada atributo composto, array c não vazio exige a flag "c" em f e flag "c" em f exige array c não vazio com as partes informadas no texto.',
@@ -136,23 +147,28 @@ function buildTargetedCorrections(validationError: unknown): string {
 
 function readRepairContext(validationError: unknown): ConceptualModelRepairContext {
   if (!validationError || typeof validationError !== 'object' || !('repair' in validationError)) {
-    return { duplicateRelationshipAttributes: [], compositeAttributes: [] };
+    return { duplicateRelationshipAttributes: [], entityRelationshipAttributes: [], compositeAttributes: [] };
   }
 
   const repair = validationError.repair;
   if (!repair || typeof repair !== 'object') {
-    return { duplicateRelationshipAttributes: [], compositeAttributes: [] };
+    return { duplicateRelationshipAttributes: [], entityRelationshipAttributes: [], compositeAttributes: [] };
   }
 
   const duplicateRelationshipAttributes =
     'duplicateRelationshipAttributes' in repair ? repair.duplicateRelationshipAttributes : undefined;
   const compositeAttributes = 'compositeAttributes' in repair ? repair.compositeAttributes : undefined;
+  const entityRelationshipAttributes =
+    'entityRelationshipAttributes' in repair ? repair.entityRelationshipAttributes : undefined;
   return {
     duplicateRelationshipAttributes: Array.isArray(duplicateRelationshipAttributes)
       ? (duplicateRelationshipAttributes as ConceptualModelRepairContext['duplicateRelationshipAttributes'])
       : [],
     compositeAttributes: Array.isArray(compositeAttributes)
       ? (compositeAttributes as ConceptualModelRepairContext['compositeAttributes'])
+      : [],
+    entityRelationshipAttributes: Array.isArray(entityRelationshipAttributes)
+      ? (entityRelationshipAttributes as ConceptualModelRepairContext['entityRelationshipAttributes'])
       : [],
   };
 }

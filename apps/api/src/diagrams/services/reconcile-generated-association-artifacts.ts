@@ -7,8 +7,14 @@ import type { ConceptualModel, Entity, Relationship } from '../schemas/conceptua
 export function reconcileGeneratedAssociationArtifacts(model: ConceptualModel): ConceptualModel {
   const entityById = new Map(model.entities.map((entity) => [entity.id, entity]));
   let removedAttribute = false;
-  const relationships = model.relationships.map((relationship) => {
+  const participantEchoesRemoved = model.relationships.map((relationship) => {
     const attributes = removeParticipantEchoAttributes(relationship, entityById);
+    if (attributes === relationship.attributes) return relationship;
+    removedAttribute = true;
+    return { ...relationship, attributes };
+  });
+  const relationships = participantEchoesRemoved.map((relationship) => {
+    const attributes = removeRelatedEntityEchoAttributes(relationship, participantEchoesRemoved, entityById);
     if (attributes === relationship.attributes) return relationship;
     removedAttribute = true;
     return { ...relationship, attributes };
@@ -69,13 +75,20 @@ function removeParticipantEchoAttributes(
   entityById: Map<string, Entity>,
 ): Relationship['attributes'] {
   if (relationship.kind !== 'relationship') return relationship.attributes;
-  const participantTerms = relationship.participants
+  const participantNames = relationship.participants
     .map(({ entityId }) => entityById.get(entityId)?.name)
-    .filter((name): name is string => Boolean(name))
-    .flatMap(words);
+    .filter((name): name is string => Boolean(name));
+  const participantTerms = participantNames.flatMap(words);
   const relationshipTerms = words(relationship.name);
 
   const attributes = relationship.attributes.filter((attribute) => {
+    // Um atributo com o mesmo conceito de um participante nunca descreve um
+    // fato adicional da associação. A comparação inclui singular/plural e é
+    // mais precisa que a heurística por termos usada para artefatos compostos.
+    if (participantNames.some((participantName) => sameEntityConcept(attribute.name, participantName))) {
+      return false;
+    }
+
     const attributeTerms = words(attribute.name);
     if (attributeTerms.length === 0) return true;
     const repeatsParticipant = attributeTerms.some((term) =>
@@ -91,6 +104,52 @@ function removeParticipantEchoAttributes(
     );
   });
   return attributes.length === relationship.attributes.length ? relationship.attributes : attributes;
+}
+
+function sameEntityConcept(first: string, second: string): boolean {
+  const left = canonicalEntityName(first);
+  const right = canonicalEntityName(second);
+  return left === right || left === `${right}s` || right === `${left}s` || sameTerm(left, right);
+}
+
+/**
+ * Remove a entidade indevidamente repetida como atributo apenas quando outra
+ * associação válida já a conecta a um participante deste relacionamento.
+ * Isso evita inferir uma relação ternária ou descartar um atributo ambíguo.
+ */
+function removeRelatedEntityEchoAttributes(
+  relationship: Relationship,
+  relationships: Relationship[],
+  entityById: Map<string, Entity>,
+): Relationship['attributes'] {
+  if (relationship.kind !== 'relationship' || relationship.participants.length < 2) return relationship.attributes;
+
+  const participantIds = new Set(relationship.participants.map((participant) => participant.entityId));
+  const attributes = relationship.attributes.filter((attribute) => {
+    const representedEntity = [...entityById.values()].find((entity) => sameEntityConcept(attribute.name, entity.name));
+    if (!representedEntity || participantIds.has(representedEntity.id)) return true;
+
+    const hasSupportingRelationship = relationships.some(
+      (candidate) =>
+        candidate.id !== relationship.id &&
+        candidate.kind === 'relationship' &&
+        candidate.participants.length >= 2 &&
+        candidate.participants.some((participant) => participant.entityId === representedEntity.id) &&
+        candidate.participants.some((participant) => participantIds.has(participant.entityId)),
+    );
+
+    return !hasSupportingRelationship;
+  });
+
+  return attributes.length === relationship.attributes.length ? relationship.attributes : attributes;
+}
+
+function canonicalEntityName(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
 }
 
 function sameRelationshipConcept(entityName: string, relationshipName: string): boolean {

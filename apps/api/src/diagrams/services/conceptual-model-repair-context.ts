@@ -18,7 +18,17 @@ export type DuplicateRelationshipAttributeConflict = {
 
 export type ConceptualModelRepairContext = {
   duplicateRelationshipAttributes: DuplicateRelationshipAttributeConflict[];
+  entityRelationshipAttributes: EntityRelationshipAttributeConflict[];
   compositeAttributes: CompositeAttributeConflict[];
+};
+
+export type EntityRelationshipAttributeConflict = {
+  relationship: string;
+  relationshipAttribute: string;
+  representedEntity: string;
+  participants: string[];
+  supportingRelationships: string[];
+  rule: string;
 };
 
 export type CompositeAttributeConflict = {
@@ -34,12 +44,21 @@ export function buildConceptualModelRepairContext(
   error: z.ZodError,
 ): ConceptualModelRepairContext {
   const duplicateRelationshipAttributes: DuplicateRelationshipAttributeConflict[] = [];
+  const entityRelationshipAttributes: EntityRelationshipAttributeConflict[] = [];
   const compositeAttributes: CompositeAttributeConflict[] = [];
 
   for (const issue of error.issues) {
     if (issue.message === COMPOSITE_ATTRIBUTE_INVARIANT_MESSAGE) {
       const conflict = compositeAttributeAtPath(model, issue.path);
       if (conflict) compositeAttributes.push({ ...conflict, rule: issue.message });
+      continue;
+    }
+
+    if (
+      issue.message === 'Uma entidade existente deve participar do relacionamento, não ser representada como atributo.'
+    ) {
+      const conflict = entityRelationshipAttributeAtPath(model, issue.path);
+      if (conflict) entityRelationshipAttributes.push({ ...conflict, rule: issue.message });
       continue;
     }
 
@@ -79,7 +98,49 @@ export function buildConceptualModelRepairContext(
     });
   }
 
-  return { duplicateRelationshipAttributes, compositeAttributes };
+  return { duplicateRelationshipAttributes, entityRelationshipAttributes, compositeAttributes };
+}
+
+function entityRelationshipAttributeAtPath(
+  model: ConceptualModel,
+  path: PropertyKey[],
+): Omit<EntityRelationshipAttributeConflict, 'rule'> | undefined {
+  const [relationshipsKey, relationshipIndex, attributesKey, attributeIndex] = path;
+  if (
+    relationshipsKey !== 'relationships' ||
+    typeof relationshipIndex !== 'number' ||
+    attributesKey !== 'attributes' ||
+    typeof attributeIndex !== 'number'
+  ) {
+    return undefined;
+  }
+
+  const relationship = model.relationships[relationshipIndex];
+  const relationshipAttribute = relationship?.attributes[attributeIndex];
+  if (!relationship || !relationshipAttribute) return undefined;
+
+  const representedEntity = model.entities.find((entity) => sameConcept(entity.name, relationshipAttribute.name));
+  if (!representedEntity) return undefined;
+
+  return {
+    relationship: relationship.name,
+    relationshipAttribute: relationshipAttribute.name,
+    representedEntity: representedEntity.name,
+    participants: relationship.participants
+      .map((participant) => model.entities.find((entity) => entity.id === participant.entityId)?.name)
+      .filter((name): name is string => Boolean(name)),
+    supportingRelationships: model.relationships
+      .filter(
+        (candidate) =>
+          candidate.id !== relationship.id &&
+          candidate.kind === 'relationship' &&
+          candidate.participants.some((participant) => participant.entityId === representedEntity.id) &&
+          candidate.participants.some((participant) =>
+            relationship.participants.some((own) => own.entityId === participant.entityId),
+          ),
+      )
+      .map((candidate) => candidate.name),
+  };
 }
 
 function compositeAttributeAtPath(
@@ -134,4 +195,10 @@ function normalizeName(value: string): string {
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLowerCase();
+}
+
+function sameConcept(first: string, second: string): boolean {
+  const left = normalizeName(first).replace(/[^a-z0-9]/g, '');
+  const right = normalizeName(second).replace(/[^a-z0-9]/g, '');
+  return left === right || left === `${right}s` || right === `${left}s`;
 }

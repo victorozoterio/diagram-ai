@@ -50,26 +50,22 @@ export class DiagramsService {
       label: 'conceitual',
       invalidMessage: 'O modelo conceitual gerado é inválido.',
       initialCandidate: async () =>
-        applyExplicitCardinalityClarifications(
-          applyExplicitDescriptionCardinality(
-            contextualizeRelationshipAttributes(
-              reconcileGeneratedAttributePlacement(
-                reconcileAssociationAttributes(
-                  reconcileGeneratedAssociationArtifacts(
-                    this.normalizeCompositeStructure(
-                      await this.aiService.generateConceptualModel(dto.description, clarifications),
-                      'geração inicial',
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            dto.description,
-          ),
+        this.prepareConceptualCandidate(
+          await this.aiService.generateConceptualModel(dto.description, clarifications),
+          dto.description,
           clarifications,
+          'geração inicial',
         ),
       validate: (candidate) => {
         const parsed = ConceptualModelSchema.safeParse(candidate.model);
+        const repairContext = parsed.success
+          ? undefined
+          : buildConceptualModelRepairContext(candidate.model, parsed.error);
+        if (repairContext && repairContext.entityRelationshipAttributes.length > 0) {
+          this.logger.warn(
+            `Atributos de relacionamento que representam entidades: ${JSON.stringify(repairContext.entityRelationshipAttributes)}`,
+          );
+        }
         const unsupportedAttributes = unsupportedRelationshipAttributes(candidate.model, clarifications);
         const misplacedAttributes = misplacedGeneratedAttributes(candidate.model);
         const missingExplicitRelationships = findMissingExplicitRelationships(candidate.model, dto.description);
@@ -96,7 +92,7 @@ export class DiagramsService {
               ? {}
               : {
                   tree: z.treeifyError(parsed.error),
-                  repair: buildConceptualModelRepairContext(candidate.model, parsed.error),
+                  repair: repairContext,
                 }),
             ...(unsupportedAttributes.length > 0 ? { unsupportedRelationshipAttributes: unsupportedAttributes } : {}),
             ...(misplacedAttributes.length > 0 ? { misplacedEntityAttributes: misplacedAttributes } : {}),
@@ -105,28 +101,16 @@ export class DiagramsService {
         };
       },
       repair: async (candidate, validationError) =>
-        applyExplicitCardinalityClarifications(
-          applyExplicitDescriptionCardinality(
-            contextualizeRelationshipAttributes(
-              reconcileGeneratedAttributePlacement(
-                reconcileAssociationAttributes(
-                  reconcileGeneratedAssociationArtifacts(
-                    this.normalizeCompositeStructure(
-                      await this.aiService.fixConceptualModel({
-                        description: dto.description,
-                        invalidModel: candidate.model,
-                        validationError,
-                        clarifications,
-                      }),
-                      'reparo',
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            dto.description,
-          ),
+        this.prepareConceptualCandidate(
+          await this.aiService.fixConceptualModel({
+            description: dto.description,
+            invalidModel: candidate.model,
+            validationError,
+            clarifications,
+          }),
+          dto.description,
           clarifications,
+          'reparo',
         ),
     });
   }
@@ -151,6 +135,60 @@ export class DiagramsService {
       return normalizeCompositeAttributes(model);
     }
     return model;
+  }
+
+  private prepareConceptualCandidate(
+    generatedModel: ConceptualModel,
+    description: string,
+    clarifications: ClarificationAnswer[] | undefined,
+    phase: 'geração inicial' | 'reparo',
+  ) {
+    this.logGeneratedRelationshipEntityAttributes(generatedModel, phase);
+    return applyExplicitCardinalityClarifications(
+      applyExplicitDescriptionCardinality(
+        contextualizeRelationshipAttributes(
+          reconcileGeneratedAttributePlacement(
+            reconcileAssociationAttributes(
+              reconcileGeneratedAssociationArtifacts(this.normalizeCompositeStructure(generatedModel, phase)),
+            ),
+          ),
+        ),
+        description,
+      ),
+      clarifications,
+    );
+  }
+
+  /** Registra somente a estrutura problemática recebida da IA, antes de normalizá-la. */
+  private logGeneratedRelationshipEntityAttributes(model: ConceptualModel, phase: 'geração inicial' | 'reparo'): void {
+    const conflicts = model.relationships.flatMap((relationship) => {
+      if (relationship.kind === 'generalization' || relationship.kind === 'specialization') return [];
+      const participants = relationship.participants
+        .map((participant) => model.entities.find((entity) => entity.id === participant.entityId)?.name)
+        .filter((name): name is string => Boolean(name));
+
+      return relationship.attributes.flatMap((attribute) => {
+        const representedEntity = model.entities.find((entity) =>
+          namesRepresentSameConcept(entity.name, attribute.name),
+        );
+        return representedEntity
+          ? [
+              {
+                relationship: relationship.name,
+                attribute: attribute.name,
+                representedEntity: representedEntity.name,
+                participants,
+              },
+            ]
+          : [];
+      });
+    });
+
+    if (conflicts.length > 0) {
+      this.logger.warn(
+        `Resposta estruturada da IA na ${phase} contém entidades como atributos: ${JSON.stringify(conflicts)}`,
+      );
+    }
   }
 
   private async generateLogical(description: string, clarifications?: ClarificationAnswer[]): Promise<LogicalModel> {
@@ -285,4 +323,16 @@ function validationErrorFrom(error: unknown): unknown {
   }
 
   return { message: String(error) };
+}
+
+function namesRepresentSameConcept(first: string, second: string): boolean {
+  const canonical = (value: string) =>
+    value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  const left = canonical(first);
+  const right = canonical(second);
+  return left === right || left === `${right}s` || right === `${left}s`;
 }

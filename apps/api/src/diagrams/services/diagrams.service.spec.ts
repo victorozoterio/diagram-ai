@@ -122,6 +122,26 @@ it('aplica a cardinalidade explicitamente confirmada ao modelo conceitual retorn
   ]);
 });
 
+it('remove automaticamente uma entidade repetida como atributo do relacionamento sem perder participantes ou cardinalidades', async () => {
+  const invalidModel = model('destino', '1', 'N');
+  const fixConceptualModel = vi.fn();
+  const aiService = {
+    generateConceptualModel: vi.fn(async () => invalidModel),
+    fixConceptualModel,
+  } as unknown as AiService;
+  const service = new DiagramsService(aiService, {} as never, {} as never, {} as never);
+
+  const result = await service.generate({ description: 'Descrição de teste.', mode: 'conceptual' });
+
+  if (!('relationships' in result)) throw new Error('O modelo conceitual deveria conter relacionamentos.');
+  expect(fixConceptualModel).not.toHaveBeenCalled();
+  expect(result.relationships[0].attributes).toEqual([]);
+  expect(result.relationships[0].participants).toEqual([
+    { entityId: 'origem', cardinality: '1' },
+    { entityId: 'destino', cardinality: 'N' },
+  ]);
+});
+
 it('repara atributos colocados na entidade e preserva cardinalidade e dado da associação', async () => {
   const description = [
     'Cada origem possui nome. Cada destino possui nome.',

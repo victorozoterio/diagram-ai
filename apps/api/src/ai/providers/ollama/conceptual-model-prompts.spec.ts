@@ -81,6 +81,49 @@ it('orienta o reparo a remover somente o atributo sem evidência da associação
   expect(prompt).toContain('Preserve todos os elementos não envolvidos');
 });
 
+it('identifica no repair o relacionamento e a entidade representada indevidamente como atributo', () => {
+  const model = invalidModel();
+  model.relationships[0].attributes = [
+    {
+      id: 'destino',
+      name: 'destino',
+      type: 'string',
+      identifier: false,
+      required: false,
+      unique: false,
+      multivalued: false,
+      composite: false,
+      derived: false,
+      components: [],
+    },
+  ];
+  const validation = ConceptualModelSchema.safeParse(model);
+
+  expect(validation.success).toBe(false);
+  if (validation.success) return;
+
+  const context = buildConceptualModelRepairContext(model, validation.error);
+  expect(context.entityRelationshipAttributes).toEqual([
+    {
+      relationship: 'associa',
+      relationshipAttribute: 'destino',
+      representedEntity: 'destino',
+      participants: ['origem', 'destino'],
+      supportingRelationships: [],
+      rule: 'Uma entidade existente deve participar do relacionamento, não ser representada como atributo.',
+    },
+  ]);
+
+  const prompt = buildFixConceptualModelPrompt({
+    description: 'Uma origem se associa a um destino.',
+    invalidModel: model,
+    validationError: { repair: context },
+  });
+
+  expect(prompt).toContain('No relacionamento "associa", "destino" representa a entidade "destino", mas está em a');
+  expect(prompt).toContain('Remova "destino" de a');
+});
+
 it('identifica o atributo composto inválido no contexto enviado ao reparo', () => {
   const model = invalidModel();
   model.entities[0].attributes[1] = {

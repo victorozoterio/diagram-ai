@@ -29,6 +29,7 @@ REGRAS:
 - Quando Y possui vários X e o mesmo X pode aparecer em vários Y, a cardinalidade é N:N: ambos os participantes usam c="N".
 - Só crie atributos no relacionamento quando o texto os vincular à ocorrência da associação. Atributos declarados como pertencentes a uma entidade ficam somente nela; nunca os copie para o relacionamento.
 - Antes de preencher e[].a, confira que nenhum atributo é o nome de outra entidade ligada por r[].p. Uma frase que liga X a Y cria r com ambos em p; não copie Y para os atributos de X nem X para os atributos de Y.
+- Quando duas associações compartilham um participante, mantenha cada entidade nos participantes p da sua própria associação. Nunca use, em a, o nome de uma entidade que já participa de outra associação ligada a esse participante para representar uma relação entre elas.
 - Quando uma frase diz "para cada ocorrência/participação de X em Y, registrar Z", Z pertence a r[].a da associação X-Y. Não o coloque em e[].a de X ou Y, mesmo que Z mencione um deles no nome. Se r[].a já contém esse fato, não crie uma segunda cópia.
 - Nunca use atributos terminados em "_id" em entidades ou relacionamentos.
 - Um conceito dependente que apenas agrupa campos descritivos, sem identificador próprio, eventos ou relações com terceiros, deve ser atributo composto. Composite e multivalued são independentes e podem coexistir: vários componentes não implicam m; use m somente quando o texto indicar múltiplos valores ou ocorrências do atributo inteiro.

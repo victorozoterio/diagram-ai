@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import type { ConceptualModel, Relationship } from '../schemas/conceptual-model.schema';
+import { type ConceptualModel, ConceptualModelSchema, type Relationship } from '../schemas/conceptual-model.schema';
 import { reconcileGeneratedAssociationArtifacts } from './reconcile-generated-association-artifacts';
 
 const attribute = (name: string, identifier = false) => ({
@@ -80,6 +80,56 @@ it('remove atributos que apenas repetem a associação e seus participantes, pre
 
   const result = reconcileGeneratedAssociationArtifacts(model);
   expect(result.relationships[0].attributes.map(({ name }) => name)).toEqual(['data_inicio_participacao']);
+});
+
+it('remove entidades usadas indevidamente como atributos em associações correlatas e preserva atributos próprios', () => {
+  const model: ConceptualModel = {
+    metadata: {},
+    entities: [
+      { id: 'leitores', name: 'leitores', attributes: [] },
+      { id: 'livros', name: 'livros', attributes: [] },
+      { id: 'emprestimo', name: 'emprestimo', attributes: [] },
+    ],
+    relationships: [
+      {
+        id: 'realiza',
+        name: 'realiza',
+        kind: 'relationship',
+        type: '1:N',
+        participants: [
+          { entityId: 'leitores', cardinality: '1' },
+          { entityId: 'emprestimo', cardinality: 'N' },
+        ],
+        attributes: [attribute('livro'), attribute('data_emprestimo')],
+        subtypeIds: [],
+        subtypeHandles: {},
+      },
+      {
+        id: 'inclui',
+        name: 'inclui',
+        kind: 'relationship',
+        type: '1:N',
+        participants: [
+          { entityId: 'livros', cardinality: '1' },
+          { entityId: 'emprestimo', cardinality: 'N' },
+        ],
+        attributes: [attribute('leitor'), attribute('data_devolucao')],
+        subtypeIds: [],
+        subtypeHandles: {},
+      },
+    ],
+    standaloneAttributes: [],
+    ambiguities: [],
+  };
+
+  const result = reconcileGeneratedAssociationArtifacts(model);
+
+  expect(result.relationships[0].attributes.map(({ name }) => name)).toEqual(['data_emprestimo']);
+  expect(result.relationships[1].attributes.map(({ name }) => name)).toEqual(['data_devolucao']);
+  expect(result.relationships.map((relationship) => relationship.participants)).toEqual(
+    model.relationships.map((relationship) => relationship.participants),
+  );
+  expect(ConceptualModelSchema.safeParse(result).success).toBe(true);
 });
 
 it('preserva uma entidade com propriedade própria, mesmo que seu nome lembre uma associação', () => {
