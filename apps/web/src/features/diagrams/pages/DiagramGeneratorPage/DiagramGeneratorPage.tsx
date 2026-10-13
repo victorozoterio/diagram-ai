@@ -34,6 +34,7 @@ import {
   type LogicalTable,
 } from '../../types';
 import styles from './DiagramGeneratorPage.module.css';
+import { createDiagramPersistenceCoordinator } from './diagram-persistence';
 
 const emptyConceptualModel: ConceptualModel = {
   metadata: {},
@@ -100,6 +101,9 @@ export function DiagramGeneratorPage({
   const sqlMessageTimeout = useRef<number | null>(null);
   const diagramIdsRef = useRef(diagramIds);
   const diagramNameRef = useRef(diagramName);
+  const diagramPersistence = useRef(
+    createDiagramPersistenceCoordinator({ create: createDiagram, update: updateDiagram }),
+  );
   const saveStatesRef = useRef(saveStates);
   const editableProjectFactories = useRef<Partial<Record<EditorMode, EditableProjectFactory>>>({});
   const savedModelsRef = useRef<Partial<Record<EditorMode, DiagramAiProject>>>({});
@@ -272,12 +276,11 @@ export function DiagramGeneratorPage({
       try {
         const name = diagramNameRef.current ?? NEW_DIAGRAM_LABEL;
         const diagramId = diagramIdsRef.current.conceptual ?? diagramIdsRef.current.logical;
-        const savedDiagram = diagramId
-          ? await updateDiagram(diagramId, name, document)
-          : await createDiagram(diagramNameRef.current, document);
+        const savedDiagram = await diagramPersistence.current.persist({ diagramId, name, document });
 
         savedModelsRef.current = models;
-        if (!diagramId) {
+        const currentDiagramId = diagramIdsRef.current.conceptual ?? diagramIdsRef.current.logical;
+        if (!currentDiagramId) {
           diagramIdsRef.current = { conceptual: savedDiagram.id, logical: savedDiagram.id };
           setDiagramIds(diagramIdsRef.current);
         }
