@@ -14,5 +14,6 @@ describe('diagramDownloadFileName', () => {
   it('usa o fallback quando o nome está vazio ou é inválido', () => {
     expect(diagramDownloadFileName('   ', 'diagramai')).toBe('Diagrama.diagramai');
     expect(diagramDownloadFileName('<>:', 'sql')).toBe('Diagrama.sql');
+    expect(diagramDownloadFileName('', 'png', 'Diagrama sem título')).toBe('Diagrama sem título.png');
   });
 });

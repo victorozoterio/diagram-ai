@@ -118,15 +118,21 @@ export function DiagramExportMenu({
 
       try {
         const image = await createDiagramImage();
+        const diagramName = getEditableDocument?.().name;
 
         if (action === 'download') {
-          downloadDataUrl(image.dataUrl, 'diagrama-conceitual.png');
+          downloadDataUrl(image.dataUrl, diagramDownloadFileName(diagramName, 'png', 'Diagrama sem título'));
           setMessage('PNG baixado.');
         } else if (action === 'clipboard') {
           await copyDataUrlToClipboard(image.dataUrl);
           setMessage('Imagem copiada.');
         } else {
-          downloadPdf(image.dataUrl, image.width, image.height);
+          downloadPdf(
+            image.dataUrl,
+            image.width,
+            image.height,
+            diagramDownloadFileName(diagramName, 'pdf', 'Diagrama sem título'),
+          );
           setMessage('PDF baixado.');
         }
       } catch (error) {
@@ -135,7 +141,7 @@ export function DiagramExportMenu({
         setIsExporting(false);
       }
     },
-    [createDiagramImage],
+    [createDiagramImage, getEditableDocument],
   );
 
   const downloadEditableProjectFile = useCallback(() => {
@@ -568,7 +574,7 @@ async function copyDataUrlToClipboard(dataUrl: string) {
   await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
 }
 
-function downloadPdf(dataUrl: string, width: number, height: number) {
+function downloadPdf(dataUrl: string, width: number, height: number, fileName: string) {
   const widthMm = (width * 25.4) / 96;
   const heightMm = (height * 25.4) / 96;
   const pdf = new jsPDF({
@@ -578,5 +584,5 @@ function downloadPdf(dataUrl: string, width: number, height: number) {
   });
 
   pdf.addImage(dataUrl, 'PNG', 0, 0, widthMm, heightMm, undefined, 'FAST');
-  pdf.save('diagrama-conceitual.pdf');
+  pdf.save(fileName);
 }
