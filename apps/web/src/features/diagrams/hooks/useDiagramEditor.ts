@@ -14,6 +14,13 @@ import {
   withModeViewport,
 } from './editor/mode-viewports';
 import { DEFAULT_DESCRIPTION } from './editor/model-factories';
+import {
+  createModelHistory,
+  recordModelHistory,
+  redoModelHistory,
+  resetModelHistory,
+  undoModelHistory,
+} from './editor/model-history';
 import { useAttributeActions } from './editor/useAttributeActions';
 import { useDiagramLifecycle } from './editor/useDiagramLifecycle';
 import { useEntityActions } from './editor/useEntityActions';
@@ -54,8 +61,9 @@ export function useDiagramEditor() {
     conceptual: 0,
     logical: 0,
   });
-  const history = useRef<DiagramHistory>({ present: null, undo: [], redo: [] });
-  const skipHistoryRef = useRef(false);
+  const conceptualHistory = useRef(createModelHistory<DiagramSnapshot>());
+  const logicalHistory = useRef(createModelHistory<LogicalModel | null>());
+  const skipHistoryRef = useRef<Record<'conceptual' | 'logical', boolean>>({ conceptual: false, logical: false });
   const [, setHistoryVersion] = useState(0);
 
   const updateViewport = useCallback((mode: keyof EditorModeViewports, viewport: DiagramViewport) => {
@@ -88,26 +96,26 @@ export function useDiagramEditor() {
 
   useEffect(() => {
     const snapshot = currentSnapshot();
-    if (!history.current.present) {
-      history.current.present = snapshot;
+    if (skipHistoryRef.current.conceptual) {
+      skipHistoryRef.current.conceptual = false;
       return;
     }
 
-    if (skipHistoryRef.current) {
-      history.current.present = snapshot;
-      skipHistoryRef.current = false;
-      return;
+    if (recordModelHistory(conceptualHistory.current, snapshot, snapshotsDiffer)) {
+      setHistoryVersion((version) => version + 1);
     }
-
-    if (snapshotSignature(history.current.present) === snapshotSignature(snapshot)) {
-      return;
-    }
-
-    history.current.undo.push(history.current.present);
-    history.current.present = snapshot;
-    history.current.redo = [];
-    setHistoryVersion((version) => version + 1);
   }, [currentSnapshot]);
+
+  useEffect(() => {
+    if (skipHistoryRef.current.logical) {
+      skipHistoryRef.current.logical = false;
+      return;
+    }
+
+    if (recordModelHistory(logicalHistory.current, logicalModel, snapshotsDiffer)) {
+      setHistoryVersion((version) => version + 1);
+    }
+  }, [logicalModel]);
 
   const restoreSnapshot = useCallback((snapshot: DiagramSnapshot) => {
     setConceptualModel(snapshot.conceptualModel);
@@ -117,46 +125,41 @@ export function useDiagramEditor() {
     setEdgeControlPoints(snapshot.edgeControlPoints);
   }, []);
 
-  const undo = useCallback(() => {
-    const previous = history.current.undo.pop();
-    if (!previous || !history.current.present) return;
+  const undoConceptual = useCallback(() => {
+    const previous = undoModelHistory(conceptualHistory.current);
+    if (previous === undefined) return;
 
-    history.current.redo.push(history.current.present);
-    history.current.present = previous;
-    skipHistoryRef.current = true;
+    skipHistoryRef.current.conceptual = true;
     restoreSnapshot(previous);
     setHistoryVersion((version) => version + 1);
   }, [restoreSnapshot]);
 
-  const redo = useCallback(() => {
-    const next = history.current.redo.pop();
-    if (!next || !history.current.present) return;
+  const redoConceptual = useCallback(() => {
+    const next = redoModelHistory(conceptualHistory.current);
+    if (next === undefined) return;
 
-    history.current.undo.push(history.current.present);
-    history.current.present = next;
-    skipHistoryRef.current = true;
+    skipHistoryRef.current.conceptual = true;
     restoreSnapshot(next);
     setHistoryVersion((version) => version + 1);
   }, [restoreSnapshot]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!(event.ctrlKey || event.metaKey) || isEditableTarget(event.target)) return;
+  const undoLogical = useCallback(() => {
+    const previous = undoModelHistory(logicalHistory.current);
+    if (previous === undefined) return;
 
-      const key = event.key.toLowerCase();
-      if (key !== 'z') return;
+    skipHistoryRef.current.logical = true;
+    setLogicalModel(previous);
+    setHistoryVersion((version) => version + 1);
+  }, []);
 
-      event.preventDefault();
-      if (event.shiftKey) {
-        redo();
-      } else {
-        undo();
-      }
-    };
+  const redoLogical = useCallback(() => {
+    const next = redoModelHistory(logicalHistory.current);
+    if (next === undefined) return;
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [redo, undo]);
+    skipHistoryRef.current.logical = true;
+    setLogicalModel(next);
+    setHistoryVersion((version) => version + 1);
+  }, []);
 
   const entityActions = useEntityActions({
     conceptualModel,
@@ -237,7 +240,8 @@ export function useDiagramEditor() {
   }
 
   function restoreDiagramProject(project: DiagramAiProject) {
-    history.current = { present: null, undo: [], redo: [] };
+    resetModelHistory(conceptualHistory.current);
+    resetModelHistory(logicalHistory.current);
     const restoredProject = clearProjectFlowSelection(project);
     const visualState = restoredProject.visual.state;
 
@@ -307,10 +311,14 @@ export function useDiagramEditor() {
     updateEdgeControlPoints,
     removeEdgeControlPoints,
     clearCanvasSelection,
-    undo,
-    redo,
-    canUndo: history.current.undo.length > 0,
-    canRedo: history.current.redo.length > 0,
+    undoConceptual,
+    redoConceptual,
+    undoLogical,
+    redoLogical,
+    canUndoConceptual: conceptualHistory.current.undo.length > 0,
+    canRedoConceptual: conceptualHistory.current.redo.length > 0,
+    canUndoLogical: logicalHistory.current.undo.length > 0,
+    canRedoLogical: logicalHistory.current.redo.length > 0,
     ...relationshipActions,
     ...attributeActions,
     ...paletteActions,
@@ -325,29 +333,12 @@ type DiagramSnapshot = {
   edgeControlPoints: Record<string, EdgeControlPoints>;
 };
 
-type DiagramHistory = {
-  present: DiagramSnapshot | null;
-  undo: DiagramSnapshot[];
-  redo: DiagramSnapshot[];
-};
-
-function snapshotSignature(snapshot: DiagramSnapshot) {
-  return JSON.stringify(snapshot);
+function snapshotsDiffer<T>(previous: T, next: T) {
+  return snapshotSignature(previous) !== snapshotSignature(next);
 }
 
-function isEditableTarget(target: EventTarget | null) {
-  const elements = [target instanceof Element ? target : null, document.activeElement];
-  return elements.some((element) => {
-    if (!(element instanceof HTMLElement)) return false;
-
-    return Boolean(
-      element.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]') ||
-        element instanceof HTMLInputElement ||
-        element instanceof HTMLTextAreaElement ||
-        element instanceof HTMLSelectElement ||
-        element.isContentEditable,
-    );
-  });
+function snapshotSignature(snapshot: unknown) {
+  return JSON.stringify(snapshot);
 }
 
 function conceptualVisualState(

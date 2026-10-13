@@ -24,7 +24,7 @@ import {
 } from '../../components';
 import type { ClarificationStep } from '../../components/EditorAssistant/EditorAssistant';
 import { diagramDownloadFileName } from '../../file-name';
-import { useDiagramEditor } from '../../hooks';
+import { useDiagramEditor, useUndoRedoShortcut } from '../../hooks';
 import { type ViewportSize, viewportForProjectBounds } from '../../hooks/editor/mode-viewports';
 import {
   type ConceptualModel,
@@ -172,7 +172,16 @@ export function DiagramGeneratorPage({
     disconnectAttributeFromEntity,
     disconnectAttributeFromAttribute,
     disconnectAttributeFromRelationship,
+    undoConceptual,
+    redoConceptual,
+    undoLogical,
+    redoLogical,
   } = useDiagramEditor();
+
+  useUndoRedoShortcut({
+    onUndo: mode === 'conceptual' ? undoConceptual : undoLogical,
+    onRedo: mode === 'conceptual' ? redoConceptual : redoLogical,
+  });
   const activeConceptualModel = conceptualModel ?? emptyConceptualModel;
   const hasConceptualContent = Boolean(
     conceptualModel &&
