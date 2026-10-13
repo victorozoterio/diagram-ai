@@ -25,6 +25,10 @@ type LogicalEditorCanvasProps = {
   restoredEdges?: DiagramAiFlowEdge[] | null;
   edgeRestoreVersion?: number;
   onRestoredEdgesApplied?: () => void;
+  pastedSelection?: string[];
+  pasteVersion?: number;
+  onCopySelection?: (tableIds: string[]) => void;
+  onPasteSelection?: () => void;
 };
 
 export function LogicalEditorCanvas({
@@ -49,6 +53,10 @@ export function LogicalEditorCanvas({
   restoredEdges,
   edgeRestoreVersion,
   onRestoredEdgesApplied,
+  pastedSelection,
+  pasteVersion,
+  onCopySelection,
+  onPasteSelection,
 }: LogicalEditorCanvasProps) {
   return (
     <section className={styles.section}>
@@ -81,6 +89,10 @@ export function LogicalEditorCanvas({
         restoredEdges={restoredEdges}
         edgeRestoreVersion={edgeRestoreVersion}
         onRestoredEdgesApplied={onRestoredEdgesApplied}
+        pastedSelection={pastedSelection}
+        pasteVersion={pasteVersion}
+        onCopySelection={onCopySelection}
+        onPasteSelection={onPasteSelection}
       />
       {model.tables.length === 0 && (
         <EmptyCanvasState description='Gere um modelo ou arraste um elemento da biblioteca para começar.' />

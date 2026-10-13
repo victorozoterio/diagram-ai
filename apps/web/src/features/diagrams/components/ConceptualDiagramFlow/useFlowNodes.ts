@@ -14,6 +14,8 @@ type FlowNodeDependencies = Pick<
   | 'selectedEntityIds'
   | 'layoutVersion'
   | 'edgeRestoreVersion'
+  | 'pasteVersion'
+  | 'pastedSelection'
   | 'onSelectEntity'
   | 'onUpdateEntity'
   | 'onSelectAttribute'
@@ -35,6 +37,8 @@ export function useFlowNodes({
   selectedEntityIds,
   layoutVersion = 0,
   edgeRestoreVersion,
+  pasteVersion,
+  pastedSelection,
   onSelectEntity,
   onUpdateEntity,
   onSelectAttribute,
@@ -48,6 +52,7 @@ export function useFlowNodes({
   const [nodes, setNodes] = useState<Node[]>([]);
   const previousLayoutVersion = useRef(layoutVersion);
   const previousEdgeRestoreVersion = useRef(edgeRestoreVersion);
+  const previousPasteVersion = useRef(pasteVersion);
 
   const updateResizingNode = useCallback(
     (nodeId: string, size: { width: number; height: number }, resizing: boolean) => {
@@ -128,6 +133,8 @@ export function useFlowNodes({
   useEffect(() => {
     const shouldClearSelection = previousEdgeRestoreVersion.current !== edgeRestoreVersion;
     previousEdgeRestoreVersion.current = edgeRestoreVersion;
+    const shouldRestorePastedSelection = previousPasteVersion.current !== pasteVersion;
+    previousPasteVersion.current = pasteVersion;
 
     if (previousLayoutVersion.current !== layoutVersion) {
       previousLayoutVersion.current = layoutVersion;
@@ -138,7 +145,13 @@ export function useFlowNodes({
     setNodes((currentNodes) =>
       mappedNodes.map((nextNode) => {
         const currentNode = currentNodes.find((node) => node.id === nextNode.id);
-        if (!currentNode) return shouldClearSelection ? { ...nextNode, selected: false } : nextNode;
+        if (!currentNode) {
+          return shouldRestorePastedSelection
+            ? { ...nextNode, selected: pastedSelection?.includes(nextNode.id) }
+            : shouldClearSelection
+              ? { ...nextNode, selected: false }
+              : nextNode;
+        }
 
         const hasCurrentDimensions =
           Number.isFinite(currentNode.width) &&
@@ -163,13 +176,17 @@ export function useFlowNodes({
                 }
               : {}),
             position: currentNode.dragging ? currentNode.position : nextNode.position,
-            selected: shouldClearSelection ? false : currentNode.selected,
+            selected: shouldRestorePastedSelection
+              ? pastedSelection?.includes(nextNode.id)
+              : shouldClearSelection
+                ? false
+                : currentNode.selected,
           },
           currentNode,
         );
       }),
     );
-  }, [edgeRestoreVersion, layoutVersion, mappedNodes]);
+  }, [edgeRestoreVersion, layoutVersion, mappedNodes, pasteVersion, pastedSelection]);
 
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {

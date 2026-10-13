@@ -2,6 +2,7 @@ import { Background, ConnectionMode, Controls, MiniMap, ReactFlow } from '@xyflo
 import { useCallback, useEffect, useRef } from 'react';
 import { createDiagramAiProject } from '../../types';
 import { useSelectAllShortcut } from '../use-select-all-shortcut';
+import { useCopyPasteShortcut } from '../useCopyPasteShortcut';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
 import { ChenConnectionLine } from './edges/ChenConnectionLine';
@@ -79,6 +80,10 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
   }, [flowWrapperRef, props.onViewportSizeChange]);
 
   useSelectAllShortcut({ onSelectAllNodes: selectAllNodes, onSelectAllEdges: selectAllEdges });
+  useCopyPasteShortcut({
+    onCopy: () => props.onCopySelection?.(nodes.filter((node) => node.selected).map((node) => node.id)),
+    onPaste: () => props.onPasteSelection?.(),
+  });
 
   return (
     <div

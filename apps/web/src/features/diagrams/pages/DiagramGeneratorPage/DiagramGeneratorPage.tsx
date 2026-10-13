@@ -133,6 +133,10 @@ export function DiagramGeneratorPage({
     logicalRestoredEdges,
     conceptualEdgeRestoreVersion,
     logicalEdgeRestoreVersion,
+    conceptualPastedSelection,
+    logicalPastedSelection,
+    conceptualPasteVersion,
+    logicalPasteVersion,
     consumeRestoredEdges,
     updateViewport,
     restoreViewport,
@@ -172,6 +176,10 @@ export function DiagramGeneratorPage({
     disconnectAttributeFromEntity,
     disconnectAttributeFromAttribute,
     disconnectAttributeFromRelationship,
+    copyConceptualComponents,
+    pasteConceptualComponents,
+    copyLogicalComponents,
+    pasteLogicalComponents,
     undoConceptual,
     redoConceptual,
     undoLogical,
@@ -744,6 +752,10 @@ export function DiagramGeneratorPage({
                 restoredEdges={conceptualRestoredEdges}
                 edgeRestoreVersion={conceptualEdgeRestoreVersion}
                 onRestoredEdgesApplied={() => consumeRestoredEdges('conceptual')}
+                pastedSelection={conceptualPastedSelection}
+                pasteVersion={conceptualPasteVersion}
+                onCopySelection={copyConceptualComponents}
+                onPasteSelection={pasteConceptualComponents}
                 onUpdateEntityPosition={updateEntityPosition}
                 onUpdateElementPosition={updateElementPosition}
                 onUpdateNodeSize={updateNodeSize}
@@ -798,6 +810,10 @@ export function DiagramGeneratorPage({
               restoredEdges={logicalRestoredEdges}
               edgeRestoreVersion={logicalEdgeRestoreVersion}
               onRestoredEdgesApplied={() => consumeRestoredEdges('logical')}
+              pastedSelection={logicalPastedSelection}
+              pasteVersion={logicalPasteVersion}
+              onCopySelection={copyLogicalComponents}
+              onPasteSelection={pasteLogicalComponents}
             />
           )}
         </EditorCanvas>

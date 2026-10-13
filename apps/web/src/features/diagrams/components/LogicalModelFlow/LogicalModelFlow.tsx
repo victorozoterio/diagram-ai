@@ -34,6 +34,7 @@ import { ResizableNodeControls } from '../ConceptualDiagramFlow/nodes/ResizableN
 import { RestoreViewport } from '../ConceptualDiagramFlow/RestoreViewport';
 import { preserveNodeMeasurement } from '../flow-node-measurement';
 import { useSelectAllShortcut } from '../use-select-all-shortcut';
+import { useCopyPasteShortcut } from '../useCopyPasteShortcut';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
 import { LogicalOrthogonalEdge } from './edges/LogicalOrthogonalEdge';
 import styles from './LogicalModelFlow.module.css';
@@ -60,6 +61,10 @@ type LogicalModelFlowProps = {
   restoredEdges?: DiagramAiFlowEdge[] | null;
   edgeRestoreVersion?: number;
   onRestoredEdgesApplied?: () => void;
+  pastedSelection?: string[];
+  pasteVersion?: number;
+  onCopySelection?: (tableIds: string[]) => void;
+  onPasteSelection?: () => void;
 };
 
 type LogicalTableNodeData = {
@@ -498,6 +503,10 @@ export function LogicalModelFlow({
   restoredEdges,
   edgeRestoreVersion,
   onRestoredEdgesApplied,
+  pastedSelection,
+  pasteVersion,
+  onCopySelection,
+  onPasteSelection,
 }: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -508,6 +517,7 @@ export function LogicalModelFlow({
   const previousModel = useRef(model);
   const appliedEdgeRestoreVersion = useRef<number | undefined>(undefined);
   const previousEdgeRestoreVersion = useRef(edgeRestoreVersion);
+  const previousPasteVersion = useRef(pasteVersion);
   const [viewportReadyForCount, setViewportReadyForCount] = useState<number | null>(null);
   const editingStartSizes = useRef<Record<string, { width: number; height: number }>>({});
   const handleViewportReady = useCallback(() => setViewportReadyForCount(model.tables.length), [model.tables.length]);
@@ -585,6 +595,8 @@ export function LogicalModelFlow({
   useEffect(() => {
     const shouldClearSelection = previousEdgeRestoreVersion.current !== edgeRestoreVersion;
     previousEdgeRestoreVersion.current = edgeRestoreVersion;
+    const shouldRestorePastedSelection = previousPasteVersion.current !== pasteVersion;
+    previousPasteVersion.current = pasteVersion;
 
     if (shouldClearSelection) {
       setSelectedEdgeId(null);
@@ -606,7 +618,11 @@ export function LogicalModelFlow({
           {
             ...nextNode,
             position: currentNode?.dragging ? currentNode.position : nextNode.position,
-            selected: shouldClearSelection ? false : (currentNode?.selected ?? false),
+            selected: shouldRestorePastedSelection
+              ? pastedSelection?.includes(nextNode.id)
+              : shouldClearSelection
+                ? false
+                : (currentNode?.selected ?? false),
             ...(currentWidth && currentHeight && !(currentIsEditing && !nextIsEditing)
               ? {
                   width: Math.max(currentWidth, nextWidth),
@@ -623,7 +639,7 @@ export function LogicalModelFlow({
         );
       }),
     );
-  }, [edgeRestoreVersion, mappedNodes]);
+  }, [edgeRestoreVersion, mappedNodes, pasteVersion, pastedSelection]);
 
   const finishEditing = useCallback(() => {
     if (!editingTableId) return;
@@ -661,6 +677,10 @@ export function LogicalModelFlow({
   }, []);
 
   useSelectAllShortcut({ onSelectAllNodes: selectAllNodes });
+  useCopyPasteShortcut({
+    onCopy: () => onCopySelection?.(nodes.filter((node) => node.selected).map((node) => node.id)),
+    onPaste: () => onPasteSelection?.(),
+  });
 
   const manualEdges: Edge[] = (model.relationships ?? []).map((relationship) => ({
     id: relationship.id,

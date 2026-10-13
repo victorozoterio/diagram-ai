@@ -13,6 +13,13 @@ import {
   EMPTY_MODE_VIEWPORTS,
   withModeViewport,
 } from './editor/mode-viewports';
+import {
+  copyConceptualSelection,
+  copyLogicalSelection,
+  type EditorClipboard,
+  pasteConceptualSelection,
+  pasteLogicalSelection,
+} from './editor/model-clipboard';
 import { DEFAULT_DESCRIPTION } from './editor/model-factories';
 import {
   createModelHistory,
@@ -61,8 +68,17 @@ export function useDiagramEditor() {
     conceptual: 0,
     logical: 0,
   });
+  const [pastedSelection, setPastedSelection] = useState<Record<'conceptual' | 'logical', string[]>>({
+    conceptual: [],
+    logical: [],
+  });
+  const [pasteVersions, setPasteVersions] = useState<Record<'conceptual' | 'logical', number>>({
+    conceptual: 0,
+    logical: 0,
+  });
   const conceptualHistory = useRef(createModelHistory<DiagramSnapshot>());
   const logicalHistory = useRef(createModelHistory<LogicalModel | null>());
+  const clipboard = useRef<EditorClipboard | null>(null);
   const skipHistoryRef = useRef<Record<'conceptual' | 'logical', boolean>>({ conceptual: false, logical: false });
   const [, setHistoryVersion] = useState(0);
 
@@ -239,6 +255,45 @@ export function useDiagramEditor() {
     setSelectedEntityIds([]);
   }
 
+  function copyConceptualComponents(selectedNodeIds: string[]) {
+    if (!conceptualModel) return;
+    clipboard.current = copyConceptualSelection(
+      conceptualModel,
+      { entityPositions, elementPositions, nodeSizes },
+      selectedNodeIds,
+    );
+  }
+
+  function pasteConceptualComponents() {
+    if (!conceptualModel || clipboard.current?.mode !== 'conceptual') return;
+    const pasted = pasteConceptualSelection(conceptualModel, clipboard.current, {
+      entityPositions,
+      elementPositions,
+      nodeSizes,
+    });
+    setConceptualModel(pasted.model);
+    setEntityPositions(pasted.visual.entityPositions);
+    setElementPositions(pasted.visual.elementPositions);
+    setNodeSizes(pasted.visual.nodeSizes);
+    setSelectedAttribute(null);
+    setSelectedEntityIds([]);
+    setPastedSelection((selection) => ({ ...selection, conceptual: pasted.selectedNodeIds }));
+    setPasteVersions((versions) => ({ ...versions, conceptual: versions.conceptual + 1 }));
+  }
+
+  function copyLogicalComponents(selectedTableIds: string[]) {
+    if (!logicalModel) return;
+    clipboard.current = copyLogicalSelection(logicalModel, selectedTableIds);
+  }
+
+  function pasteLogicalComponents() {
+    if (!logicalModel || clipboard.current?.mode !== 'logical') return;
+    const pasted = pasteLogicalSelection(logicalModel, clipboard.current);
+    setLogicalModel(pasted.model);
+    setPastedSelection((selection) => ({ ...selection, logical: pasted.selectedTableIds }));
+    setPasteVersions((versions) => ({ ...versions, logical: versions.logical + 1 }));
+  }
+
   function restoreDiagramProject(project: DiagramAiProject) {
     resetModelHistory(conceptualHistory.current);
     resetModelHistory(logicalHistory.current);
@@ -297,6 +352,10 @@ export function useDiagramEditor() {
     logicalRestoredEdges: restoredEdges.logical,
     conceptualEdgeRestoreVersion: edgeRestoreVersions.conceptual,
     logicalEdgeRestoreVersion: edgeRestoreVersions.logical,
+    conceptualPastedSelection: pastedSelection.conceptual,
+    logicalPastedSelection: pastedSelection.logical,
+    conceptualPasteVersion: pasteVersions.conceptual,
+    logicalPasteVersion: pasteVersions.logical,
     consumeRestoredEdges,
     setDescription,
     updateViewport,
@@ -311,6 +370,10 @@ export function useDiagramEditor() {
     updateEdgeControlPoints,
     removeEdgeControlPoints,
     clearCanvasSelection,
+    copyConceptualComponents,
+    pasteConceptualComponents,
+    copyLogicalComponents,
+    pasteLogicalComponents,
     undoConceptual,
     redoConceptual,
     undoLogical,

@@ -108,6 +108,10 @@ export type ConceptualDiagramFlowProps = {
   restoredEdges?: DiagramAiFlowEdge[] | null;
   edgeRestoreVersion?: number;
   onRestoredEdgesApplied?: () => void;
+  pastedSelection?: string[];
+  pasteVersion?: number;
+  onCopySelection?: (nodeIds: string[]) => void;
+  onPasteSelection?: () => void;
   restoredViewport?: { x: number; y: number; zoom: number } | null;
   viewportRestoreVersion?: number;
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;
