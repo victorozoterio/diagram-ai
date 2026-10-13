@@ -1,3 +1,4 @@
+import type { ClipboardNode } from '../../hooks/editor/model-clipboard';
 import type { DiagramAiDocument, DiagramAiFlowEdge, DiagramAiProject, LogicalModel, LogicalTable } from '../../types';
 import { EmptyCanvasState } from '../EmptyCanvasState/EmptyCanvasState';
 import { LogicalModelFlow } from '../LogicalModelFlow/LogicalModelFlow';
@@ -27,8 +28,8 @@ type LogicalEditorCanvasProps = {
   onRestoredEdgesApplied?: () => void;
   pastedSelection?: string[];
   pasteVersion?: number;
-  onCopySelection?: (tableIds: string[]) => void;
-  onPasteSelection?: () => void;
+  onCopySelection?: (nodes: ClipboardNode[]) => void;
+  onPasteSelection?: (position: { x: number; y: number } | null) => void;
 };
 
 export function LogicalEditorCanvas({

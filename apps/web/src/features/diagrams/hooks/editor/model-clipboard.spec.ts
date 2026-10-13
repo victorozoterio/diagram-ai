@@ -95,6 +95,42 @@ describe('área de transferência do editor', () => {
     expect(pasted.model.standaloneAttributes?.[0]).toMatchObject({ name: 'cpf', parentAttributeId: undefined });
   });
 
+  it('centraliza um atributo independente no cursor usando sua medida visual original', () => {
+    const copied = copyConceptualSelection(conceptualModel, visual, [
+      { id: 'leitor:cpf', position: { x: 90, y: 120 }, size: { width: 120, height: 60 } },
+    ]);
+    if (!copied) throw new Error('O atributo deveria ser copiado.');
+
+    const pasted = pasteConceptualSelection(conceptualModel, copied, visual, { x: 500, y: 400 });
+    const attributeId = pasted.model.standaloneAttributes?.[0]?.id;
+    if (!attributeId) throw new Error('O atributo colado deveria existir.');
+
+    expect(pasted.visual.elementPositions[`standalone:${attributeId}`]).toEqual({ x: 440, y: 370 });
+  });
+
+  it('centraliza entidades e relacionamentos no cursor sem offsets por tipo', () => {
+    const copied = copyConceptualSelection(conceptualModel, visual, [
+      { id: 'leitor', position: { x: 10, y: 20 }, size: { width: 180, height: 90 } },
+      { id: 'relationship:empresta', position: { x: 170, y: 80 }, size: { width: 100, height: 100 } },
+    ]);
+    if (!copied) throw new Error('Os componentes deveriam ser copiados.');
+
+    const pasted = pasteConceptualSelection(conceptualModel, copied, visual, { x: 600, y: 400 });
+    const entity = pasted.model.entities.at(-1);
+    const relationship = pasted.model.relationships.at(-1);
+    if (!entity || !relationship) throw new Error('Os componentes colados deveriam existir.');
+
+    const entityPosition = pasted.visual.entityPositions[entity.id];
+    const relationshipPosition = pasted.visual.elementPositions[`relationship:${relationship.id}`];
+    const left = Math.min(entityPosition.x, relationshipPosition.x);
+    const right = Math.max(entityPosition.x + 180, relationshipPosition.x + 100);
+    const top = Math.min(entityPosition.y, relationshipPosition.y);
+    const bottom = Math.max(entityPosition.y + 90, relationshipPosition.y + 100);
+
+    expect((left + right) / 2).toBe(600);
+    expect((top + bottom) / 2).toBe(400);
+  });
+
   it('não preserva participantes externos à seleção', () => {
     const copied = copyConceptualSelection(conceptualModel, visual, ['leitor', 'relationship:empresta']);
     expect(copied).not.toBeNull();
@@ -105,6 +141,26 @@ describe('área de transferência do editor', () => {
 
     expect(relationship.participants).toHaveLength(1);
     expect(relationship.participants[0].entityId).not.toBe('leitor');
+  });
+
+  it('posiciona o centro de uma seleção conceitual múltipla na âncora de colagem', () => {
+    const copied = copyConceptualSelection(conceptualModel, visual, ['leitor', 'livro', 'relationship:empresta']);
+    if (!copied) throw new Error('A seleção conceitual deveria ser copiada.');
+    const pasted = pasteConceptualSelection(conceptualModel, copied, visual, { x: 600, y: 400 });
+    const positions = [
+      ...pasted.model.entities.slice(-2).map((entity) => pasted.visual.entityPositions[entity.id]),
+      pasted.visual.elementPositions[`relationship:${pasted.model.relationships.at(-1)?.id}`],
+      pasted.visual.elementPositions[
+        `${pasted.model.entities.at(-2)?.id}:${pasted.model.entities.at(-2)?.attributes[0]?.id}`
+      ],
+    ];
+
+    expect(
+      (Math.min(...positions.map((position) => position.x)) + Math.max(...positions.map((position) => position.x))) / 2,
+    ).toBe(600);
+    expect(
+      (Math.min(...positions.map((position) => position.y)) + Math.max(...positions.map((position) => position.y))) / 2,
+    ).toBe(400);
   });
 
   it('trata uma colagem como uma única alteração reversível no histórico', () => {
@@ -175,5 +231,38 @@ describe('área de transferência do editor', () => {
     if (!externalClipboard) throw new Error('A tabela deveria ser copiada.');
     const externalOnly = pasteLogicalSelection(logical, externalClipboard);
     expect(externalOnly.model.tables.at(-1)?.columns[0]).toMatchObject({ foreignKey: false, references: undefined });
+  });
+
+  it('posiciona o centro do conjunto lógico na âncora atual do canvas', () => {
+    const logical: LogicalModel = {
+      tables: [
+        { id: 'a', name: 'a', columns: [], position: { x: 10, y: 10 }, size: { width: 280, height: 130 } },
+        { id: 'b', name: 'b', columns: [], position: { x: 300, y: 10 }, size: { width: 280, height: 130 } },
+      ],
+    };
+    const copied = copyLogicalSelection(logical, ['a', 'b']);
+    if (!copied) throw new Error('As tabelas deveriam ser copiadas.');
+    const pasted = pasteLogicalSelection(logical, copied, { x: 700, y: 500 });
+    const tables = pasted.model.tables.slice(-2);
+    const left = Math.min(...tables.map((table) => table.position?.x ?? 0));
+    const right = Math.max(...tables.map((table) => (table.position?.x ?? 0) + (table.size?.width ?? 280)));
+    const top = Math.min(...tables.map((table) => table.position?.y ?? 0));
+    const bottom = Math.max(...tables.map((table) => (table.position?.y ?? 0) + (table.size?.height ?? 130)));
+
+    expect((left + right) / 2).toBe(700);
+    expect((top + bottom) / 2).toBe(500);
+  });
+
+  it('usa as medidas reais das tabelas para centralizar a colagem lógica', () => {
+    const logical: LogicalModel = {
+      tables: [{ id: 'a', name: 'a', columns: [], position: { x: 20, y: 40 }, size: { width: 280, height: 130 } }],
+    };
+    const copied = copyLogicalSelection(logical, [
+      { id: 'a', position: { x: 20, y: 40 }, size: { width: 400, height: 200 } },
+    ]);
+    if (!copied) throw new Error('A tabela deveria ser copiada.');
+
+    const pasted = pasteLogicalSelection(logical, copied, { x: 700, y: 500 });
+    expect(pasted.model.tables.at(-1)?.position).toEqual({ x: 500, y: 400 });
   });
 });

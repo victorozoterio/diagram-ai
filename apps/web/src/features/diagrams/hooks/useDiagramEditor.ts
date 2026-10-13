@@ -14,6 +14,7 @@ import {
   withModeViewport,
 } from './editor/mode-viewports';
 import {
+  type ClipboardNode,
   copyConceptualSelection,
   copyLogicalSelection,
   type EditorClipboard,
@@ -255,22 +256,23 @@ export function useDiagramEditor() {
     setSelectedEntityIds([]);
   }
 
-  function copyConceptualComponents(selectedNodeIds: string[]) {
+  function copyConceptualComponents(selectedNodes: ClipboardNode[]) {
     if (!conceptualModel) return;
     clipboard.current = copyConceptualSelection(
       conceptualModel,
       { entityPositions, elementPositions, nodeSizes },
-      selectedNodeIds,
+      selectedNodes,
     );
   }
 
-  function pasteConceptualComponents() {
+  function pasteConceptualComponents(position: DiagramPosition | null = null) {
     if (!conceptualModel || clipboard.current?.mode !== 'conceptual') return;
-    const pasted = pasteConceptualSelection(conceptualModel, clipboard.current, {
-      entityPositions,
-      elementPositions,
-      nodeSizes,
-    });
+    const pasted = pasteConceptualSelection(
+      conceptualModel,
+      clipboard.current,
+      { entityPositions, elementPositions, nodeSizes },
+      position ?? undefined,
+    );
     setConceptualModel(pasted.model);
     setEntityPositions(pasted.visual.entityPositions);
     setElementPositions(pasted.visual.elementPositions);
@@ -281,14 +283,14 @@ export function useDiagramEditor() {
     setPasteVersions((versions) => ({ ...versions, conceptual: versions.conceptual + 1 }));
   }
 
-  function copyLogicalComponents(selectedTableIds: string[]) {
+  function copyLogicalComponents(selectedTables: ClipboardNode[]) {
     if (!logicalModel) return;
-    clipboard.current = copyLogicalSelection(logicalModel, selectedTableIds);
+    clipboard.current = copyLogicalSelection(logicalModel, selectedTables);
   }
 
-  function pasteLogicalComponents() {
+  function pasteLogicalComponents(position: DiagramPosition | null = null) {
     if (!logicalModel || clipboard.current?.mode !== 'logical') return;
-    const pasted = pasteLogicalSelection(logicalModel, clipboard.current);
+    const pasted = pasteLogicalSelection(logicalModel, clipboard.current, position ?? undefined);
     setLogicalModel(pasted.model);
     setPastedSelection((selection) => ({ ...selection, logical: pasted.selectedTableIds }));
     setPasteVersions((versions) => ({ ...versions, logical: versions.logical + 1 }));

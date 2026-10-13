@@ -17,6 +17,7 @@ import {
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 
+import type { ClipboardNode } from '../../hooks/editor/model-clipboard';
 import {
   createDiagramAiProject,
   type DiagramAiDocument,
@@ -35,6 +36,7 @@ import { RestoreViewport } from '../ConceptualDiagramFlow/RestoreViewport';
 import { preserveNodeMeasurement } from '../flow-node-measurement';
 import { useSelectAllShortcut } from '../use-select-all-shortcut';
 import { useCopyPasteShortcut } from '../useCopyPasteShortcut';
+import { useFlowPastePosition } from '../useFlowPastePosition';
 import type { LogicalOrthogonalEdgeData } from './edges/LogicalOrthogonalEdge';
 import { LogicalOrthogonalEdge } from './edges/LogicalOrthogonalEdge';
 import styles from './LogicalModelFlow.module.css';
@@ -63,8 +65,8 @@ type LogicalModelFlowProps = {
   onRestoredEdgesApplied?: () => void;
   pastedSelection?: string[];
   pasteVersion?: number;
-  onCopySelection?: (tableIds: string[]) => void;
-  onPasteSelection?: () => void;
+  onCopySelection?: (nodes: ClipboardNode[]) => void;
+  onPasteSelection?: (position: { x: number; y: number } | null) => void;
 };
 
 type LogicalTableNodeData = {
@@ -510,6 +512,10 @@ export function LogicalModelFlow({
 }: LogicalModelFlowProps) {
   const flowInstance = useRef<ReactFlowInstance<Node<LogicalTableNodeData>, Edge> | null>(null);
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
+  const { getPastePosition, rememberPointerPosition } = useFlowPastePosition(
+    flowWrapperRef,
+    () => flowInstance.current,
+  );
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<Node<LogicalTableNodeData>[]>([]);
@@ -678,8 +684,20 @@ export function LogicalModelFlow({
 
   useSelectAllShortcut({ onSelectAllNodes: selectAllNodes });
   useCopyPasteShortcut({
-    onCopy: () => onCopySelection?.(nodes.filter((node) => node.selected).map((node) => node.id)),
-    onPaste: () => onPasteSelection?.(),
+    onCopy: () =>
+      onCopySelection?.(
+        nodes
+          .filter((node) => node.selected)
+          .map((node) => ({
+            id: node.id,
+            position: node.position,
+            size:
+              node.measured?.width && node.measured?.height
+                ? { width: node.measured.width, height: node.measured.height }
+                : undefined,
+          })),
+      ),
+    onPaste: () => onPasteSelection?.(getPastePosition()),
   });
 
   const manualEdges: Edge[] = (model.relationships ?? []).map((relationship) => ({
@@ -832,6 +850,7 @@ export function LogicalModelFlow({
       }}
       role='application'
       aria-label='Canvas do modelo lógico'
+      onPointerMove={rememberPointerPosition}
       onDragOver={(event) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'copy';

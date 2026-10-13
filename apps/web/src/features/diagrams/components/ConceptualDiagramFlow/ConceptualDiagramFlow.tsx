@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { createDiagramAiProject } from '../../types';
 import { useSelectAllShortcut } from '../use-select-all-shortcut';
 import { useCopyPasteShortcut } from '../useCopyPasteShortcut';
+import { useFlowPastePosition } from '../useFlowPastePosition';
 import styles from './ConceptualDiagramFlow.module.css';
 import { DiagramExportMenu } from './DiagramExportMenu';
 import { ChenConnectionLine } from './edges/ChenConnectionLine';
@@ -29,6 +30,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
     handleDrop,
   } = useFlowInteractions(props);
   const { edges, handleEdgesChange, selectAllEdges } = useFlowEdges(props, handleReconnect);
+  const { getPastePosition, rememberPointerPosition } = useFlowPastePosition(flowWrapperRef, () => flowInstance);
 
   const editableProjectFactory = useRef<() => ReturnType<typeof createDiagramAiProject>>(() =>
     createDiagramAiProject({
@@ -81,8 +83,20 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
 
   useSelectAllShortcut({ onSelectAllNodes: selectAllNodes, onSelectAllEdges: selectAllEdges });
   useCopyPasteShortcut({
-    onCopy: () => props.onCopySelection?.(nodes.filter((node) => node.selected).map((node) => node.id)),
-    onPaste: () => props.onPasteSelection?.(),
+    onCopy: () =>
+      props.onCopySelection?.(
+        nodes
+          .filter((node) => node.selected)
+          .map((node) => ({
+            id: node.id,
+            position: node.position,
+            size:
+              node.measured?.width && node.measured?.height
+                ? { width: node.measured.width, height: node.measured.height }
+                : undefined,
+          })),
+      ),
+    onPaste: () => props.onPasteSelection?.(getPastePosition()),
   });
 
   return (
@@ -91,6 +105,7 @@ export function ConceptualDiagramFlow(props: ConceptualDiagramFlowProps) {
       className={styles.diagramFlow}
       role='application'
       aria-label='Canvas do modelo conceitual'
+      onPointerMove={rememberPointerPosition}
       onDragOver={(event) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'copy';

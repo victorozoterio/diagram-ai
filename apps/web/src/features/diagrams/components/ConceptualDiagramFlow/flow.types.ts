@@ -1,4 +1,5 @@
 import type { DiagramSize, EdgeControlPoints } from '../../hooks/editor/editor.types';
+import type { ClipboardNode } from '../../hooks/editor/model-clipboard';
 import type {
   AttributeType,
   ConceptualModel,
@@ -110,8 +111,8 @@ export type ConceptualDiagramFlowProps = {
   onRestoredEdgesApplied?: () => void;
   pastedSelection?: string[];
   pasteVersion?: number;
-  onCopySelection?: (nodeIds: string[]) => void;
-  onPasteSelection?: () => void;
+  onCopySelection?: (nodes: ClipboardNode[]) => void;
+  onPasteSelection?: (position: DiagramPosition | null) => void;
   restoredViewport?: { x: number; y: number; zoom: number } | null;
   viewportRestoreVersion?: number;
   selectedAttribute?: { entityId: string | null; attributeId: string } | null;

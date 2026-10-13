@@ -7,12 +7,16 @@ import {
   relationshipPositionKey,
 } from './model-factories';
 
-const PASTE_OFFSET = 32;
-
 type ConceptualVisualState = {
   elementPositions: Record<string, DiagramPosition>;
   entityPositions: Record<string, DiagramPosition>;
   nodeSizes: Record<string, DiagramSize>;
+};
+
+export type ClipboardNode = {
+  id: string;
+  position?: DiagramPosition;
+  size?: DiagramSize;
 };
 
 export type ConceptualClipboard = {
@@ -20,12 +24,15 @@ export type ConceptualClipboard = {
   model: ConceptualModel;
   selectedNodeIds: string[];
   visual: ConceptualVisualState;
+  nodeMeasurements: Record<string, ClipboardNode>;
+  standaloneAttributeSourceNodeIds: Record<string, string>;
 };
 
 export type LogicalClipboard = {
   mode: 'logical';
   model: LogicalModel;
   selectedTableIds: string[];
+  nodeMeasurements: Record<string, ClipboardNode>;
 };
 
 export type EditorClipboard = ConceptualClipboard | LogicalClipboard;
@@ -33,8 +40,10 @@ export type EditorClipboard = ConceptualClipboard | LogicalClipboard;
 export function copyConceptualSelection(
   model: ConceptualModel,
   visual: ConceptualVisualState,
-  selectedNodeIds: string[],
+  selection: string[] | ClipboardNode[],
 ): ConceptualClipboard | null {
+  const selectedNodes = normalizeClipboardNodes(selection);
+  const selectedNodeIds = selectedNodes.map((node) => node.id);
   const selected = new Set(selectedNodeIds);
   const entityIds = new Set(model.entities.filter((entity) => selected.has(entity.id)).map((entity) => entity.id));
   const relationshipIds = new Set(
@@ -47,29 +56,33 @@ export function copyConceptualSelection(
       .map((relationship) => relationship.id),
   );
 
-  const standaloneAttributes = (model.standaloneAttributes ?? []).filter((attribute) =>
-    selected.has(attributePositionKey(null, attribute.id)),
-  );
-  const detachedAttributes = [
+  const selectedStandaloneAttributeEntries = (model.standaloneAttributes ?? [])
+    .filter((attribute) => selected.has(attributePositionKey(null, attribute.id)))
+    .map((attribute) => ({ attribute, sourceNodeId: attributePositionKey(null, attribute.id) }));
+  const detachedAttributeEntries = [
     ...model.entities.flatMap((entity) =>
       entityIds.has(entity.id)
         ? []
-        : entity.attributes.filter((attribute) => selected.has(attributePositionKey(entity.id, attribute.id))),
+        : entity.attributes
+            .filter((attribute) => selected.has(attributePositionKey(entity.id, attribute.id)))
+            .map((attribute) => ({ attribute, sourceNodeId: attributePositionKey(entity.id, attribute.id) })),
     ),
     ...model.relationships.flatMap((relationship) =>
       relationshipIds.has(relationship.id)
         ? []
-        : relationship.attributes.filter((attribute) =>
-            selected.has(`relationship-attribute:${relationship.id}:${attribute.id}`),
-          ),
+        : relationship.attributes
+            .filter((attribute) => selected.has(`relationship-attribute:${relationship.id}:${attribute.id}`))
+            .map((attribute) => ({
+              attribute,
+              sourceNodeId: `relationship-attribute:${relationship.id}:${attribute.id}`,
+            })),
     ),
   ];
+  const standaloneAttributeEntries = [...selectedStandaloneAttributeEntries, ...detachedAttributeEntries];
   const copiedModel: ConceptualModel = {
     ...structuredClone(model),
     entities: model.entities.filter((entity) => entityIds.has(entity.id)).map((entity) => structuredClone(entity)),
-    standaloneAttributes: [...standaloneAttributes, ...detachedAttributes].map((attribute) =>
-      structuredClone(attribute),
-    ),
+    standaloneAttributes: standaloneAttributeEntries.map(({ attribute }) => structuredClone(attribute)),
     relationships: model.relationships
       .filter((relationship) => relationshipIds.has(relationship.id))
       .map((relationship) => structuredClone(relationship)),
@@ -88,6 +101,10 @@ export function copyConceptualSelection(
     model: copiedModel,
     selectedNodeIds: [...selected],
     visual: structuredClone(visual),
+    nodeMeasurements: Object.fromEntries(selectedNodes.map((node) => [node.id, node])),
+    standaloneAttributeSourceNodeIds: Object.fromEntries(
+      standaloneAttributeEntries.map(({ attribute, sourceNodeId }) => [attribute.id, sourceNodeId]),
+    ),
   };
 }
 
@@ -95,6 +112,7 @@ export function pasteConceptualSelection(
   currentModel: ConceptualModel,
   clipboard: ConceptualClipboard,
   visual: ConceptualVisualState,
+  pastePosition?: DiagramPosition,
 ): { model: ConceptualModel; visual: ConceptualVisualState; selectedNodeIds: string[] } {
   const usedIds = conceptualElementIds(currentModel);
   const entityIdMap = new Map<string, string>();
@@ -173,7 +191,7 @@ export function pasteConceptualSelection(
     clipboard.model.standaloneAttributes?.map((attribute) =>
       cloneAttribute(
         attribute,
-        attributePositionKey(null, attribute.id),
+        clipboard.standaloneAttributeSourceNodeIds[attribute.id] ?? attributePositionKey(null, attribute.id),
         (attributeId) => attributePositionKey(null, attributeId),
         'standalone',
       ),
@@ -216,17 +234,37 @@ export function pasteConceptualSelection(
     };
   });
 
+  const measuredSelection = Object.values(clipboard.nodeMeasurements).filter(
+    (node): node is ClipboardNode & { position: DiagramPosition } => Boolean(node.position),
+  );
+  const sourceBounds = boundsForNodes(
+    measuredSelection.length > 0
+      ? measuredSelection
+      : [...nodeKeyMap.keys()].flatMap((key) => {
+          const measurement = clipboard.nodeMeasurements[key];
+          const position =
+            measurement?.position ?? clipboard.visual.entityPositions[key] ?? clipboard.visual.elementPositions[key];
+          return position ? [{ position, size: measurement?.size ?? clipboard.visual.nodeSizes[key] }] : [];
+        }),
+  );
+  const offset =
+    pastePosition && sourceBounds
+      ? { x: pastePosition.x - sourceBounds.center.x, y: pastePosition.y - sourceBounds.center.y }
+      : { x: 0, y: 0 };
   const shiftedPositions = (source: Record<string, DiagramPosition>) => {
     const next = { ...source };
     for (const [sourceKey, targetKey] of nodeKeyMap) {
-      const position = clipboard.visual.entityPositions[sourceKey] ?? clipboard.visual.elementPositions[sourceKey];
-      if (position) next[targetKey] = { x: position.x + PASTE_OFFSET, y: position.y + PASTE_OFFSET };
+      const position =
+        clipboard.nodeMeasurements[sourceKey]?.position ??
+        clipboard.visual.entityPositions[sourceKey] ??
+        clipboard.visual.elementPositions[sourceKey];
+      if (position) next[targetKey] = { x: position.x + offset.x, y: position.y + offset.y };
     }
     return next;
   };
   const nodeSizes = { ...visual.nodeSizes };
   for (const [sourceKey, targetKey] of nodeKeyMap) {
-    const size = clipboard.visual.nodeSizes[sourceKey];
+    const size = clipboard.nodeMeasurements[sourceKey]?.size ?? clipboard.visual.nodeSizes[sourceKey];
     if (size) nodeSizes[targetKey] = structuredClone(size);
   }
 
@@ -246,7 +284,12 @@ export function pasteConceptualSelection(
   };
 }
 
-export function copyLogicalSelection(model: LogicalModel, selectedTableIds: string[]): LogicalClipboard | null {
+export function copyLogicalSelection(
+  model: LogicalModel,
+  selection: string[] | ClipboardNode[],
+): LogicalClipboard | null {
+  const selectedNodes = normalizeClipboardNodes(selection);
+  const selectedTableIds = selectedNodes.map((node) => node.id);
   const selected = new Set(selectedTableIds);
   const tables = model.tables.filter((table) => selected.has(table.id));
   if (tables.length === 0) return null;
@@ -261,12 +304,14 @@ export function copyLogicalSelection(model: LogicalModel, selectedTableIds: stri
       ),
     },
     selectedTableIds: [...selected],
+    nodeMeasurements: Object.fromEntries(selectedNodes.map((node) => [node.id, node])),
   };
 }
 
 export function pasteLogicalSelection(
   currentModel: LogicalModel,
   clipboard: LogicalClipboard,
+  pastePosition?: DiagramPosition,
 ): { model: LogicalModel; selectedTableIds: string[] } {
   const usedIds = new Set(
     currentModel.tables.flatMap((table) => [table.id, ...table.columns.map((column) => column.id)]),
@@ -278,6 +323,11 @@ export function pasteLogicalSelection(
     usedIds.add(id);
     return id;
   };
+  const sourceCenter = centerOfLogicalTables(clipboard.model.tables, clipboard.nodeMeasurements);
+  const offset =
+    pastePosition && sourceCenter
+      ? { x: pastePosition.x - sourceCenter.x, y: pastePosition.y - sourceCenter.y }
+      : { x: 0, y: 0 };
   const tables: LogicalTable[] = clipboard.model.tables.map((table) => {
     const id = nextId('logical-table');
     tableIdMap.set(table.id, id);
@@ -290,7 +340,10 @@ export function pasteLogicalSelection(
       ...structuredClone(table),
       id,
       columns,
-      position: table.position ? { x: table.position.x + PASTE_OFFSET, y: table.position.y + PASTE_OFFSET } : undefined,
+      position: (() => {
+        const position = clipboard.nodeMeasurements[table.id]?.position ?? table.position;
+        return position ? { x: position.x + offset.x, y: position.y + offset.y } : undefined;
+      })(),
     };
   });
 
@@ -335,4 +388,46 @@ function relationshipParticipantIds(relationship: Relationship): string[] {
     return [relationship.supertypeId, ...(relationship.subtypeIds ?? [])].filter((id): id is string => Boolean(id));
   }
   return relationship.participants.map((participant) => participant.entityId);
+}
+
+function centerOfLogicalTables(
+  tables: LogicalTable[],
+  nodeMeasurements: Record<string, ClipboardNode>,
+): DiagramPosition | null {
+  if (tables.length === 0) return null;
+  const selectedMeasurements = Object.values(nodeMeasurements).filter(
+    (node): node is ClipboardNode & { position: DiagramPosition } => Boolean(node.position),
+  );
+  return (
+    boundsForNodes(
+      selectedMeasurements.length > 0
+        ? selectedMeasurements
+        : tables.map((table) => ({
+            position: table.position ?? { x: 0, y: 0 },
+            size: table.size,
+          })),
+    )?.center ?? null
+  );
+}
+
+function boundsForNodes(nodes: Array<{ position?: DiagramPosition; size?: DiagramSize }>) {
+  const positionedNodes = nodes.filter((node): node is ClipboardNode & { position: DiagramPosition } =>
+    Boolean(node.position),
+  );
+  if (positionedNodes.length === 0) return null;
+  const bounds = positionedNodes.map(({ position, size }) => ({
+    left: position.x,
+    top: position.y,
+    right: position.x + (size?.width ?? 0),
+    bottom: position.y + (size?.height ?? 0),
+  }));
+  const left = Math.min(...bounds.map((bound) => bound.left));
+  const right = Math.max(...bounds.map((bound) => bound.right));
+  const top = Math.min(...bounds.map((bound) => bound.top));
+  const bottom = Math.max(...bounds.map((bound) => bound.bottom));
+  return { center: { x: (left + right) / 2, y: (top + bottom) / 2 } };
+}
+
+function normalizeClipboardNodes(selection: string[] | ClipboardNode[]): ClipboardNode[] {
+  return selection.map((item) => (typeof item === 'string' ? { id: item } : item));
 }
