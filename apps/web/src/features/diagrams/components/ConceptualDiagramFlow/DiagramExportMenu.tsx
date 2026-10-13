@@ -3,6 +3,7 @@ import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { type ChangeEvent, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { diagramDownloadFileName } from '../../file-name';
 import { useEditorKeyboardShortcuts } from '../../hooks/useEditorKeyboardShortcuts';
 import { type DiagramAiDocument, type DiagramAiProject, parseDiagramAiDocument } from '../../types';
 import styles from './DiagramExportMenu.module.css';
@@ -551,7 +552,7 @@ function downloadEditableProject(editableDocument: DiagramAiDocument) {
   const blob = new Blob([JSON.stringify(editableDocument, null, 2)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.download = 'diagrama.diagramai';
+  link.download = diagramDownloadFileName(editableDocument.name, 'diagramai');
   link.href = url;
   link.click();
   URL.revokeObjectURL(url);

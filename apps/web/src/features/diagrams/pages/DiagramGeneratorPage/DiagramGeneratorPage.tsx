@@ -23,6 +23,7 @@ import {
   SqlGeneratorModal,
 } from '../../components';
 import type { ClarificationStep } from '../../components/EditorAssistant/EditorAssistant';
+import { diagramDownloadFileName } from '../../file-name';
 import { useDiagramEditor } from '../../hooks';
 import { type ViewportSize, viewportForProjectBounds } from '../../hooks/editor/mode-viewports';
 import {
@@ -455,7 +456,7 @@ export function DiagramGeneratorPage({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `modelo-${sqlDialect}.sql`;
+    link.download = diagramDownloadFileName(diagramNameRef.current, 'sql');
     link.click();
     URL.revokeObjectURL(url);
   }
