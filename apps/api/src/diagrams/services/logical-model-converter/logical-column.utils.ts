@@ -9,7 +9,8 @@ export function columnsFromAttribute(entityId: string, attribute: Attribute): Lo
       type: mapAttributeType(component.type),
       primaryKey: false,
       foreignKey: false,
-      required: attribute.required,
+      required: isRequiredAttribute(attribute),
+      nullable: !isRequiredAttribute(attribute),
       unique: false,
     }));
   }
@@ -25,10 +26,16 @@ export function columnsFromAttribute(entityId: string, attribute: Attribute): Lo
       type: mapAttributeType(attribute.type),
       primaryKey: attribute.identifier,
       foreignKey: false,
-      required: attribute.required,
+      required: attribute.identifier || isRequiredAttribute(attribute),
+      nullable: attribute.identifier ? false : !isRequiredAttribute(attribute),
       unique: attribute.identifier ? false : attribute.unique,
     },
   ];
+}
+
+/** Ausência de nulabilidade explícita significa NOT NULL na conversão. */
+function isRequiredAttribute(attribute: Attribute): boolean {
+  return attribute.nullable !== true;
 }
 
 export function mapAttributeType(type: Attribute['type']): LogicalColumnType {
@@ -62,7 +69,6 @@ export function ensurePrimaryKey(table: LogicalTable): LogicalColumn {
   const generatedName = `id_${toSnakeCase(table.name)}`;
   const columnWithGeneratedName = table.columns.find((column) => column.name === generatedName);
   if (columnWithGeneratedName) {
-    columnWithGeneratedName.type = 'uuid';
     columnWithGeneratedName.primaryKey = true;
     columnWithGeneratedName.required = true;
     columnWithGeneratedName.nullable = false;
@@ -109,6 +115,7 @@ export function createForeignKeyColumn({
     foreignKey: true,
     required,
     unique,
+    nullable: !required,
     references: {
       tableId: referencedTable.id,
       columnId: referencedColumn.id,
@@ -145,7 +152,9 @@ export function addOrPromoteForeignKey({
     existingColumn.name = expectedName;
     existingColumn.type = referencedColumn.type;
     existingColumn.foreignKey = true;
-    existingColumn.required = true;
+    const required = existingColumn.nullable !== true;
+    existingColumn.required = required;
+    existingColumn.nullable = !required;
     existingColumn.unique = unique;
     existingColumn.references = {
       tableId: referencedTable.id,

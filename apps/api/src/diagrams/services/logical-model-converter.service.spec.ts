@@ -237,4 +237,121 @@ describe('LogicalModelConverterService', () => {
     expect(sql).toContain('FOREIGN KEY (id_usuario)');
     expect(sql).toContain('REFERENCES usuario (id_usuario)');
   });
+
+  it('preserva tipos e aplica nulabilidade e unicidade explícitas na biblioteca', () => {
+    const plain = (name: string, type: 'string' | 'number' | 'datetime' = 'string') => ({
+      id: name,
+      name,
+      type,
+      identifier: false,
+      required: false,
+      unique: false,
+      multivalued: false,
+      composite: false,
+      derived: false,
+      components: [],
+    });
+    const model: ConceptualModel = {
+      metadata: {},
+      standaloneAttributes: [],
+      ambiguities: [],
+      entities: [
+        { id: 'leitor', name: 'leitor', attributes: [plain('nome'), plain('cpf'), plain('email')] },
+        { id: 'livro', name: 'livro', attributes: [plain('titulo'), plain('autor'), plain('ano_publicacao')] },
+        {
+          id: 'emprestimo',
+          name: 'emprestimo',
+          attributes: [
+            plain('data_emprestimo', 'datetime'),
+            { ...plain('data_devolucao', 'datetime'), nullable: true },
+          ],
+        },
+      ],
+      relationships: [
+        {
+          id: 'leitor_emprestimo',
+          name: 'empresta',
+          kind: 'relationship',
+          type: '1:N',
+          participants: [
+            { entityId: 'leitor', cardinality: '1' },
+            { entityId: 'emprestimo', cardinality: 'N' },
+          ],
+          attributes: [],
+          subtypeIds: [],
+          subtypeHandles: {},
+        },
+        {
+          id: 'livro_emprestimo',
+          name: 'emprestado_por',
+          kind: 'relationship',
+          type: '1:N',
+          participants: [
+            { entityId: 'livro', cardinality: '1' },
+            { entityId: 'emprestimo', cardinality: 'N' },
+          ],
+          attributes: [],
+          subtypeIds: [],
+          subtypeHandles: {},
+        },
+      ],
+    };
+    const logical = new LogicalModelConverterService().convert(model);
+    const leitor = logical.tables.find((table) => table.id === 'leitor');
+    const livro = logical.tables.find((table) => table.id === 'livro');
+    const emprestimo = logical.tables.find((table) => table.id === 'emprestimo');
+
+    expect(leitor?.columns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'id_leitor', type: 'uuid', primaryKey: true, required: true }),
+        expect.objectContaining({ name: 'nome', type: 'varchar', required: true, nullable: false }),
+        expect.objectContaining({ name: 'cpf', type: 'varchar', required: true, nullable: false, unique: false }),
+      ]),
+    );
+    expect(livro?.columns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'titulo', required: true, nullable: false }),
+        expect.objectContaining({ name: 'autor', required: true, nullable: false }),
+        expect.objectContaining({ name: 'ano_publicacao', type: 'varchar', required: true, nullable: false }),
+      ]),
+    );
+    expect(emprestimo?.columns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'data_emprestimo', type: 'timestamp', required: true, nullable: false }),
+        expect.objectContaining({ name: 'data_devolucao', type: 'timestamp', required: false, nullable: true }),
+        expect.objectContaining({ name: 'id_leitor', foreignKey: true, required: true }),
+        expect.objectContaining({ name: 'id_livro', foreignKey: true, required: true }),
+      ]),
+    );
+    const sql = new SqlGeneratorService().generate(logical, 'postgresql');
+    expect(sql).toContain('cpf VARCHAR(255) NOT NULL');
+    expect(sql).not.toContain('UNIQUE (cpf)');
+    expect(model.entities[0].attributes.find((item) => item.name === 'cpf')?.type).toBe('string');
+  });
+
+  it('não infere semântica pelo nome do atributo', () => {
+    const explicit: ConceptualModel = {
+      metadata: {},
+      standaloneAttributes: [],
+      ambiguities: [],
+      relationships: [],
+      entities: [
+        {
+          id: 'registro',
+          name: 'registro',
+          attributes: [
+            { ...attribute('cpf'), type: 'string', required: false, unique: false },
+            { ...attribute('codigo'), type: 'uuid', required: false, unique: true, nullable: true },
+          ],
+        },
+      ],
+    };
+    const table = new LogicalModelConverterService().convert(explicit).tables[0];
+    expect(table.columns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'cpf', type: 'varchar', required: true, nullable: false, unique: false }),
+        expect.objectContaining({ name: 'codigo', type: 'uuid', required: false, nullable: true, unique: true }),
+      ]),
+    );
+  });
 });

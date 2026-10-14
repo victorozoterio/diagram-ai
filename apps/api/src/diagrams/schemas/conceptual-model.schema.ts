@@ -26,6 +26,7 @@ export const AttributeSchema = z.object({
   description: z.string().optional(),
   identifier: z.boolean().default(false),
   required: z.boolean().default(false),
+  nullable: z.boolean().optional(),
   unique: z.boolean().default(false),
   multivalued: z.boolean().default(false),
   composite: z.boolean().default(false),
