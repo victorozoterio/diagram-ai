@@ -1,0 +1,222 @@
+{
+  "status": "PRELIMINAR — pendente de revisão pelos autores e validação pelo orientador",
+  "conventions": "Cardinalidade 1/N fica no participante indicado; IDs técnicos inferidos pelo software não contam como atributos exigidos. Nomes alternativos só são aceitos quando anotados em aliases antes da avaliação.",
+  "cases": [
+    {
+      "id": "S01",
+      "entities": [
+        { "name": "paciente", "attributes": ["nome", "telefone"] },
+        { "name": "consulta", "attributes": ["data", "horario"] }
+      ],
+      "relationships": [
+        {
+          "name": "agenda",
+          "aliases": ["agendar"],
+          "participants": [{ "entity": "paciente", "cardinality": "1" }, { "entity": "consulta", "cardinality": "N" }],
+          "attributes": []
+        }
+      ],
+      "particularities": []
+    },
+    {
+      "id": "S02",
+      "entities": [
+        { "name": "editora", "attributes": ["nome", "cidade"] },
+        { "name": "revista", "attributes": ["titulo", "numero_edicao"] }
+      ],
+      "relationships": [
+        {
+          "name": "publica",
+          "aliases": ["publicar"],
+          "participants": [{ "entity": "editora", "cardinality": "1" }, { "entity": "revista", "cardinality": "N" }],
+          "attributes": []
+        }
+      ],
+      "particularities": []
+    },
+    {
+      "id": "S03",
+      "entities": [
+        { "name": "leitor", "attributes": ["nome", "email"] },
+        { "name": "livro", "attributes": ["titulo", "ano"] },
+        { "name": "emprestimo", "attributes": ["data_retirada", "data_devolucao"] }
+      ],
+      "relationships": [
+        {
+          "name": "realiza",
+          "participants": [{ "entity": "leitor", "cardinality": "1" }, { "entity": "emprestimo", "cardinality": "N" }],
+          "attributes": []
+        },
+        {
+          "name": "refere_se",
+          "aliases": ["inclui"],
+          "participants": [{ "entity": "livro", "cardinality": "1" }, { "entity": "emprestimo", "cardinality": "N" }],
+          "attributes": []
+        }
+      ],
+      "particularities": [
+        "Empréstimo é entidade de evento com datas próprias; a interpretação deve ser revisada pelo orientador."
+      ]
+    },
+    {
+      "id": "S04",
+      "entities": [
+        { "name": "aluno", "attributes": ["matricula", "nome"] },
+        { "name": "disciplina", "attributes": ["codigo", "titulo"] }
+      ],
+      "relationships": [
+        {
+          "name": "cursa",
+          "aliases": ["matricula_em"],
+          "participants": [{ "entity": "aluno", "cardinality": "N" }, { "entity": "disciplina", "cardinality": "N" }],
+          "attributes": ["data_inscricao", "nota_final"]
+        }
+      ],
+      "particularities": ["Atributos da ocorrência N:N pertencem ao relacionamento."]
+    },
+    {
+      "id": "S05",
+      "entities": [
+        { "name": "produto", "attributes": ["codigo", "descricao"] },
+        { "name": "fornecedor", "attributes": ["razao_social", "telefone"] }
+      ],
+      "relationships": [
+        {
+          "name": "fornece",
+          "participants": [{ "entity": "fornecedor", "cardinality": "N" }, { "entity": "produto", "cardinality": "N" }],
+          "attributes": ["preco_contratado"]
+        }
+      ],
+      "particularities": ["Preço contratado é atributo da associação."]
+    },
+    {
+      "id": "S06",
+      "entities": [
+        { "name": "hospede", "attributes": ["nome", "documento"] },
+        { "name": "quarto", "attributes": ["numero", "capacidade"] },
+        { "name": "reserva", "attributes": ["entrada_prevista", "saida_prevista"] }
+      ],
+      "relationships": [
+        {
+          "name": "realiza",
+          "participants": [{ "entity": "hospede", "cardinality": "1" }, { "entity": "reserva", "cardinality": "N" }],
+          "attributes": []
+        },
+        {
+          "name": "refere_se",
+          "participants": [{ "entity": "quarto", "cardinality": "1" }, { "entity": "reserva", "cardinality": "N" }],
+          "attributes": []
+        }
+      ],
+      "particularities": ["Reserva é entidade com período próprio."]
+    },
+    {
+      "id": "S07",
+      "entities": [
+        { "name": "pessoa", "attributes": ["nome", "email"] },
+        { "name": "professor", "attributes": ["area_atuacao"] },
+        { "name": "aluno", "attributes": ["matricula"] }
+      ],
+      "relationships": [
+        {
+          "name": "orienta",
+          "participants": [{ "entity": "professor", "cardinality": "1" }, { "entity": "aluno", "cardinality": "N" }],
+          "attributes": []
+        },
+        {
+          "name": "generalizacao_pessoa",
+          "kind": "generalization",
+          "supertype": "pessoa",
+          "subtypes": ["professor", "aluno"],
+          "participants": [],
+          "attributes": []
+        }
+      ],
+      "particularities": ["Atributos comuns no supertipo; específicos nos subtipos."]
+    },
+    {
+      "id": "S08",
+      "entities": [
+        { "name": "programa", "attributes": ["titulo", "categoria"] },
+        { "name": "episodio", "attributes": ["nome", "duracao", "data_publicacao"] },
+        { "name": "apresentador", "attributes": ["nome"] }
+      ],
+      "relationships": [
+        {
+          "name": "contem",
+          "participants": [{ "entity": "programa", "cardinality": "1" }, { "entity": "episodio", "cardinality": "N" }],
+          "attributes": []
+        },
+        {
+          "name": "conduz",
+          "participants": [
+            { "entity": "apresentador", "cardinality": "N" },
+            { "entity": "programa", "cardinality": "N" }
+          ],
+          "attributes": []
+        }
+      ],
+      "particularities": []
+    },
+    {
+      "id": "S09",
+      "entities": [
+        { "name": "equipamento", "attributes": ["patrimonio", "modelo", "numeros_serie_modulos"] },
+        { "name": "intervencao", "attributes": ["data", "observacoes"] },
+        { "name": "tecnico", "attributes": ["registro", "nome"] }
+      ],
+      "relationships": [
+        {
+          "name": "recebe",
+          "participants": [
+            { "entity": "equipamento", "cardinality": "1" },
+            { "entity": "intervencao", "cardinality": "N" }
+          ],
+          "attributes": []
+        },
+        {
+          "name": "executa",
+          "participants": [
+            { "entity": "tecnico", "cardinality": "1" },
+            { "entity": "intervencao", "cardinality": "N" }
+          ],
+          "attributes": []
+        }
+      ],
+      "attribute_details": [{ "entity": "equipamento", "attribute": "numeros_serie_modulos", "multivalued": true }],
+      "particularities": ["numeros_serie_modulos é multivalorado; revisar nomenclatura com orientador."]
+    },
+    {
+      "id": "S10",
+      "entities": [
+        { "name": "cooperativa", "attributes": ["nome", "endereco"] },
+        { "name": "associado", "attributes": ["nome", "telefone"] },
+        { "name": "projeto", "attributes": ["titulo", "orcamento"] }
+      ],
+      "relationships": [
+        {
+          "name": "possui",
+          "participants": [
+            { "entity": "cooperativa", "cardinality": "1" },
+            { "entity": "associado", "cardinality": "N" }
+          ],
+          "attributes": []
+        },
+        {
+          "name": "participa",
+          "participants": [{ "entity": "associado", "cardinality": "N" }, { "entity": "projeto", "cardinality": "N" }],
+          "attributes": ["data_entrada"]
+        }
+      ],
+      "attribute_details": [
+        {
+          "entity": "cooperativa",
+          "attribute": "endereco",
+          "composite": true,
+          "components": ["rua", "numero", "cidade"]
+        }
+      ],
+      "particularities": ["endereco deve ser composto com rua, numero e cidade; data_entrada é atributo da associação."]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "source": "Questionário SUS fornecido pelos autores; 13 respostas completas; sem dados pessoais",
+  "method": "Itens ímpares: resposta-1; itens pares: 5-resposta; soma × 2,5. Desvio-padrão amostral.",
+  "individual": {
+    "P01": 95,
+    "P02": 100,
+    "P03": 95,
+    "P04": 100,
+    "P05": 90,
+    "P06": 82.5,
+    "P07": 82.5,
+    "P08": 100,
+    "P09": 75,
+    "P10": 70,
+    "P11": 92.5,
+    "P12": 80,
+    "P13": 97.5
+  },
+  "sus": {
+    "n": 13,
+    "mean": 89.2308,
+    "median": 92.5,
+    "min": 70,
+    "max": 100,
+    "sample_standard_deviation": 10.1748,
+    "at_or_above_70": 13
+  },
+  "supplementary_ratings": {
+    "conhecimento_previo": { "n": 13, "mean": 3.1538, "median": 3, "min": 1, "max": 4 },
+    "facilidade_login": { "n": 13, "mean": 4.7692, "median": 5, "min": 3, "max": 5 },
+    "facilidade_novo_diagrama": { "n": 13, "mean": 3.8462, "median": 4, "min": 3, "max": 5 },
+    "experiencia_geracao": { "n": 13, "mean": 4.7692, "median": 5, "min": 4, "max": 5 },
+    "facilidade_canvas": { "n": 13, "mean": 4.7692, "median": 5, "min": 3, "max": 5 },
+    "facilidade_conversao_sql": { "n": 13, "mean": 4.8462, "median": 5, "min": 4, "max": 5 }
+  },
+  "traditional_tool_experience": { "sim": 12, "não": 1 },
+  "semester": { "1": 1, "5": 12 }
+}

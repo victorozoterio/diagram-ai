@@ -1,0 +1,52 @@
+[
+  {
+    "id": "S01",
+    "level": "simple",
+    "description": "Cada paciente possui nome e telefone. Cada consulta possui data e horário. Um paciente pode agendar várias consultas; cada consulta pertence a um único paciente."
+  },
+  {
+    "id": "S02",
+    "level": "simple",
+    "description": "Cada editora possui nome e cidade. Cada revista possui título e número da edição. Uma editora publica várias revistas; cada revista é publicada por uma única editora."
+  },
+  {
+    "id": "S03",
+    "level": "intermediate",
+    "description": "Uma biblioteca registra leitores com nome e e-mail, livros com título e ano e empréstimos com data de retirada e data de devolução. Um leitor pode realizar vários empréstimos, cada empréstimo pertence a um leitor. Um livro pode constar em vários empréstimos ao longo do tempo, cada empréstimo refere-se a um livro."
+  },
+  {
+    "id": "S04",
+    "level": "intermediate",
+    "description": "Alunos possuem matrícula e nome. Disciplinas possuem código e título. Um aluno pode cursar várias disciplinas e cada disciplina pode ter vários alunos. Para cada matrícula de aluno em disciplina, registre a data de inscrição e a nota final."
+  },
+  {
+    "id": "S05",
+    "level": "intermediate",
+    "description": "Produtos possuem código e descrição. Fornecedores possuem razão social e telefone. Um fornecedor pode fornecer vários produtos e um produto pode ser fornecido por vários fornecedores. Para cada fornecimento, registre o preço contratado."
+  },
+  {
+    "id": "S06",
+    "level": "intermediate",
+    "description": "Um hotel cadastra hóspedes com nome e documento, quartos com número e capacidade, e reservas com entrada e saída previstas. Um hóspede pode realizar várias reservas; cada reserva pertence a um hóspede. Um quarto pode aparecer em várias reservas em datas diferentes; cada reserva refere-se a um quarto."
+  },
+  {
+    "id": "S07",
+    "level": "advanced",
+    "description": "Uma escola mantém pessoas com nome e e-mail. Professores e alunos são tipos de pessoa: professor possui área de atuação e aluno possui matrícula. Cada professor pode orientar vários alunos; cada aluno possui um único professor orientador."
+  },
+  {
+    "id": "S08",
+    "level": "intermediate",
+    "description": "Um programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores."
+  },
+  {
+    "id": "S09",
+    "level": "advanced",
+    "description": "Equipamentos possuem patrimônio e modelo. Intervenções possuem data e observações. Técnicos possuem registro e nome. Um equipamento pode ter várias intervenções; cada intervenção ocorre em um equipamento. Um técnico pode executar várias intervenções; cada intervenção é executada por um técnico. Um equipamento pode ter vários números de série de módulos, registrados individualmente."
+  },
+  {
+    "id": "S10",
+    "level": "advanced",
+    "description": "Cada cooperativa possui nome e endereço composto por rua, número e cidade. Cada associado possui nome e telefone. Uma cooperativa possui vários associados; cada associado pertence a uma cooperativa. Cada projeto possui título e orçamento. Um associado pode participar de vários projetos, e cada projeto pode incluir vários associados. Em cada participação, registre a data de entrada."
+  }
+]

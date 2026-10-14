@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="372" viewBox="0 0 1120 372" role="img" aria-labelledby="chart-title">
+<title id="chart-title">Precisão, revocação e F1 — modelo final</title>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="35" font-family="Arial" font-size="22" font-weight="bold" fill="#20243a">Precisão, revocação e F1 — modelo final</text>
+<text x="24" y="58" font-family="Arial" font-size="13" fill="#596175">Microagregação das saídas válidas; não inclui falhas no escore</text>
+<rect x="24" y="76" width="14" height="14" fill="#6e42cb"/>
+<text x="44" y="88" font-family="Arial" font-size="12" fill="#31364a">Precisão</text>
+<rect x="299" y="76" width="14" height="14" fill="#2197a8"/>
+<text x="319" y="88" font-family="Arial" font-size="12" fill="#31364a">Revocação</text>
+<rect x="574" y="76" width="14" height="14" fill="#e5a635"/>
+<text x="594" y="88" font-family="Arial" font-size="12" fill="#31364a">F1</text>
+<text x="24" y="130" font-family="Arial" font-size="13" fill="#31364a">Entidades</text>
+<rect x="250" y="116" width="787.2" height="13" rx="3" fill="#6e42cb"/>
+<text x="1045.2" y="127" font-family="Arial" font-size="11" fill="#31364a">96.0%</text>
+<rect x="250" y="134" width="787.2" height="13" rx="3" fill="#2197a8"/>
+<text x="1045.2" y="145" font-family="Arial" font-size="11" fill="#31364a">96.0%</text>
+<rect x="250" y="152" width="787.2" height="13" rx="3" fill="#e5a635"/>
+<text x="1045.2" y="163" font-family="Arial" font-size="11" fill="#31364a">96.0%</text>
+<text x="24" y="210" font-family="Arial" font-size="13" fill="#31364a">Atributos</text>
+<rect x="250" y="196" width="732.1" height="13" rx="3" fill="#6e42cb"/>
+<text x="990.1" y="207" font-family="Arial" font-size="11" fill="#31364a">89.3%</text>
+<rect x="250" y="214" width="648.7" height="13" rx="3" fill="#2197a8"/>
+<text x="906.7" y="225" font-family="Arial" font-size="11" fill="#31364a">79.1%</text>
+<rect x="250" y="232" width="687.9" height="13" rx="3" fill="#e5a635"/>
+<text x="945.9" y="243" font-family="Arial" font-size="11" fill="#31364a">83.9%</text>
+<text x="24" y="290" font-family="Arial" font-size="13" fill="#31364a">Relações</text>
+<rect x="250" y="276" width="762.8" height="13" rx="3" fill="#6e42cb"/>
+<text x="1020.8" y="287" font-family="Arial" font-size="11" fill="#31364a">93.0%</text>
+<rect x="250" y="294" width="713.0" height="13" rx="3" fill="#2197a8"/>
+<text x="971.0" y="305" font-family="Arial" font-size="11" fill="#31364a">87.0%</text>
+<rect x="250" y="312" width="737.1" height="13" rx="3" fill="#e5a635"/>
+<text x="995.1" y="323" font-family="Arial" font-size="11" fill="#31364a">89.9%</text>
+</svg>

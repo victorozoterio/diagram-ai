@@ -14,6 +14,8 @@
       "!**/.turbo",
       "!**/coverage",
       "!**/generated",
+      "!evaluation/results",
+      "!evaluation/charts",
       "!**/*.lock",
       "!**/*.d.ts"
     ]

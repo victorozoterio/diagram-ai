@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="424" viewBox="0 0 1120 424" role="img" aria-labelledby="chart-title">
+<title id="chart-title">Ablação pareada: mesma saída inicial</title>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="35" font-family="Arial" font-size="22" font-weight="bold" fill="#20243a">Ablação pareada: mesma saída inicial</text>
+<text x="24" y="58" font-family="Arial" font-size="13" fill="#596175">A = antes; B = após heurísticas; sem reparo LLM; apenas pares Zod-válidos</text>
+<rect x="24" y="76" width="14" height="14" fill="#8f98a7"/>
+<text x="44" y="88" font-family="Arial" font-size="12" fill="#31364a">A — LLM parseado</text>
+<rect x="299" y="76" width="14" height="14" fill="#6e42cb"/>
+<text x="319" y="88" font-family="Arial" font-size="12" fill="#31364a">B — heurísticas</text>
+<text x="24" y="130" font-family="Arial" font-size="13" fill="#31364a">Entidades</text>
+<rect x="250" y="116" width="820.0" height="13" rx="3" fill="#8f98a7"/>
+<text x="1060.0" y="127" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<rect x="250" y="134" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="145" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="192" font-family="Arial" font-size="13" fill="#31364a">Atributos</text>
+<rect x="250" y="178" width="647.9" height="13" rx="3" fill="#8f98a7"/>
+<text x="905.9" y="189" font-family="Arial" font-size="11" fill="#31364a">79.0%</text>
+<rect x="250" y="196" width="647.9" height="13" rx="3" fill="#6e42cb"/>
+<text x="905.9" y="207" font-family="Arial" font-size="11" fill="#31364a">79.0%</text>
+<text x="24" y="254" font-family="Arial" font-size="13" fill="#31364a">Relações</text>
+<rect x="250" y="240" width="683.3" height="13" rx="3" fill="#8f98a7"/>
+<text x="941.3" y="251" font-family="Arial" font-size="11" fill="#31364a">83.3%</text>
+<rect x="250" y="258" width="683.3" height="13" rx="3" fill="#6e42cb"/>
+<text x="941.3" y="269" font-family="Arial" font-size="11" fill="#31364a">83.3%</text>
+<text x="24" y="316" font-family="Arial" font-size="13" fill="#31364a">Cardinalidades</text>
+<rect x="250" y="302" width="447.3" height="13" rx="3" fill="#8f98a7"/>
+<text x="705.3" y="313" font-family="Arial" font-size="11" fill="#31364a">54.5%</text>
+<rect x="250" y="320" width="745.5" height="13" rx="3" fill="#6e42cb"/>
+<text x="1003.5" y="331" font-family="Arial" font-size="11" fill="#31364a">90.9%</text>
+<text x="24" y="405" font-family="Arial" font-size="11" fill="#596175">Pares avaliados: 24 de 30 execuções</text>
+</svg>

@@ -1,0 +1,4198 @@
+{
+  "groundTruthStatus": "PRELIMINAR — pendente de revisão pelos autores e validação pelo orientador",
+  "runs": [
+    {
+      "scenarioId": "S01",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 30354.1,
+        "generationIncludingRepair": 39473.3,
+        "total": 69828.1
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 2,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 0,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 0.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 2,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 0,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S01",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 18527.5,
+        "generationIncludingRepair": 10869.9,
+        "total": 29398.7
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 2,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 0,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 0.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 2,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 0,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S01",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 17769.4,
+        "generationIncludingRepair": 10010,
+        "total": 27780.8
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 2,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 0,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 0.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 2,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 0,
+            "extra": 0,
+            "missing": 4,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S02",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 9200,
+        "generationIncludingRepair": 25841,
+        "total": 35042
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S02",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 977.9,
+        "generationIncludingRepair": 8107.3,
+        "total": 9086.4
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S02",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 669,
+        "generationIncludingRepair": 7577.9,
+        "total": 8247.7
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S03",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 1,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 29470.8,
+        "generationIncludingRepair": 34979.9,
+        "total": 64452.3
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S03",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 1,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 24293.8,
+        "generationIncludingRepair": 15978.5,
+        "total": 40273.8
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S03",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 1,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 26576.3,
+        "generationIncludingRepair": 16858.9,
+        "total": 43436.6
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S04",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 1,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 33989.4,
+        "generationIncludingRepair": 42793,
+        "total": 76783.1
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S04",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 1,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 23113.9,
+        "generationIncludingRepair": 11405.9,
+        "total": 34522.5
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S04",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 1,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 21633.7,
+        "generationIncludingRepair": 11052.4,
+        "total": 32687.6
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S05",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 30751.9,
+        "generationIncludingRepair": 41167.8,
+        "total": 71920.3
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S05",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 20030.6,
+        "generationIncludingRepair": 15427.2,
+        "total": 35459.1
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S05",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 22097.6,
+        "generationIncludingRepair": 18298.1,
+        "total": 40398.1
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S06",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 35559.1,
+        "generationIncludingRepair": 46555.7,
+        "total": 82117.1
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S06",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 36653.5,
+        "generationIncludingRepair": 21589.7,
+        "total": 58244.9
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S06",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 2,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 32338.9,
+        "generationIncludingRepair": 21038.5,
+        "total": 53380.4
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 4,
+            "extra": 2,
+            "missing": 2,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S07",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 1,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 23119.3,
+        "generationIncludingRepair": 47470.9,
+        "total": 70592.4
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S07",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 1,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 13423.9,
+        "generationIncludingRepair": 16810.4,
+        "total": 30236
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S07",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 1,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 9954.6,
+        "generationIncludingRepair": 16542.6,
+        "total": 26498.5
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 3,
+            "precision": 0.3333333333333333,
+            "recall": 0.25,
+            "f1": 0.28571428571428575
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 2,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S08",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 36283,
+        "generationIncludingRepair": 71380,
+        "total": 107663.7
+      },
+      "A": {
+        "valid": false,
+        "error": null
+      },
+      "B": {
+        "valid": false,
+        "error": null
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8333333333333334,
+            "recall": 0.8333333333333334,
+            "f1": 0.8333333333333334
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.5,
+            "recall": 0.5,
+            "f1": 0.5
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S08",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 24156.9,
+        "generationIncludingRepair": 30484.4,
+        "total": 54642.8
+      },
+      "A": {
+        "valid": false,
+        "error": null
+      },
+      "B": {
+        "valid": false,
+        "error": null
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8333333333333334,
+            "recall": 0.8333333333333334,
+            "f1": 0.8333333333333334
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.5,
+            "recall": 0.5,
+            "f1": 0.5
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S08",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 22484.3,
+        "generationIncludingRepair": 29892.6,
+        "total": 52378
+      },
+      "A": {
+        "valid": false,
+        "error": null
+      },
+      "B": {
+        "valid": false,
+        "error": null
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 2,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.6666666666666666,
+            "recall": 0.6666666666666666,
+            "f1": 0.6666666666666666
+          },
+          "attributes": {
+            "correct": 5,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8333333333333334,
+            "recall": 0.8333333333333334,
+            "f1": 0.8333333333333334
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.5,
+            "recall": 0.5,
+            "f1": 0.5
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 0,
+            "accuracy": null
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S09",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 3,
+      "unresolvedQuestions": 1,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 50141.4,
+        "generationIncludingRepair": 81169.3,
+        "total": 131312.1
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8571428571428571,
+            "recall": 0.8571428571428571,
+            "f1": 0.8571428571428571
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4
+          },
+          "cardinalities": {
+            "correct_participant_sides": 0,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8571428571428571,
+            "recall": 0.8571428571428571,
+            "f1": 0.8571428571428571
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.8571428571428571,
+            "f1": 0.923076923076923
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S09",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 3,
+      "unresolvedQuestions": 1,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 35925.2,
+        "generationIncludingRepair": 34559.1,
+        "total": 70487.2
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8571428571428571,
+            "recall": 0.8571428571428571,
+            "f1": 0.8571428571428571
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4
+          },
+          "cardinalities": {
+            "correct_participant_sides": 0,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8571428571428571,
+            "recall": 0.8571428571428571,
+            "f1": 0.8571428571428571
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.8571428571428571,
+            "f1": 0.923076923076923
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S09",
+      "repetition": 3,
+      "status": "valid",
+      "analysisQuestions": 3,
+      "unresolvedQuestions": 1,
+      "repairAttempts": 1,
+      "timingsMs": {
+        "ambiguityAnalysis": 35794.2,
+        "generationIncludingRepair": 34415.9,
+        "total": 70211.6
+      },
+      "A": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8571428571428571,
+            "recall": 0.8571428571428571,
+            "f1": 0.8571428571428571
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4
+          },
+          "cardinalities": {
+            "correct_participant_sides": 0,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 1,
+            "missing": 1,
+            "precision": 0.8571428571428571,
+            "recall": 0.8571428571428571,
+            "f1": 0.8571428571428571
+          },
+          "relationships": {
+            "correct": 1,
+            "extra": 2,
+            "missing": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.5,
+            "f1": 0.4
+          },
+          "cardinalities": {
+            "correct_participant_sides": 2,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 0.5
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 6,
+            "extra": 0,
+            "missing": 1,
+            "precision": 1.0,
+            "recall": 0.8571428571428571,
+            "f1": 0.923076923076923
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S10",
+      "repetition": 1,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 40224.7,
+        "generationIncludingRepair": 47595.4,
+        "total": 87821.1
+      },
+      "A": {
+        "valid": false,
+        "error": null
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 7,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 7,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S10",
+      "repetition": 2,
+      "status": "valid",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 27833.1,
+        "generationIncludingRepair": 19328,
+        "total": 47162.2
+      },
+      "A": {
+        "valid": false,
+        "error": null
+      },
+      "B": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 7,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "final": {
+        "valid": true,
+        "metrics": {
+          "entities": {
+            "correct": 3,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "attributes": {
+            "correct": 7,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "relationships": {
+            "correct": 2,
+            "extra": 0,
+            "missing": 0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "cardinalities": {
+            "correct_participant_sides": 4,
+            "denominator_expected_participant_sides": 4,
+            "accuracy": 1.0
+          },
+          "attributeDetails": {
+            "correct": 0,
+            "denominator": 1,
+            "accuracy": 0.0
+          },
+          "notes": "Atributos de entidade e relacionamento (nomes de primeiro nível); detalhes composto/multivalorado explícitos no gabarito avaliados separadamente. Equivalência semântica ampla requer revisão humana."
+        }
+      },
+      "error": null
+    },
+    {
+      "scenarioId": "S10",
+      "repetition": 3,
+      "status": "failed",
+      "analysisQuestions": 0,
+      "unresolvedQuestions": 0,
+      "repairAttempts": 0,
+      "timingsMs": {
+        "ambiguityAnalysis": 26048.4,
+        "total": 324128.7
+      },
+      "A": {
+        "valid": false,
+        "error": "GatewayTimeoutException: O Ollama demorou mais do que o esperado para responder. Tente novamente."
+      },
+      "B": {
+        "valid": false,
+        "error": "Estágio não produzido"
+      },
+      "final": {
+        "valid": false
+      },
+      "error": {
+        "message": "O Ollama demorou mais do que o esperado para responder. Tente novamente.",
+        "response": {
+          "code": "OLLAMA_TIMEOUT",
+          "message": "O Ollama demorou mais do que o esperado para responder. Tente novamente.",
+          "ollama": {
+            "code": "timeout",
+            "name": "OllamaError",
+            "message": "Ollama excedeu o limite de 120s.",
+            "cause": {
+              "name": "AbortError",
+              "message": "This operation was aborted",
+              "code": 20
+            }
+          }
+        }
+      }
+    }
+  ],
+  "counts": {
+    "total": 30,
+    "uniqueScenarios": 10,
+    "finalSuccess": 29,
+    "repairAttempted": 9,
+    "repairSucceeded": 9,
+    "Avalid": 24,
+    "Bvalid": 26,
+    "pairedAB": 24
+  },
+  "timeSeconds": {
+    "n": 30,
+    "mean": 62.87312666666667,
+    "median": 52.8792,
+    "min": 8.2477,
+    "max": 324.12870000000004
+  },
+  "aggregateFinalValidOnly": {
+    "valid_runs_only": 29,
+    "entities": {
+      "correct": 72,
+      "extra": 3,
+      "missing": 3,
+      "precision": 0.96,
+      "recall": 0.96,
+      "f1": 0.96
+    },
+    "attributes": {
+      "correct": 125,
+      "extra": 15,
+      "missing": 33,
+      "precision": 0.8928571428571429,
+      "recall": 0.7911392405063291,
+      "f1": 0.8389261744966443
+    },
+    "relationships": {
+      "correct": 40,
+      "extra": 3,
+      "missing": 6,
+      "precision": 0.9302325581395349,
+      "recall": 0.8695652173913043,
+      "f1": 0.898876404494382
+    },
+    "cardinalities": {
+      "correct_participant_sides": 80,
+      "denominator_expected_participant_sides": 86,
+      "accuracy": 0.9302325581395349
+    },
+    "attributeDetails": {
+      "correct": 0,
+      "denominator": 5,
+      "accuracy": 0.0
+    }
+  },
+  "aggregateAValidOnly": {
+    "valid_runs_only": 24,
+    "entities": {
+      "correct": 60,
+      "extra": 0,
+      "missing": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "attributes": {
+      "correct": 96,
+      "extra": 21,
+      "missing": 30,
+      "precision": 0.8205128205128205,
+      "recall": 0.7619047619047619,
+      "f1": 0.7901234567901233
+    },
+    "relationships": {
+      "correct": 30,
+      "extra": 6,
+      "missing": 6,
+      "precision": 0.8333333333333334,
+      "recall": 0.8333333333333334,
+      "f1": 0.8333333333333334
+    },
+    "cardinalities": {
+      "correct_participant_sides": 36,
+      "denominator_expected_participant_sides": 66,
+      "accuracy": 0.5454545454545454
+    },
+    "attributeDetails": {
+      "correct": 0,
+      "denominator": 3,
+      "accuracy": 0.0
+    }
+  },
+  "aggregateBValidOnly": {
+    "valid_runs_only": 26,
+    "entities": {
+      "correct": 66,
+      "extra": 0,
+      "missing": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "attributes": {
+      "correct": 110,
+      "extra": 21,
+      "missing": 30,
+      "precision": 0.8396946564885496,
+      "recall": 0.7857142857142857,
+      "f1": 0.8118081180811808
+    },
+    "relationships": {
+      "correct": 34,
+      "extra": 6,
+      "missing": 6,
+      "precision": 0.85,
+      "recall": 0.85,
+      "f1": 0.85
+    },
+    "cardinalities": {
+      "correct_participant_sides": 68,
+      "denominator_expected_participant_sides": 74,
+      "accuracy": 0.918918918918919
+    },
+    "attributeDetails": {
+      "correct": 0,
+      "denominator": 5,
+      "accuracy": 0.0
+    }
+  },
+  "aggregatePairedA": {
+    "valid_runs_only": 24,
+    "entities": {
+      "correct": 60,
+      "extra": 0,
+      "missing": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "attributes": {
+      "correct": 96,
+      "extra": 21,
+      "missing": 30,
+      "precision": 0.8205128205128205,
+      "recall": 0.7619047619047619,
+      "f1": 0.7901234567901233
+    },
+    "relationships": {
+      "correct": 30,
+      "extra": 6,
+      "missing": 6,
+      "precision": 0.8333333333333334,
+      "recall": 0.8333333333333334,
+      "f1": 0.8333333333333334
+    },
+    "cardinalities": {
+      "correct_participant_sides": 36,
+      "denominator_expected_participant_sides": 66,
+      "accuracy": 0.5454545454545454
+    },
+    "attributeDetails": {
+      "correct": 0,
+      "denominator": 3,
+      "accuracy": 0.0
+    }
+  },
+  "aggregatePairedB": {
+    "valid_runs_only": 24,
+    "entities": {
+      "correct": 60,
+      "extra": 0,
+      "missing": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "attributes": {
+      "correct": 96,
+      "extra": 21,
+      "missing": 30,
+      "precision": 0.8205128205128205,
+      "recall": 0.7619047619047619,
+      "f1": 0.7901234567901233
+    },
+    "relationships": {
+      "correct": 30,
+      "extra": 6,
+      "missing": 6,
+      "precision": 0.8333333333333334,
+      "recall": 0.8333333333333334,
+      "f1": 0.8333333333333334
+    },
+    "cardinalities": {
+      "correct_participant_sides": 60,
+      "denominator_expected_participant_sides": 66,
+      "accuracy": 0.9090909090909091
+    },
+    "attributeDetails": {
+      "correct": 0,
+      "denominator": 3,
+      "accuracy": 0.0
+    }
+  },
+  "manualEstimateIsHypothetical": true,
+  "manualEstimates": {
+    "S01": {
+      "counts": {
+        "words": 25,
+        "entities": 2,
+        "attributes": 4,
+        "relationships": 1,
+        "special_features": 0
+      },
+      "expert_minutes": 6.61,
+      "novice_minutes": 13.46,
+      "expert_breakdown": {
+        "ler": 0.7083333333333334,
+        "entidades": 1.4,
+        "atributos": 1.0,
+        "relacoes": 1.0,
+        "particularidades": 0.0,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.0625,
+        "entidades": 3.0,
+        "atributos": 2.4,
+        "relacoes": 2.0,
+        "particularidades": 0.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S02": {
+      "counts": {
+        "words": 27,
+        "entities": 2,
+        "attributes": 4,
+        "relationships": 1,
+        "special_features": 0
+      },
+      "expert_minutes": 6.62,
+      "novice_minutes": 13.49,
+      "expert_breakdown": {
+        "ler": 0.725,
+        "entidades": 1.4,
+        "atributos": 1.0,
+        "relacoes": 1.0,
+        "particularidades": 0.0,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.0875,
+        "entidades": 3.0,
+        "atributos": 2.4,
+        "relacoes": 2.0,
+        "particularidades": 0.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S03": {
+      "counts": {
+        "words": 52,
+        "entities": 3,
+        "attributes": 6,
+        "relationships": 2,
+        "special_features": 0
+      },
+      "expert_minutes": 9.03,
+      "novice_minutes": 18.5,
+      "expert_breakdown": {
+        "ler": 0.9333333333333333,
+        "entidades": 2.0999999999999996,
+        "atributos": 1.5,
+        "relacoes": 2.0,
+        "particularidades": 0.0,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.4,
+        "entidades": 4.5,
+        "atributos": 3.5999999999999996,
+        "relacoes": 4.0,
+        "particularidades": 0.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S04": {
+      "counts": {
+        "words": 39,
+        "entities": 2,
+        "attributes": 6,
+        "relationships": 1,
+        "special_features": 0
+      },
+      "expert_minutes": 7.22,
+      "novice_minutes": 14.84,
+      "expert_breakdown": {
+        "ler": 0.825,
+        "entidades": 1.4,
+        "atributos": 1.5,
+        "relacoes": 1.0,
+        "particularidades": 0.0,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.2375,
+        "entidades": 3.0,
+        "atributos": 3.5999999999999996,
+        "relacoes": 2.0,
+        "particularidades": 0.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S05": {
+      "counts": {
+        "words": 33,
+        "entities": 2,
+        "attributes": 5,
+        "relationships": 1,
+        "special_features": 0
+      },
+      "expert_minutes": 6.92,
+      "novice_minutes": 14.16,
+      "expert_breakdown": {
+        "ler": 0.775,
+        "entidades": 1.4,
+        "atributos": 1.25,
+        "relacoes": 1.0,
+        "particularidades": 0.0,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.1625,
+        "entidades": 3.0,
+        "atributos": 3.0,
+        "relacoes": 2.0,
+        "particularidades": 0.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S06": {
+      "counts": {
+        "words": 48,
+        "entities": 3,
+        "attributes": 6,
+        "relationships": 2,
+        "special_features": 0
+      },
+      "expert_minutes": 9.0,
+      "novice_minutes": 18.45,
+      "expert_breakdown": {
+        "ler": 0.9,
+        "entidades": 2.0999999999999996,
+        "atributos": 1.5,
+        "relacoes": 2.0,
+        "particularidades": 0.0,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.35,
+        "entidades": 4.5,
+        "atributos": 3.5999999999999996,
+        "relacoes": 4.0,
+        "particularidades": 0.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S07": {
+      "counts": {
+        "words": 37,
+        "entities": 3,
+        "attributes": 4,
+        "relationships": 2,
+        "special_features": 1
+      },
+      "expert_minutes": 8.91,
+      "novice_minutes": 18.11,
+      "expert_breakdown": {
+        "ler": 0.8083333333333333,
+        "entidades": 2.0999999999999996,
+        "atributos": 1.0,
+        "relacoes": 2.0,
+        "particularidades": 0.5,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.2125,
+        "entidades": 4.5,
+        "atributos": 2.4,
+        "relacoes": 4.0,
+        "particularidades": 1.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S08": {
+      "counts": {
+        "words": 44,
+        "entities": 3,
+        "attributes": 6,
+        "relationships": 2,
+        "special_features": 0
+      },
+      "expert_minutes": 8.97,
+      "novice_minutes": 18.4,
+      "expert_breakdown": {
+        "ler": 0.8666666666666667,
+        "entidades": 2.0999999999999996,
+        "atributos": 1.5,
+        "relacoes": 2.0,
+        "particularidades": 0.0,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.3,
+        "entidades": 4.5,
+        "atributos": 3.5999999999999996,
+        "relacoes": 4.0,
+        "particularidades": 0.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S09": {
+      "counts": {
+        "words": 52,
+        "entities": 3,
+        "attributes": 7,
+        "relationships": 2,
+        "special_features": 1
+      },
+      "expert_minutes": 9.78,
+      "novice_minutes": 20.1,
+      "expert_breakdown": {
+        "ler": 0.9333333333333333,
+        "entidades": 2.0999999999999996,
+        "atributos": 1.75,
+        "relacoes": 2.0,
+        "particularidades": 0.5,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.4,
+        "entidades": 4.5,
+        "atributos": 4.2,
+        "relacoes": 4.0,
+        "particularidades": 1.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    },
+    "S10": {
+      "counts": {
+        "words": 57,
+        "entities": 3,
+        "attributes": 7,
+        "relationships": 2,
+        "special_features": 1
+      },
+      "expert_minutes": 9.82,
+      "novice_minutes": 20.16,
+      "expert_breakdown": {
+        "ler": 0.975,
+        "entidades": 2.0999999999999996,
+        "atributos": 1.75,
+        "relacoes": 2.0,
+        "particularidades": 0.5,
+        "organizar": 1.5,
+        "revisar": 1.0
+      },
+      "novice_breakdown": {
+        "ler": 1.4625,
+        "entidades": 4.5,
+        "atributos": 4.2,
+        "relacoes": 4.0,
+        "particularidades": 1.0,
+        "organizar": 3.0,
+        "revisar": 2.0
+      }
+    }
+  },
+  "ablationPairedDeltas": {
+    "entities": {
+      "absolutePercentagePoints": 0.0,
+      "relativePercent": 0.0
+    },
+    "attributes": {
+      "absolutePercentagePoints": 0.0,
+      "relativePercent": 0.0
+    },
+    "relationships": {
+      "absolutePercentagePoints": 0.0,
+      "relativePercent": 0.0
+    },
+    "cardinalities": {
+      "absolutePercentagePoints": 36.36363636363637,
+      "relativePercent": 66.66666666666667
+    }
+  },
+  "reviewSensitivity": {
+    "0": {
+      "expert": {
+        "assistedFasterCount": 29,
+        "denominator": 29
+      },
+      "novice": {
+        "assistedFasterCount": 29,
+        "denominator": 29
+      }
+    },
+    "5": {
+      "expert": {
+        "assistedFasterCount": 29,
+        "denominator": 29
+      },
+      "novice": {
+        "assistedFasterCount": 29,
+        "denominator": 29
+      }
+    },
+    "10": {
+      "expert": {
+        "assistedFasterCount": 0,
+        "denominator": 29
+      },
+      "novice": {
+        "assistedFasterCount": 29,
+        "denominator": 29
+      }
+    },
+    "15": {
+      "expert": {
+        "assistedFasterCount": 0,
+        "denominator": 29
+      },
+      "novice": {
+        "assistedFasterCount": 17,
+        "denominator": 29
+      }
+    }
+  }
+}

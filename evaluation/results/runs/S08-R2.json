@@ -1,0 +1,1859 @@
+{
+  "scenarioId": "S08",
+  "repetition": 2,
+  "status": "valid",
+  "metadata": {
+    "startedAt": "2026-10-14T15:13:34.371Z",
+    "commit": "69620e23d7b55ef5c55a91cbead6a594ad3ca95e",
+    "model": "qwen2.5:7b-instruct",
+    "baseUrl": "http://localhost:11434",
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "totalMemoryGiB": 16,
+    "finishedAt": "2026-10-14T15:14:29.048Z"
+  },
+  "scenario": {
+    "id": "S08",
+    "level": "intermediate",
+    "description": "Um programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores."
+  },
+  "groundTruthStatus": "PRELIMINAR — pendente de revisão pelos autores e validação pelo orientador",
+  "calls": [
+    {
+      "stage": "ambiguity-analysis",
+      "request": {
+        "model": "qwen2.5:7b-instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Analise ambiguidades estruturais antes da modelagem. Peça cardinalidade apenas quando ao menos uma direção da relação não estiver explícita; A com vários B e cada B com um A já define 1:N e não exige pergunta. Retorne somente o JSON solicitado, sem explicações."
+          },
+          {
+            "role": "user",
+            "content": "Analise a descrição de um sistema antes da modelagem.\n\nDESCRIÇÃO:\nUm programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.\n\nIdentifique somente ambiguidades que podem mudar estruturalmente o modelo de dados: entidades, atributos versus entidades, relacionamentos, cardinalidades, atributos compostos, generalização ou decisões equivalentes.\n- Ambiguidade também inclui uma informação estrutural necessária que está AUSENTE. Não é necessário haver contradição no texto: uma relação explícita cuja cardinalidade não esteja totalmente definida possui múltiplas interpretações compatíveis e deve gerar pergunta.\n- Antes de responder, liste mentalmente TODAS as relações explícitas do texto. Para cada par de participantes, determine a multiplicidade de A para B e de B para A. Não pare após encontrar a primeira ambiguidade.\n- Só use requiresClarification=false quando não houver nenhuma relação estrutural pendente. Para cada relação explícita sem cardinalidade totalmente definida, gere uma pergunta própria, até o limite de 5.\n- Para cardinalidade, avalie A para B e B para A antes de decidir. \"Um A pode ter vários B\" define uma direção; o artigo \"um\" sozinho não define a outra. Se as duas direções estiverem explícitas, a cardinalidade está resolvida e é proibido perguntar novamente sobre ela.\n- Se uma direção estiver indefinida, faça uma única pergunta com as opções 1:1, 1:N, N:1 e N:N, allowsMultipleSelection=false e allowsCustomAnswer=true.\n- Para perguntas de cardinalidade, use obrigatoriamente kind=\"cardinality\" e inclua participants com exatamente os dois nomes de entidade na mesma ordem usada como A e B nas quatro opções. participants é obrigatório no JSON e nunca deve ser omitido. Para as demais dúvidas estruturais, use kind=\"structural\" e omita participants.\n- Nas quatro opções de cardinalidade, o texto e o rótulo entre parênteses devem corresponder exatamente a esta semântica, usando A e B como os participantes da relação:\n  - (1:1): cada A se relaciona com um B, e cada B se relaciona com um A.\n  - (1:N): um A pode se relacionar com vários B, e cada B se relaciona com um A.\n  - (N:1): cada A se relaciona com um B, e um B pode se relacionar com vários A.\n  - (N:N): um A pode se relacionar com vários B, e um B pode se relacionar com vários A.\n- Nunca rotule como (N:1) ou (1:N) uma opção que descreva multiplicidade de vários nos dois sentidos; essa descrição é obrigatoriamente (N:N).\n- Escreva perguntas e opções em português natural, reutilizando o verbo ou contexto do texto. Apresente a cardinalidade apenas como complemento entre parênteses.\n- Faça no máximo 5 perguntas. Sem ambiguidade estrutural relevante, use requiresClarification=false e questions=[].\n\nEXEMPLOS:\n\nAMBÍGUO\nDescrição: \"Autores escrevem livros.\"\nSaída: {\"requiresClarification\":true,\"questions\":[{\"id\":\"cardinalidade_autores_livros\",\"kind\":\"cardinality\",\"participants\":[\"autor\",\"livro\"],\"text\":\"Como autores e livros participam dessa relação?\",\"options\":[\"Cada autor escreve um livro, e cada livro é escrito por um autor (1:1)\",\"Um autor pode escrever vários livros, e cada livro é escrito por um autor (1:N)\",\"Cada autor escreve um livro, e um livro pode ser escrito por vários autores (N:1)\",\"Um autor pode escrever vários livros, e um livro pode ser escrito por vários autores (N:N)\"],\"allowsMultipleSelection\":false,\"allowsCustomAnswer\":true}]}\n\nAMBÍGUO\nDescrição: \"Pesquisadores participam de estudos. Estudos pertencem a programas.\"\nSaída: {\"requiresClarification\":true,\"questions\":[{\"id\":\"cardinalidade_pesquisadores_estudos\",\"kind\":\"cardinality\",\"participants\":[\"pesquisador\",\"estudo\"],\"text\":\"Como pesquisadores e estudos participam dessa relação?\",\"options\":[\"Cada pesquisador participa de um estudo, e cada estudo possui um pesquisador (1:1)\",\"Um pesquisador pode participar de vários estudos, e cada estudo possui um pesquisador (1:N)\",\"Cada pesquisador participa de um estudo, e um estudo pode possuir vários pesquisadores (N:1)\",\"Um pesquisador pode participar de vários estudos, e um estudo pode possuir vários pesquisadores (N:N)\"],\"allowsMultipleSelection\":false,\"allowsCustomAnswer\":true},{\"id\":\"cardinalidade_estudos_programas\",\"kind\":\"cardinality\",\"participants\":[\"estudo\",\"programa\"],\"text\":\"Como estudos e programas se relacionam?\",\"options\":[\"Cada estudo pertence a um programa, e cada programa possui um estudo (1:1)\",\"Um estudo pode pertencer a vários programas, e cada programa possui um estudo (1:N)\",\"Cada estudo pertence a um programa, e um programa pode possuir vários estudos (N:1)\",\"Um estudo pode pertencer a vários programas, e um programa pode possuir vários estudos (N:N)\"],\"allowsMultipleSelection\":false,\"allowsCustomAnswer\":true}]}\n\nNÃO AMBÍGUO\nDescrição: \"Um médico pode atender vários pacientes e um paciente pode ser atendido por vários médicos.\"\nSaída: {\"requiresClarification\":false,\"questions\":[]}\n\nNÃO AMBÍGUO\nDescrição: \"Um A possui vários B e cada B pertence a apenas um A.\"\nSaída: {\"requiresClarification\":false,\"questions\":[]}\n\nOs exemplos demonstram a regra geral; aplique-a a quaisquer entidades e relacionamentos descritos.\n- Retorne somente JSON compatível com o schema enviado."
+          }
+        ],
+        "format": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "requiresClarification": {
+              "type": "boolean"
+            },
+            "questions": {
+              "maxItems": 5,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "options": {
+                        "minItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "allowsMultipleSelection": {
+                        "type": "boolean"
+                      },
+                      "allowsCustomAnswer": {
+                        "type": "boolean"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "const": "cardinality"
+                      },
+                      "participants": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "text",
+                      "options",
+                      "allowsMultipleSelection",
+                      "allowsCustomAnswer",
+                      "kind",
+                      "participants"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "options": {
+                        "minItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "allowsMultipleSelection": {
+                        "type": "boolean"
+                      },
+                      "allowsCustomAnswer": {
+                        "type": "boolean"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "const": "structural"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "text",
+                      "options",
+                      "allowsMultipleSelection",
+                      "allowsCustomAnswer",
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          },
+          "required": [
+            "requiresClarification",
+            "questions"
+          ],
+          "additionalProperties": false
+        },
+        "stream": true,
+        "think": false,
+        "keep_alive": "10m",
+        "options": {
+          "temperature": 0,
+          "num_ctx": 4096,
+          "num_predict": 1536,
+          "repeat_penalty": 1.05
+        }
+      },
+      "httpStatus": 200,
+      "elapsedMs": 24145.2,
+      "rawStream": "{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.035382Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.101539Z\",\"message\":{\"role\":\"assistant\",\"content\":\"requires\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.16766Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Clar\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.235933Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ification\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.306855Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.375768Z\",\"message\":{\"role\":\"assistant\",\"content\":\"true\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.443708Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.511484Z\",\"message\":{\"role\":\"assistant\",\"content\":\"questions\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.583079Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.665881Z\",\"message\":{\"role\":\"assistant\",\"content\":\"id\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.756361Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.858516Z\",\"message\":{\"role\":\"assistant\",\"content\":\"card\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:35.957995Z\",\"message\":{\"role\":\"assistant\",\"content\":\"inal\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.051012Z\",\"message\":{\"role\":\"assistant\",\"content\":\"idade\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.138911Z\",\"message\":{\"role\":\"assistant\",\"content\":\"_program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.228297Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.31294Z\",\"message\":{\"role\":\"assistant\",\"content\":\"_ep\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.39866Z\",\"message\":{\"role\":\"assistant\",\"content\":\"is\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.483685Z\",\"message\":{\"role\":\"assistant\",\"content\":\"od\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.567677Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.651411Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.770392Z\",\"message\":{\"role\":\"assistant\",\"content\":\"text\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.852392Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:36.928986Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Como\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.004845Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programas\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.080684Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.156559Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.233938Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.310347Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ios\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.386093Z\",\"message\":{\"role\":\"assistant\",\"content\":\" particip\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.459845Z\",\"message\":{\"role\":\"assistant\",\"content\":\"am\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.533233Z\",\"message\":{\"role\":\"assistant\",\"content\":\" dessa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.606442Z\",\"message\":{\"role\":\"assistant\",\"content\":\" relação\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.683024Z\",\"message\":{\"role\":\"assistant\",\"content\":\"?\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.756158Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.838524Z\",\"message\":{\"role\":\"assistant\",\"content\":\"options\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.912713Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:37.985876Z\",\"message\":{\"role\":\"assistant\",\"content\":\"C\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.059388Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.133098Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.207522Z\",\"message\":{\"role\":\"assistant\",\"content\":\" cont\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.280956Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ém\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.354903Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.427558Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.500789Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.574426Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.647916Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.720695Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.795581Z\",\"message\":{\"role\":\"assistant\",\"content\":\" cada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.870212Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:38.945185Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.019585Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.094479Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pert\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.168828Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ence\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.243499Z\",\"message\":{\"role\":\"assistant\",\"content\":\" a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.318069Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.392834Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.467317Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.541508Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.616123Z\",\"message\":{\"role\":\"assistant\",\"content\":\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.69082Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.765593Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.840213Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.914935Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:39.989338Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.064386Z\",\"message\":{\"role\":\"assistant\",\"content\":\" con\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.139651Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ter\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.214983Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.289517Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.364169Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.438625Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ios\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.513529Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.588026Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.662455Z\",\"message\":{\"role\":\"assistant\",\"content\":\" cada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.736775Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.81155Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.885462Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:40.960148Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pert\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.034763Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ence\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.109525Z\",\"message\":{\"role\":\"assistant\",\"content\":\" a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.18439Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.259121Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.33371Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.408568Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.482807Z\",\"message\":{\"role\":\"assistant\",\"content\":\":N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.557358Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.632349Z\",\"message\":{\"role\":\"assistant\",\"content\":\"C\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.706937Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.781405Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.856423Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:41.931243Z\",\"message\":{\"role\":\"assistant\",\"content\":\" con\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.005676Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ter\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.080729Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.155935Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.230764Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.305334Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ios\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.380569Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.455445Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.53052Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.605153Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.679757Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.75474Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.830279Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.905368Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pert\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:42.980663Z\",\"message\":{\"role\":\"assistant\",\"content\":\"encer\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.055418Z\",\"message\":{\"role\":\"assistant\",\"content\":\" a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.130501Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.205363Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programas\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.279753Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.358095Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.438655Z\",\"message\":{\"role\":\"assistant\",\"content\":\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.514336Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.590235Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.665883Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.741461Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.817096Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.892939Z\",\"message\":{\"role\":\"assistant\",\"content\":\" con\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:43.967967Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ter\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.042548Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.11744Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.192196Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.266951Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ios\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.341417Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.41627Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.490712Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.565558Z\",\"message\":{\"role\":\"assistant\",\"content\":\" epis\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.639935Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ód\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.714762Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.789158Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.86429Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pert\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:44.938815Z\",\"message\":{\"role\":\"assistant\",\"content\":\"encer\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.01239Z\",\"message\":{\"role\":\"assistant\",\"content\":\" a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.08925Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.165152Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programas\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.240504Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.315674Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.39106Z\",\"message\":{\"role\":\"assistant\",\"content\":\":N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.466243Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.541279Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"],\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.623614Z\",\"message\":{\"role\":\"assistant\",\"content\":\"allows\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.699337Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Multiple\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.773971Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Selection\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.848748Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.923609Z\",\"message\":{\"role\":\"assistant\",\"content\":\"false\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:45.998341Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.072825Z\",\"message\":{\"role\":\"assistant\",\"content\":\"allows\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.147729Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Custom\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.222062Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Answer\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.297053Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.371481Z\",\"message\":{\"role\":\"assistant\",\"content\":\"true\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.454094Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.528374Z\",\"message\":{\"role\":\"assistant\",\"content\":\"kind\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.601654Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.675503Z\",\"message\":{\"role\":\"assistant\",\"content\":\"card\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.749198Z\",\"message\":{\"role\":\"assistant\",\"content\":\"inality\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.822562Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.896917Z\",\"message\":{\"role\":\"assistant\",\"content\":\"participants\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:46.971333Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.04606Z\",\"message\":{\"role\":\"assistant\",\"content\":\"program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.120665Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.19597Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.270497Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ep\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.348093Z\",\"message\":{\"role\":\"assistant\",\"content\":\"is\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.422383Z\",\"message\":{\"role\":\"assistant\",\"content\":\"od\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.497553Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.571534Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.64624Z\",\"message\":{\"role\":\"assistant\",\"content\":\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.721012Z\",\"message\":{\"role\":\"assistant\",\"content\":\"id\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.795955Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.870671Z\",\"message\":{\"role\":\"assistant\",\"content\":\"card\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:47.946108Z\",\"message\":{\"role\":\"assistant\",\"content\":\"inal\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.020342Z\",\"message\":{\"role\":\"assistant\",\"content\":\"idade\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.095382Z\",\"message\":{\"role\":\"assistant\",\"content\":\"_program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.169362Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.244251Z\",\"message\":{\"role\":\"assistant\",\"content\":\"_ap\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.31977Z\",\"message\":{\"role\":\"assistant\",\"content\":\"resent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.394198Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.487308Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.570308Z\",\"message\":{\"role\":\"assistant\",\"content\":\"text\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.660752Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.753484Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Como\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.84225Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programas\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:48.922901Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.002904Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.081004Z\",\"message\":{\"role\":\"assistant\",\"content\":\"adores\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.159338Z\",\"message\":{\"role\":\"assistant\",\"content\":\" particip\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.237457Z\",\"message\":{\"role\":\"assistant\",\"content\":\"am\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.31359Z\",\"message\":{\"role\":\"assistant\",\"content\":\" dessa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.389518Z\",\"message\":{\"role\":\"assistant\",\"content\":\" relação\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.465332Z\",\"message\":{\"role\":\"assistant\",\"content\":\"?\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.541106Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.617216Z\",\"message\":{\"role\":\"assistant\",\"content\":\"options\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.69234Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.767289Z\",\"message\":{\"role\":\"assistant\",\"content\":\"C\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.842354Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.917263Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:49.992374Z\",\"message\":{\"role\":\"assistant\",\"content\":\" tem\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.068487Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.142566Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.216405Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.2902Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.364589Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.438495Z\",\"message\":{\"role\":\"assistant\",\"content\":\" cada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.51272Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.58655Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.660805Z\",\"message\":{\"role\":\"assistant\",\"content\":\" condu\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.734668Z\",\"message\":{\"role\":\"assistant\",\"content\":\"z\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.808772Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.883021Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:50.956874Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.0311Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.104763Z\",\"message\":{\"role\":\"assistant\",\"content\":\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.179271Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.252972Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.327067Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.401167Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.475067Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.549211Z\",\"message\":{\"role\":\"assistant\",\"content\":\" ter\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.622884Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.697189Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.771128Z\",\"message\":{\"role\":\"assistant\",\"content\":\"adores\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.845214Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.918974Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:51.993321Z\",\"message\":{\"role\":\"assistant\",\"content\":\" cada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.067433Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.141471Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.215693Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.289642Z\",\"message\":{\"role\":\"assistant\",\"content\":\" condu\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.364186Z\",\"message\":{\"role\":\"assistant\",\"content\":\"z\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.438027Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ir\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.512119Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.58618Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programas\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.659895Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.734112Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.809035Z\",\"message\":{\"role\":\"assistant\",\"content\":\":N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.88361Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:52.958175Z\",\"message\":{\"role\":\"assistant\",\"content\":\"C\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.032967Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ada\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.107365Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.181931Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.2561Z\",\"message\":{\"role\":\"assistant\",\"content\":\" ter\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.330586Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.405188Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.479573Z\",\"message\":{\"role\":\"assistant\",\"content\":\"adores\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.554018Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.628609Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.70295Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.777466Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.851714Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:53.926202Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.000609Z\",\"message\":{\"role\":\"assistant\",\"content\":\" condu\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.074982Z\",\"message\":{\"role\":\"assistant\",\"content\":\"z\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.149448Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ir\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.2236Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.298071Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programas\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.372325Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.446637Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.520821Z\",\"message\":{\"role\":\"assistant\",\"content\":\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.595384Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.669463Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.743803Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.818064Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programa\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.892488Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:54.967113Z\",\"message\":{\"role\":\"assistant\",\"content\":\" ter\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.041019Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.115726Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.189837Z\",\"message\":{\"role\":\"assistant\",\"content\":\"adores\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.264341Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.338438Z\",\"message\":{\"role\":\"assistant\",\"content\":\" e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.412791Z\",\"message\":{\"role\":\"assistant\",\"content\":\" um\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.487097Z\",\"message\":{\"role\":\"assistant\",\"content\":\" apresent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.561549Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.635796Z\",\"message\":{\"role\":\"assistant\",\"content\":\" pode\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.709559Z\",\"message\":{\"role\":\"assistant\",\"content\":\" condu\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.784388Z\",\"message\":{\"role\":\"assistant\",\"content\":\"z\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.859386Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ir\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:55.934311Z\",\"message\":{\"role\":\"assistant\",\"content\":\" vários\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.009302Z\",\"message\":{\"role\":\"assistant\",\"content\":\" programas\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.088409Z\",\"message\":{\"role\":\"assistant\",\"content\":\" (\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.170909Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.248941Z\",\"message\":{\"role\":\"assistant\",\"content\":\":N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.326321Z\",\"message\":{\"role\":\"assistant\",\"content\":\")\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.413062Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"],\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.50337Z\",\"message\":{\"role\":\"assistant\",\"content\":\"allows\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.591649Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Multiple\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.6767Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Selection\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.759235Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.842099Z\",\"message\":{\"role\":\"assistant\",\"content\":\"false\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:56.925023Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.011064Z\",\"message\":{\"role\":\"assistant\",\"content\":\"allows\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.090778Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Custom\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.166483Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Answer\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.241402Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.315688Z\",\"message\":{\"role\":\"assistant\",\"content\":\"true\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.389337Z\",\"message\":{\"role\":\"assistant\",\"content\":\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.461742Z\",\"message\":{\"role\":\"assistant\",\"content\":\"kind\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.534019Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.606847Z\",\"message\":{\"role\":\"assistant\",\"content\":\"card\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.679525Z\",\"message\":{\"role\":\"assistant\",\"content\":\"inality\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.751776Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.823579Z\",\"message\":{\"role\":\"assistant\",\"content\":\"participants\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.896129Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:57.96803Z\",\"message\":{\"role\":\"assistant\",\"content\":\"program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.040456Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.113019Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.18513Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ap\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.257985Z\",\"message\":{\"role\":\"assistant\",\"content\":\"resent\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.33072Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.403084Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"]}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.476025Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:58.548895Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":24140673667,\"load_duration\":1570875,\"prompt_eval_count\":1504,\"prompt_eval_cached_count\":1503,\"prompt_eval_duration\":71092000,\"eval_count\":311,\"eval_duration\":23513144000}\n",
+      "assistantContent": "{\"requiresClarification\":true,\"questions\":[{\"id\":\"cardinalidade_programa_episodio\",\"text\":\"Como programas e episódios participam dessa relação?\",\"options\":[\"Cada programa contém um episódio, e cada episódio pertence a um programa (1:1)\",\"Um programa pode conter vários episódios, e cada episódio pertence a um programa (1:N)\",\"Cada programa pode conter vários episódios, e um episódio pode pertencer a vários programas (N:1)\",\"Um programa pode conter vários episódios, e um episódio pode pertencer a vários programas (N:N)\"],\"allowsMultipleSelection\":false,\"allowsCustomAnswer\":true,\"kind\":\"cardinality\",\"participants\":[\"programa\",\"episodio\"]},{\"id\":\"cardinalidade_programa_apresentador\",\"text\":\"Como programas e apresentadores participam dessa relação?\",\"options\":[\"Cada programa tem um apresentador, e cada apresentador conduz um programa (1:1)\",\"Um programa pode ter vários apresentadores, e cada apresentador pode conduzir vários programas (N:N)\",\"Cada programa pode ter vários apresentadores, e um apresentador pode conduzir vários programas (N:1)\",\"Um programa pode ter vários apresentadores, e um apresentador pode conduzir vários programas (N:N)\"],\"allowsMultipleSelection\":false,\"allowsCustomAnswer\":true,\"kind\":\"cardinality\",\"participants\":[\"programa\",\"apresentador\"]}]}",
+      "finalMetrics": {
+        "total_duration": 24140673667,
+        "load_duration": 1570875,
+        "prompt_eval_count": 1504,
+        "prompt_eval_duration": 71092000,
+        "eval_count": 311,
+        "eval_duration": 23513144000
+      }
+    },
+    {
+      "stage": "generation-initial",
+      "request": {
+        "model": "qwen2.5:7b-instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Modele DER Chen. Retorne somente o JSON compacto solicitado, sem explicações."
+          },
+          {
+            "role": "user",
+            "content": "Converta a descrição em um DER Chen conceitual.\n\nDESCRIÇÃO:\nUm programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.\n\n\nREGRAS:\n- Extraia primeiro, internamente, todas as entidades, atributos, relacionamentos e cardinalidades explícitos. Não omita nenhum deles.\n- Todo sujeito que possui, vende, cadastra ou se relaciona explicitamente com outros conceitos também é entidade, mesmo sem atributos próprios informados.\n- Depois que um conceito for reconhecido como entidade, menções posteriores no singular ou plural continuam sendo essa entidade e devem aparecer como participantes de seus relacionamentos; nunca o duplique como atributo simples ou multivalorado.\n- Uma entidade sem atributos explícitos continua na saída com apenas n; omita a nesse caso. Nunca trate o sujeito inicial como mero contexto do sistema.\n- Regra absoluta: um sujeito explícito de relação não pode ser omitido nem descartado em ambiguities por não possuir atributos informados.\n- O backend adiciona o identificador técnico de cada entidade; não o repita. Use i em outro atributo somente se o texto disser que ele identifica a entidade ou é sua chave; aparência de unicidade não basta.\n- Não gere foreign keys, tabelas associativas nem entidades artificiais de ligação. Um N:N permanece relacionamento.\n- Dados cujo valor depende da ocorrência ou do par específico entre participantes pertencem ao relacionamento, em r[].a.\n- Em frases como \"para cada X associado ou incluído em Y, armazenar Z\", crie ou reutilize o relacionamento entre as entidades X e Y e coloque somente Z em seus atributos.\n- Quando o texto nomear a ocorrência de uma associação entre entidades apenas para informar um dado dessa ocorrência, não crie uma entidade a partir desse nome. Reutilize o relacionamento já existente e coloque o dado em r[].a; uma entidade de evento só existe se o texto lhe der identidade própria, ciclo de vida ou relações independentes.\n- Se um fato da associação tiver um nome genérico igual ou parecido ao de um fato de entidade, preserve os dois: nomeie o atributo do relacionamento com contexto que deixe claro que ele descreve a ocorrência da associação, não a entidade.\n- Quando Y possui vários X e o mesmo X pode aparecer em vários Y, a cardinalidade é N:N: ambos os participantes usam c=\"N\".\n- Só crie atributos no relacionamento quando o texto os vincular à ocorrência da associação. Atributos declarados como pertencentes a uma entidade ficam somente nela; nunca os copie para o relacionamento.\n- Antes de preencher e[].a, confira que nenhum atributo é o nome de outra entidade ligada por r[].p. Uma frase que liga X a Y cria r com ambos em p; não copie Y para os atributos de X nem X para os atributos de Y.\n- Quando duas associações compartilham um participante, mantenha cada entidade nos participantes p da sua própria associação. Nunca use, em a, o nome de uma entidade que já participa de outra associação ligada a esse participante para representar uma relação entre elas.\n- Quando uma frase diz \"para cada ocorrência/participação de X em Y, registrar Z\", Z pertence a r[].a da associação X-Y. Não o coloque em e[].a de X ou Y, mesmo que Z mencione um deles no nome. Se r[].a já contém esse fato, não crie uma segunda cópia.\n- Nunca use atributos terminados em \"_id\" em entidades ou relacionamentos.\n- Um conceito dependente que apenas agrupa campos descritivos, sem identificador próprio, eventos ou relações com terceiros, deve ser atributo composto. Composite e multivalued são independentes e podem coexistir: vários componentes não implicam m; use m somente quando o texto indicar múltiplos valores ou ocorrências do atributo inteiro.\n- Multiplicidade entre dois conceitos participantes altera a cardinalidade do relacionamento; não transforma uma entidade participante em atributo multivalorado.\n- No formato compacto, composite=true é representado pela flag \"c\" em f. A regra é bidirecional e obrigatória: array c presente e não vazio exige \"c\" em f; \"c\" em f exige array c presente e não vazio.\n- Nunca use a flag \"c\" por causa do nome, de sublinhados ou de uma associação entre entidades. Um atributo simples usa f sem \"c\" e não tem componentes; só use \"c\" quando a descrição decompor o próprio atributo em campos componentes presentes no array c.\n- Componentes aparecem somente dentro do array c do atributo pai; não os repita como atributos independentes em a da entidade.\n- Uma frase de posse, sozinha, não transforma um valor composto em entidade. Não duplique esse conceito como atributo e entidade.\n- Use entidade quando o conceito tiver identidade, ciclo de vida, atributos de evento próprios ou participação explícita em relacionamento. Menções posteriores com atributos próprios não podem desaparecer nem virar apenas um atributo textual de outra entidade.\n- Preserve o substantivo explícito que recebe atributos e relações. Não o renomeie a partir de outra expressão do texto e não crie nomes combinando proprietário e conceito dependente.\n- Atributos usam nomes do conceito, sem prefixo da entidade. Em r[].n, use o verbo ou a locução da relação descrita; não concatene os nomes dos participantes para nomear o relacionamento.\n- Use snake_case em nomes com mais de uma palavra, preservando cada conceito separado por \"_\".\n- Frases inversas sobre o mesmo fato representam um único relacionamento; não gere um losango para cada direção da frase.\n- Infira atributos de domínio para entidades somente quando forem plausíveis e úteis; não use listas fixas nem substitua fatos explícitos. Não infira atributos de relacionamento por plausibilidade do domínio.\n- Para cada atributo de relacionamento, confira qual associação específica o requisito menciona. Um dado de uma associação não pertence automaticamente a outras associações dos mesmos participantes ou de participantes diferentes.\n- A cardinalidade c fica ao lado da entidade participante no DER e deve refletir a multiplicidade daquela entidade na associação. Preserve exatamente a orientação declarada no texto ou nos esclarecimentos. Exemplo obrigatório: \"A possui vários B e cada B pertence a um único A\" gera p=[{\"e\":\"A\",\"c\":\"1\"},{\"e\":\"B\",\"c\":\"N\"}]. No sentido inverso, \"cada A pertence a um único B e um B possui vários A\" gera p=[{\"e\":\"A\",\"c\":\"N\"},{\"e\":\"B\",\"c\":\"1\"}]. Nunca troque os valores 1 e N entre os participantes apenas porque a frase foi escrita em outra ordem.\n- Cardinalidades dos participantes: 1:1 = 1 e 1; 1:N = um 1 e um N; N:N = N e N. Antes de preencher p, confira que cada c está no participante correto conforme a multiplicidade confirmada.\n- Generalização/especialização não é relacionamento binário: use k=\"generalization\" ou k=\"specialization\", s para o nome do único supertipo e d para a lista de um ou mais subtipos; nesse caso omita p e não use cardinalidades. Cada classificação de um mesmo supertipo gera um único item em r: agrupe todos os seus subtipos em d; nunca crie um Gen por subtipo e nunca omita s.\n- Os formatos são exclusivos: relacionamento comum usa p e nunca usa s/d; generalização usa s/d e nunca usa p. Nunca adicione k=\"generalization\" a uma associação expressa por verbo.\n- Uma resposta explícita de cardinalidade confirma um relacionamento comum entre os conceitos citados. Mesmo quando o verbo da associação formar uma expressão composta, use os dois conceitos como participantes em p; nunca transforme essa expressão em entidade, subtipo ou supertipo.\n- Reconheça generalização somente quando houver evidência semântica de identidade de categoria: \"é um\", \"tipo de\", \"categoria de\", \"especialização\" ou divisão explícita de um conceito em tipos. A palavra \"pode\" isolada não basta: \"X pode realizar, possuir, conter ou participar de Y\" descreve associação, não generalização. Não a infira apenas por atributos semelhantes.\n- Em uma hierarquia, coloque atributos comuns somente no supertipo e atributos específicos somente nos subtipos; não duplique atributos entre eles.\n- Uma entidade relacionada no texto não pode ficar isolada. Registre incertezas reais em ambiguities.\n\nCLASSIFICAÇÃO INTERNA:\n1. Sujeito que pratica uma relação, inclusive sem atributos informados: entidade.\n2. Conceito com atributos de evento e vínculo próprio: entidade.\n3. Grupo de campos descritivos ligado somente ao proprietário: atributo com f=[\"c\"] e seus campos em c; acrescente m somente se o grupo inteiro for explicitamente repetível.\n4. Conceito já classificado como entidade que aparece associado, incluído ou contido em outra entidade: participante de relacionamento, com cardinalidade adequada.\n5. Dados que existem por ocorrência entre duas entidades: atributos do relacionamento correspondente.\n\nExemplo estrutural de composição: {\"n\":\"A\",\"t\":\"s\",\"f\":[\"c\"],\"c\":[{\"n\":\"B\",\"t\":\"s\"},{\"n\":\"C\",\"t\":\"s\"}]}. Se A também for repetível, use f=[\"c\",\"m\"].\n\nExemplo estrutural de associação: \"Y contém vários X; o mesmo X aparece em vários Y; para cada X em Y armazene Z\" gera {\"n\":\"contem\",\"p\":[{\"e\":\"Y\",\"c\":\"N\"},{\"e\":\"X\",\"c\":\"N\"}],\"a\":[{\"n\":\"Z\",\"t\":\"x\"}]}.\n\nEXEMPLO CURTO DE HIERARQUIA:\nDescrição: \"Contrato e nota fiscal são tipos de documento. Documento possui número; contrato possui prazo; nota fiscal possui série.\"\nSaída relevante: {\"e\":[{\"n\":\"Documento\",\"a\":[{\"n\":\"numero\",\"t\":\"s\"}]},{\"n\":\"Contrato\",\"a\":[{\"n\":\"prazo\",\"t\":\"d\"}]},{\"n\":\"Nota Fiscal\",\"a\":[{\"n\":\"serie\",\"t\":\"s\"}]}],\"r\":[{\"n\":\"Gen\",\"k\":\"generalization\",\"s\":\"Documento\",\"d\":[\"Contrato\",\"Nota Fiscal\"]}]}\n\nCHECKLIST SEMÂNTICO:\n- Se o texto afirmar que um conceito \"é um/tipo de\" outro, é generalização; verbos de ação, posse, conteúdo ou participação entre conceitos representam relacionamento.\n- Uma generalização deve ter exatamente um s e pelo menos um d, sem p nem cardinalidade; subtipos do mesmo s ficam juntos no mesmo item.\n- Não crie generalização sem evidência textual suficiente; mantenha relacionamentos normais e seus atributos quando a semântica for de associação.\n- Para cada nome em e, confirme que nenhuma forma singular ou plural desse nome aparece em a; se o texto relacionar essa entidade, represente-a em p do relacionamento correto.\n\nSAÍDA COMPACTA:\n- Retorne apenas os campos aceitos pelo JSON Schema enviado em format.\n- Chaves: raiz e=entidades, r=relacionamentos, q=ambiguidades; entidade n=nome e a=atributos; atributo n=nome, t=tipo, f=flags e c=componentes; relacionamento n=nome, k=tipo, p=participantes, a=atributos, s=supertipo e d=subtipos; participante e=entidade e c=cardinalidade.\n- Tipos: s=string, n=number, b=boolean, d=date, dt=datetime, t=text, dec=decimal, u=uuid, e=email, p=phone, x=unknown.\n- Flags: i=identifier, r=required, u=unique, m=multivalued, c=composite, d=derived.\n- Não gere ids internos de objetos, metadata ou descriptions; o backend os adiciona.\n- Em flags, inclua somente propriedades verdadeiras.\n- Em cada participante, use exatamente o nome de uma entidade gerada.\n- Omita arrays opcionais vazios.\n\nAntes de responder, confira internamente: cobertura dos fatos, entidades isoladas, N:N, posse dos atributos, nenhuma entidade repetida como atributo, duplicações, cardinalidades e ausência de estruturas lógicas. Retorne somente JSON."
+          }
+        ],
+        "format": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "e": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "n": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "a": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "t": {
+                          "type": "string",
+                          "enum": [
+                            "s",
+                            "n",
+                            "b",
+                            "d",
+                            "dt",
+                            "t",
+                            "dec",
+                            "u",
+                            "e",
+                            "p",
+                            "x"
+                          ]
+                        },
+                        "f": {
+                          "description": "c e m são independentes; m exige multiplicidade explícita; i exige chave explícita.",
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "i",
+                              "r",
+                              "u",
+                              "m",
+                              "c",
+                              "d"
+                            ]
+                          }
+                        },
+                        "c": {
+                          "description": "Sua presença exige a flag c no atributo pai.",
+                          "minItems": 1,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "n": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "t": {
+                                "type": "string",
+                                "enum": [
+                                  "s",
+                                  "n",
+                                  "b",
+                                  "d",
+                                  "dt",
+                                  "t",
+                                  "dec",
+                                  "u",
+                                  "e",
+                                  "p",
+                                  "x"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "n",
+                              "t"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "t"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "n"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "r": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "n": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "k": {
+                        "description": "Relacionamento comum ou identificador entre entidades participantes.",
+                        "type": "string",
+                        "enum": [
+                          "relationship",
+                          "identifying-relationship"
+                        ]
+                      },
+                      "p": {
+                        "minItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "e": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "c": {
+                              "type": "string",
+                              "enum": [
+                                "1",
+                                "N"
+                              ],
+                              "description": "Cardinalidade exibida ao lado desta entidade no DER. Em \"A possui vários B e cada B pertence a um A\", A usa \"1\" e B usa \"N\"; não inverta os participantes."
+                            }
+                          },
+                          "required": [
+                            "e",
+                            "c"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "a": {
+                        "description": "Dados que dependem da associação; nomes de entidades participantes não são atributos.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "t": {
+                              "type": "string",
+                              "enum": [
+                                "s",
+                                "n",
+                                "b",
+                                "d",
+                                "dt",
+                                "t",
+                                "dec",
+                                "u",
+                                "e",
+                                "p",
+                                "x"
+                              ]
+                            },
+                            "f": {
+                              "description": "c e m são independentes; m exige multiplicidade explícita; i exige chave explícita.",
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "i",
+                                  "r",
+                                  "u",
+                                  "m",
+                                  "c",
+                                  "d"
+                                ]
+                              }
+                            },
+                            "c": {
+                              "description": "Sua presença exige a flag c no atributo pai.",
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "n": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "t": {
+                                    "type": "string",
+                                    "enum": [
+                                      "s",
+                                      "n",
+                                      "b",
+                                      "d",
+                                      "dt",
+                                      "t",
+                                      "dec",
+                                      "u",
+                                      "e",
+                                      "p",
+                                      "x"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "n",
+                                  "t"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "t"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "n",
+                      "p"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "n": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "k": {
+                        "type": "string",
+                        "enum": [
+                          "generalization",
+                          "specialization"
+                        ]
+                      },
+                      "s": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Nome da única entidade supertipo."
+                      },
+                      "d": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "description": "Nomes de uma ou mais entidades subtipos."
+                      }
+                    },
+                    "required": [
+                      "n",
+                      "k",
+                      "s",
+                      "d"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "q": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "e",
+            "r"
+          ],
+          "additionalProperties": false
+        },
+        "stream": true,
+        "think": false,
+        "keep_alive": "10m",
+        "options": {
+          "temperature": 0,
+          "num_ctx": 4096,
+          "num_predict": 1536,
+          "repeat_penalty": 1.05
+        }
+      },
+      "httpStatus": 200,
+      "elapsedMs": 19317.1,
+      "rawStream": "{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:59.640885Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:59.696218Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:59.753021Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:59.813617Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:59.873818Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:59.931536Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:13:59.990506Z\",\"message\":{\"role\":\"assistant\",\"content\":\"   \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.049581Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.108316Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.165805Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.224091Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.28107Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.34011Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.398511Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.456269Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.514756Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.573575Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.63297Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.693269Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.754031Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.815695Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.878562Z\",\"message\":{\"role\":\"assistant\",\"content\":\"titulo\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:00.941854Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.006136Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.071064Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.137225Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.204737Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.273561Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.343236Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.414015Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.485573Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.558995Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.633055Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.70801Z\",\"message\":{\"role\":\"assistant\",\"content\":\"categoria\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.78573Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.862308Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:01.939754Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.018174Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.098081Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.181817Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.267129Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.351182Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.435528Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.517865Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.600078Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.682223Z\",\"message\":{\"role\":\"assistant\",\"content\":\"present\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.764007Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.845834Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:02.927758Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.009827Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.091426Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.171213Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.250746Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.330544Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.409214Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.486514Z\",\"message\":{\"role\":\"assistant\",\"content\":\"f\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.563993Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.64151Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.71988Z\",\"message\":{\"role\":\"assistant\",\"content\":\"m\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.796419Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.872011Z\",\"message\":{\"role\":\"assistant\",\"content\":\"}]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:03.947392Z\",\"message\":{\"role\":\"assistant\",\"content\":\"},\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.022288Z\",\"message\":{\"role\":\"assistant\",\"content\":\"   \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.097495Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.172364Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.247771Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.322326Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.396734Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Ep\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.472496Z\",\"message\":{\"role\":\"assistant\",\"content\":\"is\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.546419Z\",\"message\":{\"role\":\"assistant\",\"content\":\"od\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.619302Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.69339Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.766846Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.840653Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.914373Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:04.987817Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.062129Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.135784Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.211153Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.285959Z\",\"message\":{\"role\":\"assistant\",\"content\":\"nome\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.36123Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.436028Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.511415Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.586182Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.661665Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.737184Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.813016Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.888876Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:05.96523Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.041084Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.117105Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.193734Z\",\"message\":{\"role\":\"assistant\",\"content\":\"dur\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.268882Z\",\"message\":{\"role\":\"assistant\",\"content\":\"acao\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.34438Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.419206Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.494893Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.569758Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.645305Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.720191Z\",\"message\":{\"role\":\"assistant\",\"content\":\"d\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.796588Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.870802Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:06.945782Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.020971Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.096359Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.172017Z\",\"message\":{\"role\":\"assistant\",\"content\":\"data\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.247529Z\",\"message\":{\"role\":\"assistant\",\"content\":\"_public\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.324135Z\",\"message\":{\"role\":\"assistant\",\"content\":\"acao\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.399388Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.474039Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.549264Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.62435Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.699586Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.774585Z\",\"message\":{\"role\":\"assistant\",\"content\":\"d\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.849814Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:07.92511Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]},\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.000158Z\",\"message\":{\"role\":\"assistant\",\"content\":\"   \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.075494Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.15044Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.225656Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.300743Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.375979Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Present\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.452825Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.528067Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.60256Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.677739Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.75249Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.827711Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.902419Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:08.977804Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.052517Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.127997Z\",\"message\":{\"role\":\"assistant\",\"content\":\"nome\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.202873Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.278442Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.35317Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.428823Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.504095Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.579486Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.654181Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.729608Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]}\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.804394Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.880092Z\",\"message\":{\"role\":\"assistant\",\"content\":\" ],\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:09.954861Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.030323Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.105126Z\",\"message\":{\"role\":\"assistant\",\"content\":\"r\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.180669Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.255511Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.331002Z\",\"message\":{\"role\":\"assistant\",\"content\":\"   \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.406201Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.481804Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.556806Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.632133Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.706955Z\",\"message\":{\"role\":\"assistant\",\"content\":\"cont\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.782956Z\",\"message\":{\"role\":\"assistant\",\"content\":\"em\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.857114Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:10.932109Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.006841Z\",\"message\":{\"role\":\"assistant\",\"content\":\"p\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.081746Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.156436Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.231905Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.306681Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.381786Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.456614Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.531645Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.606471Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.681868Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.756571Z\",\"message\":{\"role\":\"assistant\",\"content\":\"c\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.831956Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.906757Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:11.98184Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.056567Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.131892Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.206888Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.282359Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.357152Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.432515Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Ep\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.507685Z\",\"message\":{\"role\":\"assistant\",\"content\":\"is\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.582847Z\",\"message\":{\"role\":\"assistant\",\"content\":\"od\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.658089Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.733226Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.807951Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.883107Z\",\"message\":{\"role\":\"assistant\",\"content\":\"c\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:12.95847Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.033584Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.108931Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.184037Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.259392Z\",\"message\":{\"role\":\"assistant\",\"content\":\"],\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.335487Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.410333Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.485166Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.560535Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.635411Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.710752Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.785507Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.861151Z\",\"message\":{\"role\":\"assistant\",\"content\":\"present\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:13.935926Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.011254Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.087002Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.163186Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.239257Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.315947Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.391957Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.468006Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.544233Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.619975Z\",\"message\":{\"role\":\"assistant\",\"content\":\"f\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.696393Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.772092Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.848142Z\",\"message\":{\"role\":\"assistant\",\"content\":\"m\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.923912Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:14.999997Z\",\"message\":{\"role\":\"assistant\",\"content\":\"}]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.075473Z\",\"message\":{\"role\":\"assistant\",\"content\":\"},\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.151279Z\",\"message\":{\"role\":\"assistant\",\"content\":\"   \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.227413Z\",\"message\":{\"role\":\"assistant\",\"content\":\" {\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.303106Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.379035Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.45511Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.530821Z\",\"message\":{\"role\":\"assistant\",\"content\":\"gen\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.607615Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.682981Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.75817Z\",\"message\":{\"role\":\"assistant\",\"content\":\"k\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.833493Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.909014Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:15.984036Z\",\"message\":{\"role\":\"assistant\",\"content\":\"general\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.061773Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ization\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.136907Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.212431Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.287344Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.363012Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.438039Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.513712Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Present\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.589523Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.665522Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.74151Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.817567Z\",\"message\":{\"role\":\"assistant\",\"content\":\"d\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.893474Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:16.969153Z\",\"message\":{\"role\":\"assistant\",\"content\":\" [\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.046345Z\",\"message\":{\"role\":\"assistant\",\"content\":\"Program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.121517Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.19764Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"]}\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.273286Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.34915Z\",\"message\":{\"role\":\"assistant\",\"content\":\" ],\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.424823Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.500491Z\",\"message\":{\"role\":\"assistant\",\"content\":\" \\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.576409Z\",\"message\":{\"role\":\"assistant\",\"content\":\"q\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.651684Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.727736Z\",\"message\":{\"role\":\"assistant\",\"content\":\" []\\n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.803132Z\",\"message\":{\"role\":\"assistant\",\"content\":\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:17.880147Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":19311414917,\"load_duration\":1974750,\"prompt_eval_count\":3094,\"prompt_eval_cached_count\":3093,\"prompt_eval_duration\":71196000,\"eval_count\":247,\"eval_duration\":18238494000}\n",
+      "assistantContent": "{\n  \"e\": [\n    {\"n\": \"Programa\", \"a\": [{\"n\": \"titulo\", \"t\": \"s\"}, {\"n\": \"categoria\", \"t\": \"s\"}, {\"n\": \"presentador\", \"t\": \"s\", \"f\": [\"m\"]}]},\n    {\"n\": \"Episodio\", \"a\": [{\"n\": \"nome\", \"t\": \"s\"}, {\"n\": \"duracao\", \"t\": \"d\"}, {\"n\": \"data_publicacao\", \"t\": \"d\"}]},\n    {\"n\": \"Presentador\", \"a\": [{\"n\": \"nome\", \"t\": \"s\"}]}\n  ],\n  \"r\": [\n    {\"n\": \"contem\", \"p\": [{\"e\": \"Programa\", \"c\": \"N\"}, {\"e\": \"Episodio\", \"c\": \"N\"}], \"a\": [{\"n\": \"presentador\", \"t\": \"s\", \"f\": [\"m\"]}]},\n    {\"n\": \"gen\", \"k\": \"generalization\", \"s\": \"Presentador\", \"d\": [\"Programa\"]}\n  ],\n  \"q\": []\n}",
+      "finalMetrics": {
+        "total_duration": 19311414917,
+        "load_duration": 1974750,
+        "prompt_eval_count": 3094,
+        "prompt_eval_duration": 71196000,
+        "eval_count": 247,
+        "eval_duration": 18238494000
+      }
+    },
+    {
+      "stage": "generation-repair",
+      "request": {
+        "model": "qwen2.5:7b-instruct",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Corrija o DER Chen. Retorne somente o JSON compacto solicitado, sem explicações."
+          },
+          {
+            "role": "user",
+            "content": "Corrija o modelo conceitual preservando tudo que já está correto.\n\nDESCRIÇÃO ORIGINAL:\nUm programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.\n\n\nMODELO INVÁLIDO:\n{\"e\":[{\"n\":\"programa\",\"a\":[{\"n\":\"titulo\",\"t\":\"s\"},{\"n\":\"categoria\",\"t\":\"s\"},{\"n\":\"presentador\",\"t\":\"s\",\"f\":[\"m\"]}]},{\"n\":\"episodio\",\"a\":[{\"n\":\"nome\",\"t\":\"s\"},{\"n\":\"duracao\",\"t\":\"d\"},{\"n\":\"data_publicacao\",\"t\":\"d\"}]},{\"n\":\"presentador\",\"a\":[{\"n\":\"nome\",\"t\":\"s\"}]}],\"r\":[{\"n\":\"contem\",\"p\":[{\"e\":\"programa\",\"c\":\"1\"},{\"e\":\"episodio\",\"c\":\"N\"}],\"a\":[{\"n\":\"presentador\",\"t\":\"s\",\"f\":[\"m\"]}]},{\"n\":\"Gen\",\"k\":\"generalization\",\"s\":\"presentador\",\"d\":[\"programa\"]}]}\n\nERROS DE VALIDAÇÃO:\n{\"tree\":{\"errors\":[],\"properties\":{\"relationships\":{\"errors\":[],\"items\":[{\"errors\":[],\"properties\":{\"attributes\":{\"errors\":[],\"items\":[{\"errors\":[\"O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento.\",\"Uma entidade existente deve participar do relacionamento, não ser representada como atributo.\"]}]}}},{\"errors\":[],\"properties\":{\"kind\":{\"errors\":[\"Generalização exige evidência explícita de supertipo e subtipo; uma associação com cardinalidade deve ser relacionamento comum.\"]}}}]}}},\"repair\":{\"duplicateRelationshipAttributes\":[{\"relationship\":\"contem\",\"relationshipAttribute\":\"presentador\",\"participantAttributes\":[{\"entity\":\"programa\",\"attribute\":\"presentador\"}],\"rule\":\"O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento.\"}],\"entityRelationshipAttributes\":[{\"relationship\":\"contem\",\"relationshipAttribute\":\"presentador\",\"representedEntity\":\"presentador\",\"participants\":[\"programa\",\"episodio\"],\"supportingRelationships\":[],\"rule\":\"Uma entidade existente deve participar do relacionamento, não ser representada como atributo.\"}],\"compositeAttributes\":[]},\"unsupportedRelationshipAttributes\":[{\"relationship\":\"contem\",\"attribute\":\"presentador\",\"participants\":[\"programa\",\"episodio\"],\"rule\":\"Atributos de relacionamento gerados pela IA precisam estar vinculados a essa associação na descrição.\"}]}\n\nCORREÇÃO PRIORITÁRIA DOS ERROS:\n- Remova de r[].a todo atributo cujo nome corresponda no singular/plural a uma entidade de e.\n- Releia a descrição e crie ou preserve o relacionamento normal entre essa entidade X e a entidade Y à qual ela está associada/incluída/contida. Use p com X e Y e as cardinalidades descritas; não use k/s/d e não altere outro relacionamento para acomodar X.\n- Se o texto disser \"para cada X associado a Y, armazenar Z\", coloque somente Z em a do relacionamento X-Y. X nunca é atributo e não pode ficar isolada.\n- No relacionamento \"contem\", \"presentador\" representa a entidade \"presentador\", mas está em a. Os participantes atuais são: programa, episodio.\n- Remova \"presentador\" de a. Se \"presentador\" já estiver em p, preserve os demais participantes e atributos próprios da associação. Se não estiver em p, corrija p para que a entidade participe da associação descrita, sem transformar a entidade em atributo.\n- O item Gen não possui evidência explícita de relação de tipo/categoria na descrição. Preserve os participantes explícitos da descrição e substitua esse Gen por um relacionamento comum com p e as cardinalidades confirmadas pelo usuário.\n- Remova qualquer entidade artificial formada apenas pelo verbo ou pela expressão da associação; o verbo nomeia o relacionamento, não uma entidade ou subtipo.\n- Uma resposta de cardinalidade para uma associação nunca autoriza criar supertipo, subtipo ou uma entidade formada a partir do verbo da associação.\n- No relacionamento \"contem\", o atributo \"presentador\" conflita com programa.presentador.\n- Compare o fato descrito para a entidade com o fato descrito para a ocorrência da associação. Se forem fatos distintos, preserve ambos e renomeie somente o atributo do relacionamento com um contexto semântico da associação; se forem o mesmo fato, mantenha-o apenas na entidade e remova a cópia do relacionamento.\n- O atributo \"presentador\" em \"contem\" não tem evidência nessa associação. Remova-o desse relacionamento; preserve-o somente na entidade ou na outra relação à qual a descrição o atribui explicitamente.\n- Preserve todos os elementos não envolvidos nos erros acima.\n\nUse DER Chen: o backend adiciona identificadores técnicos; use i fora deles somente quando a descrição disser que o atributo identifica a entidade ou é sua chave; unicidade potencial, CPF, email, código ou matrícula não bastam; nenhuma foreign key; N:N como relacionamento; um conceito já reconhecido como entidade permanece entidade em menções posteriores no singular ou plural e participa dos relacionamentos, nunca vira atributo; \"para cada X associado/incluído em Y, armazenar Z\" coloca somente Z em a do relacionamento X-Y; dados que dependem do par ficam em a do relacionamento. O nome de uma ocorrência de associação não vira entidade quando aparece apenas para informar dado dessa associação: reutilize r e mantenha esse dado em a; só crie entidade de evento se o texto lhe der identidade própria, ciclo de vida ou relações independentes. Se um fato da associação tiver o mesmo rótulo genérico de um fato de uma entidade, preserve os dois e dê ao atributo do relacionamento um nome contextual que diferencie o fato da associação; só remova-o se realmente repetir o mesmo fato. Atributo composto exige f com c e componentes não vazios em c; c não implica m, que exige multiplicidade explícita; multiplicidade entre entidades altera cardinalidade e não cria atributo multivalorado; atributos da entidade ficam somente nela; cardinalidades fiéis ao texto. Generalização/especialização usa k, s para um supertipo e d para um ou mais subtipos, sem p ou cardinalidades; só use-a quando o texto afirmar relação de \"é um\", \"tipo de\", \"categoria\" ou especialização. \"Pode realizar, possuir, conter ou participar\" indica associação, não generalização. Mantenha atributos comuns no supertipo e específicos nos subtipos sem duplicação. Para o mesmo supertipo e a mesma classificação, gere um único item de generalização e reúna todos os subtipos em d; nunca gere um Gen por subtipo nem um Gen sem s. Se um Gen inválido não tiver supertipo e o texto não trouxer hierarquia explícita, corrija-o para relacionamento comum em vez de inventar s. Una frases inversas que descrevam o mesmo relacionamento. Preserve todas as entidades e relações explícitas e não deixe isolada uma entidade relacionada no texto.\n\nRetorne somente o JSON compacto aceito pelo schema, usando as mesmas chaves e códigos da entrada inválida. Não gere ids internos, metadata ou descriptions; use flags apenas para valores verdadeiros e omita arrays opcionais vazios."
+          }
+        ],
+        "format": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "e": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "n": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "a": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "t": {
+                          "type": "string",
+                          "enum": [
+                            "s",
+                            "n",
+                            "b",
+                            "d",
+                            "dt",
+                            "t",
+                            "dec",
+                            "u",
+                            "e",
+                            "p",
+                            "x"
+                          ]
+                        },
+                        "f": {
+                          "description": "c e m são independentes; m exige multiplicidade explícita; i exige chave explícita.",
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "i",
+                              "r",
+                              "u",
+                              "m",
+                              "c",
+                              "d"
+                            ]
+                          }
+                        },
+                        "c": {
+                          "description": "Sua presença exige a flag c no atributo pai.",
+                          "minItems": 1,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "n": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "t": {
+                                "type": "string",
+                                "enum": [
+                                  "s",
+                                  "n",
+                                  "b",
+                                  "d",
+                                  "dt",
+                                  "t",
+                                  "dec",
+                                  "u",
+                                  "e",
+                                  "p",
+                                  "x"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "n",
+                              "t"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "t"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "n"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "r": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "n": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "k": {
+                        "description": "Relacionamento comum ou identificador entre entidades participantes.",
+                        "type": "string",
+                        "enum": [
+                          "relationship",
+                          "identifying-relationship"
+                        ]
+                      },
+                      "p": {
+                        "minItems": 2,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "e": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "c": {
+                              "type": "string",
+                              "enum": [
+                                "1",
+                                "N"
+                              ],
+                              "description": "Cardinalidade exibida ao lado desta entidade no DER. Em \"A possui vários B e cada B pertence a um A\", A usa \"1\" e B usa \"N\"; não inverta os participantes."
+                            }
+                          },
+                          "required": [
+                            "e",
+                            "c"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "a": {
+                        "description": "Dados que dependem da associação; nomes de entidades participantes não são atributos.",
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "t": {
+                              "type": "string",
+                              "enum": [
+                                "s",
+                                "n",
+                                "b",
+                                "d",
+                                "dt",
+                                "t",
+                                "dec",
+                                "u",
+                                "e",
+                                "p",
+                                "x"
+                              ]
+                            },
+                            "f": {
+                              "description": "c e m são independentes; m exige multiplicidade explícita; i exige chave explícita.",
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "i",
+                                  "r",
+                                  "u",
+                                  "m",
+                                  "c",
+                                  "d"
+                                ]
+                              }
+                            },
+                            "c": {
+                              "description": "Sua presença exige a flag c no atributo pai.",
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "n": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "t": {
+                                    "type": "string",
+                                    "enum": [
+                                      "s",
+                                      "n",
+                                      "b",
+                                      "d",
+                                      "dt",
+                                      "t",
+                                      "dec",
+                                      "u",
+                                      "e",
+                                      "p",
+                                      "x"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "n",
+                                  "t"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "t"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "n",
+                      "p"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "n": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "k": {
+                        "type": "string",
+                        "enum": [
+                          "generalization",
+                          "specialization"
+                        ]
+                      },
+                      "s": {
+                        "type": "string",
+                        "minLength": 1,
+                        "description": "Nome da única entidade supertipo."
+                      },
+                      "d": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "description": "Nomes de uma ou mais entidades subtipos."
+                      }
+                    },
+                    "required": [
+                      "n",
+                      "k",
+                      "s",
+                      "d"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "q": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "e",
+            "r"
+          ],
+          "additionalProperties": false
+        },
+        "stream": true,
+        "think": false,
+        "keep_alive": "10m",
+        "options": {
+          "temperature": 0,
+          "num_ctx": 4096,
+          "num_predict": 1536,
+          "repeat_penalty": 1.05
+        }
+      },
+      "httpStatus": 200,
+      "elapsedMs": 11126.8,
+      "rawStream": "{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:18.67258Z\",\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:18.727526Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:18.781865Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:18.835925Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:18.890475Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:18.945003Z\",\"message\":{\"role\":\"assistant\",\"content\":\"program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:18.999112Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.056709Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.116238Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.174243Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.234175Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.298145Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.364917Z\",\"message\":{\"role\":\"assistant\",\"content\":\"titulo\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.433323Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.502125Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.567338Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.633255Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.702292Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.770187Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.838174Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.906729Z\",\"message\":{\"role\":\"assistant\",\"content\":\"categoria\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:19.97716Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.04653Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.11642Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.186973Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.258723Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.331375Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.40422Z\",\"message\":{\"role\":\"assistant\",\"content\":\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.478299Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.551743Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.626533Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ep\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.701614Z\",\"message\":{\"role\":\"assistant\",\"content\":\"is\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.776561Z\",\"message\":{\"role\":\"assistant\",\"content\":\"od\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.852557Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:20.928635Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.004749Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.080983Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.158634Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.236894Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.314751Z\",\"message\":{\"role\":\"assistant\",\"content\":\"nome\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.392543Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.469667Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.546481Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.622604Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.6987Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.774787Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.851044Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:21.927281Z\",\"message\":{\"role\":\"assistant\",\"content\":\"dur\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.008629Z\",\"message\":{\"role\":\"assistant\",\"content\":\"acao\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.098835Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.17743Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.255086Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.331192Z\",\"message\":{\"role\":\"assistant\",\"content\":\"d\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.407129Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.482351Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.557079Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.631359Z\",\"message\":{\"role\":\"assistant\",\"content\":\"data\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.707697Z\",\"message\":{\"role\":\"assistant\",\"content\":\"_public\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.781736Z\",\"message\":{\"role\":\"assistant\",\"content\":\"acao\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.855336Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:22.929678Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.001985Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.074827Z\",\"message\":{\"role\":\"assistant\",\"content\":\"d\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.147576Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.22448Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.298507Z\",\"message\":{\"role\":\"assistant\",\"content\":\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.371919Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.444938Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.517233Z\",\"message\":{\"role\":\"assistant\",\"content\":\"present\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.590124Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.662627Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.7392Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.826176Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.906971Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:23.983172Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.059496Z\",\"message\":{\"role\":\"assistant\",\"content\":\"nome\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.134683Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.209724Z\",\"message\":{\"role\":\"assistant\",\"content\":\"t\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.284645Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.359765Z\",\"message\":{\"role\":\"assistant\",\"content\":\"s\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.43349Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.50756Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.581665Z\",\"message\":{\"role\":\"assistant\",\"content\":\"],\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.65512Z\",\"message\":{\"role\":\"assistant\",\"content\":\"r\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.729391Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.802778Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.877556Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:24.950918Z\",\"message\":{\"role\":\"assistant\",\"content\":\"cont\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.025248Z\",\"message\":{\"role\":\"assistant\",\"content\":\"em\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.099761Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.17388Z\",\"message\":{\"role\":\"assistant\",\"content\":\"p\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.247963Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.321624Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.396379Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.470287Z\",\"message\":{\"role\":\"assistant\",\"content\":\"program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.544785Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.618676Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.692811Z\",\"message\":{\"role\":\"assistant\",\"content\":\"c\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.767414Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.842029Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.916286Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:25.990404Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.064782Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.138794Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ep\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.213087Z\",\"message\":{\"role\":\"assistant\",\"content\":\"is\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.287083Z\",\"message\":{\"role\":\"assistant\",\"content\":\"od\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.361665Z\",\"message\":{\"role\":\"assistant\",\"content\":\"io\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.435697Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.510225Z\",\"message\":{\"role\":\"assistant\",\"content\":\"c\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.584195Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.658468Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.732845Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.806834Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.881363Z\",\"message\":{\"role\":\"assistant\",\"content\":\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:26.955136Z\",\"message\":{\"role\":\"assistant\",\"content\":\"n\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.029677Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.103704Z\",\"message\":{\"role\":\"assistant\",\"content\":\"con\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.178148Z\",\"message\":{\"role\":\"assistant\",\"content\":\"du\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.25365Z\",\"message\":{\"role\":\"assistant\",\"content\":\"z\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.327803Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.401372Z\",\"message\":{\"role\":\"assistant\",\"content\":\"p\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.475572Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":[{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.549349Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.623129Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.697187Z\",\"message\":{\"role\":\"assistant\",\"content\":\"present\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.770769Z\",\"message\":{\"role\":\"assistant\",\"content\":\"ador\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.844838Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.918442Z\",\"message\":{\"role\":\"assistant\",\"content\":\"c\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:27.992479Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.066252Z\",\"message\":{\"role\":\"assistant\",\"content\":\"N\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.140296Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"},{\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.214676Z\",\"message\":{\"role\":\"assistant\",\"content\":\"e\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.289392Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.364267Z\",\"message\":{\"role\":\"assistant\",\"content\":\"program\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.438659Z\",\"message\":{\"role\":\"assistant\",\"content\":\"a\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.513397Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\",\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.587711Z\",\"message\":{\"role\":\"assistant\",\"content\":\"c\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.662418Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\":\\\"\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.736611Z\",\"message\":{\"role\":\"assistant\",\"content\":\"1\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.811443Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\\\"}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.885687Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:28.960184Z\",\"message\":{\"role\":\"assistant\",\"content\":\"]}\"},\"done\":false}\n{\"model\":\"qwen2.5:7b-instruct\",\"created_at\":\"2026-10-14T15:14:29.036078Z\",\"message\":{\"role\":\"assistant\",\"content\":\"\"},\"done\":true,\"done_reason\":\"stop\",\"total_duration\":11122108666,\"load_duration\":1971291,\"prompt_eval_count\":1797,\"prompt_eval_cached_count\":1796,\"prompt_eval_duration\":70104000,\"eval_count\":143,\"eval_duration\":10361786000}\n",
+      "assistantContent": "{\"e\":[{\"n\":\"programa\",\"a\":[{\"n\":\"titulo\",\"t\":\"s\"},{\"n\":\"categoria\",\"t\":\"s\"}]},{\"n\":\"episodio\",\"a\":[{\"n\":\"nome\",\"t\":\"s\"},{\"n\":\"duracao\",\"t\":\"d\"},{\"n\":\"data_publicacao\",\"t\":\"d\"}]},{\"n\":\"presentador\",\"a\":[{\"n\":\"nome\",\"t\":\"s\"}]}],\"r\":[{\"n\":\"contem\",\"p\":[{\"e\":\"programa\",\"c\":\"1\"},{\"e\":\"episodio\",\"c\":\"N\"}]},{\"n\":\"conduz\",\"p\":[{\"e\":\"presentador\",\"c\":\"N\"},{\"e\":\"programa\",\"c\":\"1\"}]}]}",
+      "finalMetrics": {
+        "total_duration": 11122108666,
+        "load_duration": 1971291,
+        "prompt_eval_count": 1797,
+        "prompt_eval_duration": 70104000,
+        "eval_count": 143,
+        "eval_duration": 10361786000
+      }
+    }
+  ],
+  "stages": [
+    {
+      "stage": "generation-initial",
+      "elapsedMs": 19327.2,
+      "model": {
+        "metadata": {
+          "sourceText": "Um programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.",
+          "generatedBy": "qwen2.5:7b-instruct",
+          "generatedAt": "2026-10-14T15:14:17.891Z"
+        },
+        "entities": [
+          {
+            "id": "programa",
+            "name": "programa",
+            "attributes": [
+              {
+                "id": "titulo",
+                "name": "titulo",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "categoria",
+                "name": "categoria",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "presentador",
+                "name": "presentador",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": true,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "episodio",
+            "name": "episodio",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "duracao",
+                "name": "duracao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "data_publicacao",
+                "name": "data_publicacao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "presentador",
+            "name": "presentador",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          }
+        ],
+        "standaloneAttributes": [],
+        "relationships": [
+          {
+            "id": "contem_1",
+            "name": "contem",
+            "type": "N:N",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entityId": "programa",
+                "cardinality": "N"
+              },
+              {
+                "entityId": "episodio",
+                "cardinality": "N"
+              }
+            ],
+            "subtypeIds": [],
+            "subtypeHandles": {},
+            "attributes": [
+              {
+                "id": "presentador",
+                "name": "presentador",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": true,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "gen_2",
+            "name": "Gen",
+            "type": "1:N",
+            "kind": "generalization",
+            "participants": [],
+            "supertypeId": "presentador",
+            "subtypeIds": [
+              "programa"
+            ],
+            "subtypeHandles": {},
+            "attributes": []
+          }
+        ],
+        "ambiguities": []
+      },
+      "zod": {
+        "valid": false,
+        "issues": [
+          {
+            "path": [
+              "relationships",
+              0,
+              "attributes",
+              0
+            ],
+            "message": "O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento."
+          },
+          {
+            "path": [
+              "relationships",
+              0,
+              "attributes",
+              0
+            ],
+            "message": "Uma entidade existente deve participar do relacionamento, não ser representada como atributo."
+          },
+          {
+            "path": [
+              "relationships",
+              1,
+              "kind"
+            ],
+            "message": "Generalização exige evidência explícita de supertipo e subtipo; uma associação com cardinalidade deve ser relacionamento comum."
+          }
+        ]
+      },
+      "summary": {
+        "entities": [
+          "programa",
+          "episodio",
+          "presentador"
+        ],
+        "relationships": [
+          {
+            "name": "contem",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entity": "programa",
+                "cardinality": "N"
+              },
+              {
+                "entity": "episodio",
+                "cardinality": "N"
+              }
+            ]
+          },
+          {
+            "name": "Gen",
+            "kind": "generalization",
+            "participants": []
+          }
+        ]
+      }
+    },
+    {
+      "stage": "heuristics-initial",
+      "elapsedMs": 4.6,
+      "model": {
+        "metadata": {
+          "sourceText": "Um programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.",
+          "generatedBy": "qwen2.5:7b-instruct",
+          "generatedAt": "2026-10-14T15:14:17.891Z"
+        },
+        "entities": [
+          {
+            "id": "programa",
+            "name": "programa",
+            "attributes": [
+              {
+                "id": "titulo",
+                "name": "titulo",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "categoria",
+                "name": "categoria",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "presentador",
+                "name": "presentador",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": true,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "episodio",
+            "name": "episodio",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "duracao",
+                "name": "duracao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "data_publicacao",
+                "name": "data_publicacao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "presentador",
+            "name": "presentador",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          }
+        ],
+        "standaloneAttributes": [],
+        "relationships": [
+          {
+            "id": "contem_1",
+            "name": "contem",
+            "type": "1:N",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entityId": "programa",
+                "cardinality": "1"
+              },
+              {
+                "entityId": "episodio",
+                "cardinality": "N"
+              }
+            ],
+            "subtypeIds": [],
+            "subtypeHandles": {},
+            "attributes": [
+              {
+                "id": "presentador",
+                "name": "presentador",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": true,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "gen_2",
+            "name": "Gen",
+            "type": "1:N",
+            "kind": "generalization",
+            "participants": [],
+            "supertypeId": "presentador",
+            "subtypeIds": [
+              "programa"
+            ],
+            "subtypeHandles": {},
+            "attributes": []
+          }
+        ],
+        "ambiguities": []
+      },
+      "unresolved": [],
+      "zod": {
+        "valid": false,
+        "issues": [
+          {
+            "path": [
+              "relationships",
+              0,
+              "attributes",
+              0
+            ],
+            "message": "O mesmo atributo não deve ser duplicado em uma entidade participante e no relacionamento."
+          },
+          {
+            "path": [
+              "relationships",
+              0,
+              "attributes",
+              0
+            ],
+            "message": "Uma entidade existente deve participar do relacionamento, não ser representada como atributo."
+          },
+          {
+            "path": [
+              "relationships",
+              1,
+              "kind"
+            ],
+            "message": "Generalização exige evidência explícita de supertipo e subtipo; uma associação com cardinalidade deve ser relacionamento comum."
+          }
+        ]
+      },
+      "summary": {
+        "entities": [
+          "programa",
+          "episodio",
+          "presentador"
+        ],
+        "relationships": [
+          {
+            "name": "contem",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entity": "programa",
+                "cardinality": "1"
+              },
+              {
+                "entity": "episodio",
+                "cardinality": "N"
+              }
+            ]
+          },
+          {
+            "name": "Gen",
+            "kind": "generalization",
+            "participants": []
+          }
+        ]
+      }
+    },
+    {
+      "stage": "generation-repair",
+      "elapsedMs": 11131.7,
+      "model": {
+        "metadata": {
+          "sourceText": "Um programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.",
+          "generatedBy": "qwen2.5:7b-instruct",
+          "generatedAt": "2026-10-14T15:14:29.041Z"
+        },
+        "entities": [
+          {
+            "id": "programa",
+            "name": "programa",
+            "attributes": [
+              {
+                "id": "titulo",
+                "name": "titulo",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "categoria",
+                "name": "categoria",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "episodio",
+            "name": "episodio",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "duracao",
+                "name": "duracao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "data_publicacao",
+                "name": "data_publicacao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "presentador",
+            "name": "presentador",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          }
+        ],
+        "standaloneAttributes": [],
+        "relationships": [
+          {
+            "id": "contem_1",
+            "name": "contem",
+            "type": "1:N",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entityId": "programa",
+                "cardinality": "1"
+              },
+              {
+                "entityId": "episodio",
+                "cardinality": "N"
+              }
+            ],
+            "subtypeIds": [],
+            "subtypeHandles": {},
+            "attributes": []
+          },
+          {
+            "id": "conduz_2",
+            "name": "conduz",
+            "type": "1:N",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entityId": "presentador",
+                "cardinality": "N"
+              },
+              {
+                "entityId": "programa",
+                "cardinality": "1"
+              }
+            ],
+            "subtypeIds": [],
+            "subtypeHandles": {},
+            "attributes": []
+          }
+        ],
+        "ambiguities": []
+      },
+      "zod": {
+        "valid": true,
+        "issues": []
+      },
+      "summary": {
+        "entities": [
+          "programa",
+          "episodio",
+          "presentador"
+        ],
+        "relationships": [
+          {
+            "name": "contem",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entity": "programa",
+                "cardinality": "1"
+              },
+              {
+                "entity": "episodio",
+                "cardinality": "N"
+              }
+            ]
+          },
+          {
+            "name": "conduz",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entity": "presentador",
+                "cardinality": "N"
+              },
+              {
+                "entity": "programa",
+                "cardinality": "1"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "stage": "heuristics-after-repair",
+      "elapsedMs": 0.8,
+      "model": {
+        "metadata": {
+          "sourceText": "Um programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.",
+          "generatedBy": "qwen2.5:7b-instruct",
+          "generatedAt": "2026-10-14T15:14:29.041Z"
+        },
+        "entities": [
+          {
+            "id": "programa",
+            "name": "programa",
+            "attributes": [
+              {
+                "id": "titulo",
+                "name": "titulo",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "categoria",
+                "name": "categoria",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "episodio",
+            "name": "episodio",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "duracao",
+                "name": "duracao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              },
+              {
+                "id": "data_publicacao",
+                "name": "data_publicacao",
+                "type": "date",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          },
+          {
+            "id": "presentador",
+            "name": "presentador",
+            "attributes": [
+              {
+                "id": "nome",
+                "name": "nome",
+                "type": "string",
+                "identifier": false,
+                "required": false,
+                "unique": false,
+                "multivalued": false,
+                "composite": false,
+                "derived": false,
+                "components": []
+              }
+            ]
+          }
+        ],
+        "standaloneAttributes": [],
+        "relationships": [
+          {
+            "id": "contem_1",
+            "name": "contem",
+            "type": "1:N",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entityId": "programa",
+                "cardinality": "1"
+              },
+              {
+                "entityId": "episodio",
+                "cardinality": "N"
+              }
+            ],
+            "subtypeIds": [],
+            "subtypeHandles": {},
+            "attributes": []
+          },
+          {
+            "id": "conduz_2",
+            "name": "conduz",
+            "type": "1:N",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entityId": "presentador",
+                "cardinality": "N"
+              },
+              {
+                "entityId": "programa",
+                "cardinality": "1"
+              }
+            ],
+            "subtypeIds": [],
+            "subtypeHandles": {},
+            "attributes": []
+          }
+        ],
+        "ambiguities": []
+      },
+      "unresolved": [],
+      "zod": {
+        "valid": true,
+        "issues": []
+      },
+      "summary": {
+        "entities": [
+          "programa",
+          "episodio",
+          "presentador"
+        ],
+        "relationships": [
+          {
+            "name": "contem",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entity": "programa",
+                "cardinality": "1"
+              },
+              {
+                "entity": "episodio",
+                "cardinality": "N"
+              }
+            ]
+          },
+          {
+            "name": "conduz",
+            "kind": "relationship",
+            "participants": [
+              {
+                "entity": "presentador",
+                "cardinality": "N"
+              },
+              {
+                "entity": "programa",
+                "cardinality": "1"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "timingsMs": {
+    "ambiguityAnalysis": 24156.9,
+    "generationIncludingRepair": 30484.4,
+    "total": 54642.8
+  },
+  "analysis": {
+    "requiresClarification": false,
+    "questions": []
+  },
+  "clarifications": {
+    "answers": [],
+    "unresolved": []
+  },
+  "final": {
+    "model": {
+      "metadata": {
+        "sourceText": "Um programa de áudio possui título e categoria. Cada episódio possui nome, duração e data de publicação. Um programa contém vários episódios; cada episódio pertence a um programa. Apresentadores possuem nome. Um apresentador pode conduzir vários programas e um programa pode ter vários apresentadores.",
+        "generatedBy": "qwen2.5:7b-instruct",
+        "generatedAt": "2026-10-14T15:14:29.041Z"
+      },
+      "entities": [
+        {
+          "id": "programa",
+          "name": "programa",
+          "attributes": [
+            {
+              "id": "titulo",
+              "name": "titulo",
+              "type": "string",
+              "identifier": false,
+              "required": false,
+              "unique": false,
+              "multivalued": false,
+              "composite": false,
+              "derived": false,
+              "components": []
+            },
+            {
+              "id": "categoria",
+              "name": "categoria",
+              "type": "string",
+              "identifier": false,
+              "required": false,
+              "unique": false,
+              "multivalued": false,
+              "composite": false,
+              "derived": false,
+              "components": []
+            }
+          ]
+        },
+        {
+          "id": "episodio",
+          "name": "episodio",
+          "attributes": [
+            {
+              "id": "nome",
+              "name": "nome",
+              "type": "string",
+              "identifier": false,
+              "required": false,
+              "unique": false,
+              "multivalued": false,
+              "composite": false,
+              "derived": false,
+              "components": []
+            },
+            {
+              "id": "duracao",
+              "name": "duracao",
+              "type": "date",
+              "identifier": false,
+              "required": false,
+              "unique": false,
+              "multivalued": false,
+              "composite": false,
+              "derived": false,
+              "components": []
+            },
+            {
+              "id": "data_publicacao",
+              "name": "data_publicacao",
+              "type": "date",
+              "identifier": false,
+              "required": false,
+              "unique": false,
+              "multivalued": false,
+              "composite": false,
+              "derived": false,
+              "components": []
+            }
+          ]
+        },
+        {
+          "id": "presentador",
+          "name": "presentador",
+          "attributes": [
+            {
+              "id": "nome",
+              "name": "nome",
+              "type": "string",
+              "identifier": false,
+              "required": false,
+              "unique": false,
+              "multivalued": false,
+              "composite": false,
+              "derived": false,
+              "components": []
+            }
+          ]
+        }
+      ],
+      "standaloneAttributes": [],
+      "relationships": [
+        {
+          "id": "contem_1",
+          "name": "contem",
+          "type": "1:N",
+          "kind": "relationship",
+          "participants": [
+            {
+              "entityId": "programa",
+              "cardinality": "1"
+            },
+            {
+              "entityId": "episodio",
+              "cardinality": "N"
+            }
+          ],
+          "attributes": [],
+          "subtypeIds": [],
+          "subtypeHandles": {}
+        },
+        {
+          "id": "conduz_2",
+          "name": "conduz",
+          "type": "1:N",
+          "kind": "relationship",
+          "participants": [
+            {
+              "entityId": "presentador",
+              "cardinality": "N"
+            },
+            {
+              "entityId": "programa",
+              "cardinality": "1"
+            }
+          ],
+          "attributes": [],
+          "subtypeIds": [],
+          "subtypeHandles": {}
+        }
+      ],
+      "ambiguities": []
+    },
+    "zod": {
+      "valid": true,
+      "issues": []
+    },
+    "summary": {
+      "entities": [
+        "programa",
+        "episodio",
+        "presentador"
+      ],
+      "relationships": [
+        {
+          "name": "contem",
+          "kind": "relationship",
+          "participants": [
+            {
+              "entity": "programa",
+              "cardinality": "1"
+            },
+            {
+              "entity": "episodio",
+              "cardinality": "N"
+            }
+          ]
+        },
+        {
+          "name": "conduz",
+          "kind": "relationship",
+          "participants": [
+            {
+              "entity": "presentador",
+              "cardinality": "N"
+            },
+            {
+              "entity": "programa",
+              "cardinality": "1"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

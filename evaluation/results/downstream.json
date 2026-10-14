@@ -1,0 +1,756 @@
+[
+  {
+    "scenarioId": "S01",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 371
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 383
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 383
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 407
+      }
+    },
+    "logicalTables": 2
+  },
+  {
+    "scenarioId": "S01",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 371
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 383
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 383
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 407
+      }
+    },
+    "logicalTables": 2
+  },
+  {
+    "scenarioId": "S01",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 371
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 383
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 383
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 407
+      }
+    },
+    "logicalTables": 2
+  },
+  {
+    "scenarioId": "S02",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 473
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 485
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 485
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 509
+      }
+    },
+    "logicalTables": 2
+  },
+  {
+    "scenarioId": "S02",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 473
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 485
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 485
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 509
+      }
+    },
+    "logicalTables": 2
+  },
+  {
+    "scenarioId": "S02",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 473
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 485
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 485
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 509
+      }
+    },
+    "logicalTables": 2
+  },
+  {
+    "scenarioId": "S03",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 763
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 779
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 779
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 819
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S03",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 763
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 779
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 779
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 819
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S03",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 763
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 779
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 779
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 819
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S04",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 822
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 838
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 838
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 870
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S04",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 822
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 838
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 838
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 870
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S04",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 822
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 838
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 838
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 870
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S05",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 876
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 892
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 892
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 924
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S05",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 876
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 892
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 892
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 924
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S05",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 876
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 892
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 892
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 924
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S06",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 753
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 769
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 769
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 809
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S06",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 753
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 769
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 769
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 809
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S06",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 753
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 769
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 769
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 809
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S07",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 530
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 546
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 546
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 578
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S07",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 530
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 546
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 546
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 578
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S07",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 530
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 546
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 546
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 578
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S08",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 815
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 835
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 835
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 875
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S08",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 815
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 835
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 835
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 875
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S08",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 815
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 835
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 835
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 875
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S09",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 837
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 857
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 857
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 906
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S09",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 837
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 857
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 857
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 906
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S09",
+    "repetition": 3,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 837
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 857
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 857
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 906
+      }
+    },
+    "logicalTables": 3
+  },
+  {
+    "scenarioId": "S10",
+    "repetition": 1,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 1165
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 1189
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 1189
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 1246
+      }
+    },
+    "logicalTables": 4
+  },
+  {
+    "scenarioId": "S10",
+    "repetition": 2,
+    "conceptualValid": true,
+    "logicalValid": true,
+    "reverseValid": true,
+    "sql": {
+      "postgresql": {
+        "valid": true,
+        "bytes": 1165
+      },
+      "mysql": {
+        "valid": true,
+        "bytes": 1189
+      },
+      "mariadb": {
+        "valid": true,
+        "bytes": 1189
+      },
+      "sqlserver": {
+        "valid": true,
+        "bytes": 1246
+      }
+    },
+    "logicalTables": 4
+  }
+]

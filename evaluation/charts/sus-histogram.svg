@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="276" viewBox="0 0 1120 276" role="img" aria-labelledby="chart-title">
+<title id="chart-title">Distribuição SUS</title>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="35" font-family="Arial" font-size="22" font-weight="bold" fill="#20243a">Distribuição SUS</text>
+<text x="24" y="58" font-family="Arial" font-size="13" fill="#596175">Frequências observadas, n=13; classes mutuamente exclusivas</text>
+<rect x="24" y="76" width="14" height="14" fill="#6e42cb"/>
+<text x="44" y="88" font-family="Arial" font-size="12" fill="#31364a">Participantes</text>
+<text x="24" y="130" font-family="Arial" font-size="13" fill="#31364a">70–79,9</text>
+<rect x="250" y="116" width="189.8" height="13" rx="3" fill="#6e42cb"/>
+<text x="447.8" y="127" font-family="Arial" font-size="11" fill="#31364a">2.0 pessoas</text>
+<text x="24" y="178" font-family="Arial" font-size="13" fill="#31364a">80–89,9</text>
+<rect x="250" y="164" width="284.7" height="13" rx="3" fill="#6e42cb"/>
+<text x="542.7" y="175" font-family="Arial" font-size="11" fill="#31364a">3.0 pessoas</text>
+<text x="24" y="226" font-family="Arial" font-size="13" fill="#31364a">90–100</text>
+<rect x="250" y="212" width="759.3" height="13" rx="3" fill="#6e42cb"/>
+<text x="1017.3" y="223" font-family="Arial" font-size="11" fill="#31364a">8.0 pessoas</text>
+</svg>

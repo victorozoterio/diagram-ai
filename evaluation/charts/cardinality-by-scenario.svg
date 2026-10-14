@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="612" viewBox="0 0 1120 612" role="img" aria-labelledby="chart-title">
+<title id="chart-title">Cardinalidade por cenário</title>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="35" font-family="Arial" font-size="22" font-weight="bold" fill="#20243a">Cardinalidade por cenário</text>
+<text x="24" y="58" font-family="Arial" font-size="13" fill="#596175">Percentual de extremidades corretas sobre todas as esperadas no gabarito</text>
+<rect x="24" y="76" width="14" height="14" fill="#6e42cb"/>
+<text x="44" y="88" font-family="Arial" font-size="12" fill="#31364a">Acurácia de cardinalidade</text>
+<text x="24" y="130" font-family="Arial" font-size="13" fill="#31364a">S01</text>
+<rect x="250" y="116" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="127" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="178" font-family="Arial" font-size="13" fill="#31364a">S02</text>
+<rect x="250" y="164" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="175" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="226" font-family="Arial" font-size="13" fill="#31364a">S03</text>
+<rect x="250" y="212" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="223" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="274" font-family="Arial" font-size="13" fill="#31364a">S04</text>
+<rect x="250" y="260" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="271" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="322" font-family="Arial" font-size="13" fill="#31364a">S05</text>
+<rect x="250" y="308" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="319" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="370" font-family="Arial" font-size="13" fill="#31364a">S06</text>
+<rect x="250" y="356" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="367" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="418" font-family="Arial" font-size="13" fill="#31364a">S07</text>
+<rect x="250" y="404" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="415" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="466" font-family="Arial" font-size="13" fill="#31364a">S08</text>
+<rect x="250" y="452" width="410.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="668.0" y="463" font-family="Arial" font-size="11" fill="#31364a">50.0%</text>
+<text x="24" y="514" font-family="Arial" font-size="13" fill="#31364a">S09</text>
+<rect x="250" y="500" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="511" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+<text x="24" y="562" font-family="Arial" font-size="13" fill="#31364a">S10</text>
+<rect x="250" y="548" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="559" font-family="Arial" font-size="11" fill="#31364a">100.0%</text>
+</svg>

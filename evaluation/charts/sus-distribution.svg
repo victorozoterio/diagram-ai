@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="800" viewBox="0 0 1120 800" role="img" aria-labelledby="chart-title">
+<title id="chart-title">Pontuações SUS observadas</title>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="35" font-family="Arial" font-size="22" font-weight="bold" fill="#20243a">Pontuações SUS observadas</text>
+<text x="24" y="58" font-family="Arial" font-size="13" fill="#596175">13 respostas anonimizadas; escala SUS 0–100; linha de referência 70 é textual</text>
+<rect x="24" y="76" width="14" height="14" fill="#6e42cb"/>
+<text x="44" y="88" font-family="Arial" font-size="12" fill="#31364a">SUS medido</text>
+<text x="24" y="130" font-family="Arial" font-size="13" fill="#31364a">P01</text>
+<rect x="250" y="116" width="779.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1037.0" y="127" font-family="Arial" font-size="11" fill="#31364a">95.0 pontos</text>
+<text x="24" y="178" font-family="Arial" font-size="13" fill="#31364a">P02</text>
+<rect x="250" y="164" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="175" font-family="Arial" font-size="11" fill="#31364a">100.0 pontos</text>
+<text x="24" y="226" font-family="Arial" font-size="13" fill="#31364a">P03</text>
+<rect x="250" y="212" width="779.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1037.0" y="223" font-family="Arial" font-size="11" fill="#31364a">95.0 pontos</text>
+<text x="24" y="274" font-family="Arial" font-size="13" fill="#31364a">P04</text>
+<rect x="250" y="260" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="271" font-family="Arial" font-size="11" fill="#31364a">100.0 pontos</text>
+<text x="24" y="322" font-family="Arial" font-size="13" fill="#31364a">P05</text>
+<rect x="250" y="308" width="738.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="996.0" y="319" font-family="Arial" font-size="11" fill="#31364a">90.0 pontos</text>
+<text x="24" y="370" font-family="Arial" font-size="13" fill="#31364a">P06</text>
+<rect x="250" y="356" width="676.5" height="13" rx="3" fill="#6e42cb"/>
+<text x="934.5" y="367" font-family="Arial" font-size="11" fill="#31364a">82.5 pontos</text>
+<text x="24" y="418" font-family="Arial" font-size="13" fill="#31364a">P07</text>
+<rect x="250" y="404" width="676.5" height="13" rx="3" fill="#6e42cb"/>
+<text x="934.5" y="415" font-family="Arial" font-size="11" fill="#31364a">82.5 pontos</text>
+<text x="24" y="466" font-family="Arial" font-size="13" fill="#31364a">P08</text>
+<rect x="250" y="452" width="820.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="1060.0" y="463" font-family="Arial" font-size="11" fill="#31364a">100.0 pontos</text>
+<text x="24" y="514" font-family="Arial" font-size="13" fill="#31364a">P09</text>
+<rect x="250" y="500" width="615.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="873.0" y="511" font-family="Arial" font-size="11" fill="#31364a">75.0 pontos</text>
+<text x="24" y="562" font-family="Arial" font-size="13" fill="#31364a">P10</text>
+<rect x="250" y="548" width="574.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="832.0" y="559" font-family="Arial" font-size="11" fill="#31364a">70.0 pontos</text>
+<text x="24" y="610" font-family="Arial" font-size="13" fill="#31364a">P11</text>
+<rect x="250" y="596" width="758.5" height="13" rx="3" fill="#6e42cb"/>
+<text x="1016.5" y="607" font-family="Arial" font-size="11" fill="#31364a">92.5 pontos</text>
+<text x="24" y="658" font-family="Arial" font-size="13" fill="#31364a">P12</text>
+<rect x="250" y="644" width="656.0" height="13" rx="3" fill="#6e42cb"/>
+<text x="914.0" y="655" font-family="Arial" font-size="11" fill="#31364a">80.0 pontos</text>
+<text x="24" y="706" font-family="Arial" font-size="13" fill="#31364a">P13</text>
+<rect x="250" y="692" width="799.5" height="13" rx="3" fill="#6e42cb"/>
+<text x="1057.5" y="703" font-family="Arial" font-size="11" fill="#31364a">97.5 pontos</text>
+<text x="24" y="781" font-family="Arial" font-size="11" fill="#596175">Média 89,23; mediana 92,5; desvio-padrão amostral 10,17; 13/13 ≥ 70.</text>
+</svg>

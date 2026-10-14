@@ -1,0 +1,64 @@
+{
+  "scenarioId": "S01",
+  "repetition": 1,
+  "status": "failed",
+  "metadata": {
+    "startedAt": "2026-10-14T14:50:42.629Z",
+    "commit": "69620e23d7b55ef5c55a91cbead6a594ad3ca95e",
+    "model": "qwen2.5:7b-instruct",
+    "baseUrl": "http://localhost:11434",
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "totalMemoryGiB": 16,
+    "finishedAt": "2026-10-14T14:50:42.658Z"
+  },
+  "scenario": {
+    "id": "S01",
+    "level": "simple",
+    "description": "Cada paciente possui nome e telefone. Cada consulta possui data e horário. Um paciente pode agendar várias consultas; cada consulta pertence a um único paciente."
+  },
+  "groundTruthStatus": "PRELIMINAR — pendente de revisão pelos autores e validação pelo orientador",
+  "calls": [],
+  "stages": [
+    {
+      "stage": "generation-initial",
+      "elapsedMs": 1,
+      "error": "ServiceUnavailableException: Não foi possível conectar ao Ollama. Verifique se ele está em execução."
+    }
+  ],
+  "timingsMs": {
+    "ambiguityAnalysis": 16.3,
+    "total": 17.7
+  },
+  "analysis": {
+    "requiresClarification": false,
+    "questions": []
+  },
+  "clarifications": {
+    "answers": [],
+    "unresolved": []
+  },
+  "error": {
+    "message": "Não foi possível conectar ao Ollama. Verifique se ele está em execução.",
+    "response": {
+      "code": "OLLAMA_UNAVAILABLE",
+      "message": "Não foi possível conectar ao Ollama. Verifique se ele está em execução.",
+      "ollama": {
+        "code": "connection_failed",
+        "name": "OllamaError",
+        "message": "Falha ao conectar ou enviar a requisição ao Ollama.",
+        "cause": {
+          "name": "TypeError",
+          "message": "fetch failed",
+          "cause": {
+            "name": "AggregateError",
+            "message": "",
+            "code": "EPERM"
+          }
+        }
+      }
+    }
+  }
+}
