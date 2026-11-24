@@ -1,6 +1,11 @@
 # Diagram.AI
 
-<img alt="Friendly Snout GIF" title="Friendly Snout GIF" src=".github/assets/project-preview.gif" width="100%" /> 
+<img
+alt="Project Preview GIF"
+title="Project Preview GIF"
+src=".github/assets/project-preview.gif"
+width="100%"
+/>
 
 O Diagram.AI é uma aplicação web para construir diagramas de banco de dados em dois níveis: **conceitual (notação Chen)** e **lógico (tabelas e colunas)**. O usuário pode modelar manualmente, descrever o domínio em texto ou ditar uma descrição em português. A IA auxilia a geração dos modelos, mas as conversões entre os dois níveis e a geração de SQL são determinísticas, implementadas no backend.
 
